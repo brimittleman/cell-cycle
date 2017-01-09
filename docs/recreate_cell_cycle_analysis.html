@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-09</p>
-<p><strong>Code version:</strong> ba322d5</p>
+<p><strong>Code version:</strong> 7fc8f3e</p>
 <p>General information for committing changes to the git gub site</p>
 <pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
@@ -340,12 +340,16 @@ make install</code></pre>
 <pre><code>
 sinteractive --mem=8g
 </code></pre>
+<p>The files from the assembly are in /home/brimittleman/software/share/mouseref.</p>
+<p><strong>NEED TO FIND ERCC SEQUENCES TO MAP TO AS WELL</strong> see : <a href="https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh" class="uri">https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh</a></p>
 </div>
 <div id="running-gsnap" class="section level4">
 <h4>Running GSNAP:</h4>
 <p>The general documentation looks like this. <code>gsnap --gunzip -d &lt;genome&gt; &lt;fastq_1.gz&gt; &lt;fastq_2.gz&gt;</code></p>
 <p>To test this I will start with running the program on cell 47.</p>
 <p>Files: <strong>ERR489047_2.fastq.gz</strong> <strong>ERR489047_1.fastq.gz</strong></p>
+<p>Code I am working on for this allignment. Not correct yet.</p>
+<pre><code>./gsnap --gunzip -d -D  ../share/mouseref ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz</code></pre>
 </div>
 
 <hr>
