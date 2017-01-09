@@ -16,6 +16,22 @@ knitr::read_chunk("chunks.R")
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
 
+General information for committing changes to the git gub site 
+
+``` 
+git add analysis/*.Rmd
+git commit "message"
+```
+Run `commit_site()` in R terminal.
+
+```
+ git push origin master
+```
+
+
+
+
+
 First I need to install the 2013-03-31 version of gmap in my directory on the midway cluster. I used the instructions in the INSTALL text file within the program folder downloaded from online.
 
 ```
@@ -24,15 +40,30 @@ make
 make install
 ```
 
-Download the mouse genome for mapping my reads from: http://may2012.archive.ensembl.org/Mus_musculus/Info/Index
+Download the mouse genome for mapping my reads from: http://may2012.archive.ensembl.org/Mus_musculus/Info/Index  
 
 
-Building the mouse reference database on gsnap:
+Building the mouse reference database on gsnap. These are some of the options in the function I will need to run the reference build.  
+
+```
     -D, --dir=STRING    destination ("/home/brimittleman/software"")
     
     -k, --kmer=INT      kmer value for gneome (default=15)
         
     -d, --db=STRING     Genome name
+    
+    -g                  if files are gziped 
+```
+Secifically I used this code to run the reference build. 
+
+```
+./gmap_build -g -D --dir=/home/brimittleman/software -d --db=Mouseref ../../mouse\ genome/*.fa.gz
+```
+
+Recieve errors:  
+
+The total length of genomic sequence exceeds 2^32 = 4,294,967,296 bp, which the GMAP index format cannot handle  
+failed with return code 2304 at ./gmap_build line 166.  
 
 
 
