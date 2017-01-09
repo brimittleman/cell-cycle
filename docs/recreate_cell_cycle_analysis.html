@@ -310,16 +310,30 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-09</p>
-<p><strong>Code version:</strong> 486e931</p>
+<p><strong>Code version:</strong> 9582f03</p>
+<p>General information for committing changes to the git gub site</p>
+<pre><code>git add analysis/*.Rmd
+git commit -m &quot;message&quot;</code></pre>
+<p>Run <code>commit_site()</code> in R terminal.</p>
+<pre><code> git push origin master</code></pre>
 <p>First I need to install the 2013-03-31 version of gmap in my directory on the midway cluster. I used the instructions in the INSTALL text file within the program folder downloaded from online.</p>
 <pre><code>./configure --prefix=/home/brimittleman/software 
 make
 make install</code></pre>
 <p>Download the mouse genome for mapping my reads from: <a href="http://may2012.archive.ensembl.org/Mus_musculus/Info/Index" class="uri">http://may2012.archive.ensembl.org/Mus_musculus/Info/Index</a></p>
-<p>Building the mouse reference database on gsnap: -D, –dir=STRING destination (“/home/brimittleman/software”“)</p>
-<pre><code>-k, --kmer=INT      kmer value for gneome (default=15)
+<p>Building the mouse reference database on gsnap. These are some of the options in the function I will need to run the reference build.</p>
+<pre><code>    -D, --dir=STRING    destination (&quot;/home/brimittleman/software&quot;&quot;)
     
--d, --db=STRING     Genome name</code></pre>
+    -k, --kmer=INT      kmer value for gneome (default=15)
+        
+    -d, --db=STRING     Genome name
+    
+    -g                  if files are gziped </code></pre>
+<p>Secifically I used this code to run the reference build.</p>
+<pre><code>./gmap_build -g -D --dir=/home/brimittleman/software -d --db=Mouseref ../../mouse\ genome/*.fa.gz</code></pre>
+<p>Recieve errors:</p>
+<p>The total length of genomic sequence exceeds 2^32 = 4,294,967,296 bp, which the GMAP index format cannot handle<br />
+failed with return code 2304 at ./gmap_build line 166.</p>
 
 <hr>
 <p>
