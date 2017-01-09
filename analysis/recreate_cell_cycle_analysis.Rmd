@@ -69,6 +69,11 @@ sinteractive --mem=8g
 
 ```
 
+The files from the assembly are in /home/brimittleman/software/share/mouseref. 
+
+**NEED TO FIND ERCC SEQUENCES TO MAP TO AS WELL**
+see : https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh
+
 #### Running GSNAP:  
 
 The general documentation looks like this. ```gsnap --gunzip -d <genome> <fastq_1.gz> <fastq_2.gz>```
@@ -77,7 +82,9 @@ To test this I will start with running the program on cell 47.
 
 Files: **ERR489047_2.fastq.gz** 
        **ERR489047_1.fastq.gz**   
-      
-    
 
+Code I am working on for this allignment. Not correct yet. 
 
+```
+./gsnap --gunzip -d -D  ../share/mouseref ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz
+```
