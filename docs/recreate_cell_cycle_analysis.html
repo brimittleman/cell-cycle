@@ -310,16 +310,21 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-09</p>
-<p><strong>Code version:</strong> 9582f03</p>
+<p><strong>Code version:</strong> ba322d5</p>
 <p>General information for committing changes to the git gub site</p>
 <pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
 <p>Run <code>commit_site()</code> in R terminal.</p>
 <pre><code> git push origin master</code></pre>
+<div id="configure-program" class="section level4">
+<h4>Configure program</h4>
 <p>First I need to install the 2013-03-31 version of gmap in my directory on the midway cluster. I used the instructions in the INSTALL text file within the program folder downloaded from online.</p>
 <pre><code>./configure --prefix=/home/brimittleman/software 
 make
 make install</code></pre>
+</div>
+<div id="build-reference" class="section level4">
+<h4>Build reference</h4>
 <p>Download the mouse genome for mapping my reads from: <a href="http://may2012.archive.ensembl.org/Mus_musculus/Info/Index" class="uri">http://may2012.archive.ensembl.org/Mus_musculus/Info/Index</a></p>
 <p>Building the mouse reference database on gsnap. These are some of the options in the function I will need to run the reference build.</p>
 <pre><code>    -D, --dir=STRING    destination (&quot;/home/brimittleman/software&quot;&quot;)
@@ -330,10 +335,18 @@ make install</code></pre>
     
     -g                  if files are gziped </code></pre>
 <p>Secifically I used this code to run the reference build.</p>
-<pre><code>./gmap_build -g -D --dir=/home/brimittleman/software -d --db=Mouseref ../../mouse\ genome/*.fa.gz</code></pre>
-<p>Recieve errors:</p>
-<p>The total length of genomic sequence exceeds 2^32 = 4,294,967,296 bp, which the GMAP index format cannot handle<br />
-failed with return code 2304 at ./gmap_build line 166.</p>
+<pre><code>./gmap_build -g -d mouseref ../../mouse\ genome/*dna.chrom*fa.gz</code></pre>
+<p>Submit this job to a computing node and requested 8g using command:</p>
+<pre><code>
+sinteractive --mem=8g
+</code></pre>
+</div>
+<div id="running-gsnap" class="section level4">
+<h4>Running GSNAP:</h4>
+<p>The general documentation looks like this. <code>gsnap --gunzip -d &lt;genome&gt; &lt;fastq_1.gz&gt; &lt;fastq_2.gz&gt;</code></p>
+<p>To test this I will start with running the program on cell 47.</p>
+<p>Files: <strong>ERR489047_2.fastq.gz</strong> <strong>ERR489047_1.fastq.gz</strong></p>
+</div>
 
 <hr>
 <p>
