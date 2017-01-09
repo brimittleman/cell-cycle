@@ -30,8 +30,7 @@ Run `commit_site()` in R terminal.
 
 
 
-
-
+#### Configure program
 First I need to install the 2013-03-31 version of gmap in my directory on the midway cluster. I used the instructions in the INSTALL text file within the program folder downloaded from online.
 
 ```
@@ -40,6 +39,8 @@ make
 make install
 ```
 
+
+#### Build reference 
 Download the mouse genome for mapping my reads from: http://may2012.archive.ensembl.org/Mus_musculus/Info/Index  
 
 
@@ -57,13 +58,26 @@ Building the mouse reference database on gsnap. These are some of the options in
 Secifically I used this code to run the reference build. 
 
 ```
-./gmap_build -g -D --dir=/home/brimittleman/software -d --db=Mouseref ../../mouse\ genome/*.fa.gz
+./gmap_build -g -d mouseref ../../mouse\ genome/*dna.chrom*fa.gz
+```
+  
+Submit this job to a computing node and requested 8g using command:  
+
 ```
 
-Recieve errors:  
+sinteractive --mem=8g
 
-The total length of genomic sequence exceeds 2^32 = 4,294,967,296 bp, which the GMAP index format cannot handle  
-failed with return code 2304 at ./gmap_build line 166.  
+```
 
+#### Running GSNAP:  
+
+The general documentation looks like this. ```gsnap --gunzip -d <genome> <fastq_1.gz> <fastq_2.gz>```
+
+To test this I will start with running the program on cell 47.  
+
+Files: **ERR489047_2.fastq.gz** 
+       **ERR489047_1.fastq.gz**   
+      
+    
 
 
