@@ -20,7 +20,7 @@ General information for committing changes to the git gub site
 
 ``` 
 git add analysis/*.Rmd
-git commit "message"
+git commit -m "message"
 ```
 Run `commit_site()` in R terminal.
 
