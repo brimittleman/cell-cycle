@@ -16,5 +16,23 @@ knitr::read_chunk("chunks.R")
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
 
-**THIS IS A TEST**
-I want this to commit to the website
+First I need to install the 2013-03-31 version of gmap in my directory on the midway cluster. I used the instructions in the INSTALL text file within the program folder downloaded from online.
+
+```
+./configure --prefix=/home/brimittleman/software 
+make
+make install
+```
+
+Download the mouse genome for mapping my reads from: http://may2012.archive.ensembl.org/Mus_musculus/Info/Index
+
+
+Building the mouse reference database on gsnap:
+    -D, --dir=STRING    destination ("/home/brimittleman/software"")
+    
+    -k, --kmer=INT      kmer value for gneome (default=15)
+        
+    -d, --db=STRING     Genome name
+
+
+
