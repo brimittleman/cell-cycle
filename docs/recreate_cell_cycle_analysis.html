@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-11</p>
-<p><strong>Code version:</strong> ac6336a</p>
+<p><strong>Code version:</strong> 67a32c4</p>
 <p>General information for committing changes to the git gub site</p>
 <pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
@@ -356,7 +356,10 @@ see : <a href="https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa
 <p>To test this I will start with running the program on cell 47.</p>
 <p>Files: <strong>ERR489047_2.fastq.gz</strong> <strong>ERR489047_1.fastq.gz</strong></p>
 <p>Code I am working on for this allignment. Not correct yet.</p>
-<pre><code>./gsnap --gunzip -d -D  ../share/mouseref_ERCC ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz</code></pre>
+<pre><code>./gsnap --gunzip -d --db=mouseref_ERCC -D --dir=software/share/ -m 10 scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz</code></pre>
+<p><strong>to have the correct default directory (seen by doing gmap –version), or use the -D flag to gmap to specify the correct genome directory.</strong> ```</p>
+<p>try unzipping the files :<br />
+gzip: ERR489047_1.fastq.gz: unexpected end of file</p>
 </div>
 
 <hr>
