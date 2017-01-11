@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-09</p>
-<p><strong>Code version:</strong> 7fc8f3e</p>
+<p><strong>Last updated:</strong> 2017-01-11</p>
+<p><strong>Code version:</strong> ac6336a</p>
 <p>General information for committing changes to the git gub site</p>
 <pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
@@ -341,7 +341,14 @@ make install</code></pre>
 sinteractive --mem=8g
 </code></pre>
 <p>The files from the assembly are in /home/brimittleman/software/share/mouseref.</p>
-<p><strong>NEED TO FIND ERCC SEQUENCES TO MAP TO AS WELL</strong> see : <a href="https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh" class="uri">https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh</a></p>
+<p>Download ERCC sequences to add to map.<br />
+see : <a href="https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh" class="uri">https://github.com/jdblischak/singleCellSeq/blob/2f6371b256829bfa799270909b6eea2814acf2a1/code/create-genome.sh</a></p>
+<pre><code>wget http://tools.thermofisher.com/downloads/ERCC92.fa
+</code></pre>
+<p>Combine the mouse reference and ERCC sequences and rebuild the genome. Need to unzip the mouse fastq files so I can run the build fucntion with the ERCC and the mouse files. Perform these commands in the mouse ref directory where the files are held.</p>
+<pre><code>gunzip *dna.chrom*fa.gz</code></pre>
+<p>In the software file I can now rerun the build with this command in the software/bin directory.</p>
+<pre><code> ./gmap_build -d mouseref_ERCC  ../../mouse\ genome/*.fa </code></pre>
 </div>
 <div id="running-gsnap" class="section level4">
 <h4>Running GSNAP:</h4>
@@ -349,7 +356,7 @@ sinteractive --mem=8g
 <p>To test this I will start with running the program on cell 47.</p>
 <p>Files: <strong>ERR489047_2.fastq.gz</strong> <strong>ERR489047_1.fastq.gz</strong></p>
 <p>Code I am working on for this allignment. Not correct yet.</p>
-<pre><code>./gsnap --gunzip -d -D  ../share/mouseref ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz</code></pre>
+<pre><code>./gsnap --gunzip -d -D  ../share/mouseref_ERCC ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz</code></pre>
 </div>
 
 <hr>
