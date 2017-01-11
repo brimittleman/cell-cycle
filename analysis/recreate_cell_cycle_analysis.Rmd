@@ -102,5 +102,12 @@ Files: **ERR489047_2.fastq.gz**
 Code I am working on for this allignment. Not correct yet. 
 
 ```
-./gsnap --gunzip -d -D  ../share/mouseref_ERCC ../../scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz
+./gsnap --gunzip -d --db=mouseref_ERCC -D --dir=software/share/ -m 10 scratch-midway/ERR489047_1.fastq.gz ../../scratch-midway/ERR489047_2.fastq.gz
 ```
+**to have the correct default directory (seen by doing gmap --version),
+or use the -D flag to gmap to specify the correct genome directory.** 
+```
+
+
+try unzipping the files :  
+gzip: ERR489047_1.fastq.gz: unexpected end of file  
