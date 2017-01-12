@@ -1,0 +1,17 @@
+---
+title: "Recreate Gilad lab single cell"
+author: "Brana Mittleman"
+date: "January 11, 2017"
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`

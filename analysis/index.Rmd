@@ -14,4 +14,6 @@ Specifically,
 [rmarkdown]: http://rmarkdown.rstudio.com/rmarkdown_websites.htm
 [rstudio]: https://www.rstudio.com/products/rstudio/download/preview/
 
-Click on [this](recreate_cell_cycle_analysis.html) to see my results.
+[Cell cycle single cell data](recreate_cell_cycle_analysis.html)
+
+[Gilad single cell recreation](recreate_giladsinglecell.html)
