@@ -15,3 +15,31 @@ knitr::read_chunk("chunks.R")
 **Last updated:** `r Sys.Date()`
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+
+I will use this to document my recreating of the single cell data processing from http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html.  
+
+####General information for committing changes to the git hub site: 
+
+``` 
+#in R
+git add analysis/*.Rmd
+git commit -m "message"
+```
+Run `commit_site()` in R terminal.
+
+```
+#in R
+ git push origin master
+```
+
+
+####Programs for analysis 
+First I need to document the programs I will need to add to midway to complete the processing recreation. 
+
+- umitools v2.1.1
+- sickle version 1.33
+- Subread version 1.5.0-p1
+- samtools version 0.1.18-dev (r982:313) 
+- UMI-tools (version e0ade5d)
+- featureCounts version 1.5.0-p1

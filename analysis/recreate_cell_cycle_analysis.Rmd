@@ -16,7 +16,7 @@ knitr::read_chunk("chunks.R")
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
 
-General information for committing changes to the git gub site 
+General information for committing changes to the git hub site 
 
 ``` 
 git add analysis/*.Rmd
