@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-13</p>
-<p><strong>Code version:</strong> 2447fec</p>
+<p><strong>Code version:</strong> 2f380b0</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
@@ -325,7 +325,7 @@ git commit -m &quot;message&quot;</code></pre>
 <h4>Programs for analysis</h4>
 <p>First I need to document the programs I will need to add to midway to complete the processing recreation.</p>
 <ul>
-<li>umitools v2.1.1</li>
+<li>umitools v2.1.1 -fastqc <strong>on midway- not told you need it in github commands!</strong></li>
 <li>sickle version 1.33</li>
 <li>Subread version 1.5.0-p1 <strong>on midway</strong></li>
 <li>samtools version 0.1.18-dev (r982:313) <strong>version 1.2 on midway</strong></li>
@@ -348,15 +348,39 @@ module unload [name]
 <pre><code>rm 19098.1*</code></pre>
 <p>Move to the midway cluster and move the files to a directory in scratch.</p>
 <pre><code>mv 19098.1* scratch-midway/19098.1 </code></pre>
+</div>
+<div id="create-genome-for-mapping" class="section level4">
+<h4>Create genome for mapping</h4>
 <p>Create a code directory for scripts.</p>
 <pre><code>mkdir code</code></pre>
 <p>Copy contents of create-genome.sh from John’s github to a script in my own directory using vi.</p>
 <pre><code>vi create-genome.sh</code></pre>
-<p>Use escape then :wq to write out file.</p>
+<p>Use escape then :wq to write out file. Make a file executable using the following:</p>
+<pre><code>chmod 700 &lt;file&gt;</code></pre>
 <p>Run each script seperatly:</p>
 <pre><code>sbatch --mem=8g --wrap=&quot;create-genome.sh genome&quot;</code></pre>
 <p>This submits the job.To view the job I use this command.</p>
 <pre><code>squeue -u brimittleman</code></pre>
+<p>Try this one command at a time in a genome directory. This is buiding the reference index genome for later transcriptome mapping.</p>
+<pre><code>mkdir genome
+cd genome
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr{1..22}.fa.gz
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr{X,Y,M}.fa.gz
+gunzip chr*fa.gz
+wget http://tools.invitrogen.com/downloads/ERCC92.fa
+#load subread
+subread-buildindex -o combined *.fa</code></pre>
+<p>I need to move data and scripts to the gilad project folder. scratch is not permanant.</p>
+<pre><code>mkdir /project/gilad/brimittleman</code></pre>
+</div>
+<div id="run-fastqc" class="section level4">
+<h4>Run FastQC</h4>
+<p>Create run-fastqc.sh file:</p>
+<pre><code>vi run-fastqc.sh
+chmod 700 run-fastqc.sh #make file executable</code></pre>
+<p>Load the fastqc package and submit the job to the cluster:</p>
+<pre><code>sbatch --mem=8g run-fastqc.sh ../19098.1/*fastq.gz</code></pre>
+<p>This only runs the fastqc for the first file. Need to learn how to wrap the code for each fastq file.</p>
 </div>
 
 <hr>
