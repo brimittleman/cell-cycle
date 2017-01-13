@@ -39,7 +39,55 @@ First I need to document the programs I will need to add to midway to complete t
 
 - umitools v2.1.1
 - sickle version 1.33
-- Subread version 1.5.0-p1
-- samtools version 0.1.18-dev (r982:313) 
+- Subread version 1.5.0-p1 **on midway**
+- samtools version 0.1.18-dev (r982:313) **version 1.2 on midway**
 - UMI-tools (version e0ade5d)
-- featureCounts version 1.5.0-p1
+- featureCounts version 1.5.0-p1 **i think this is a part of subread**
+
+To use modules on midway:
+```
+module load [name]
+module list #show loaded modules 
+module unload [name]
+
+```
+
+
+
+####Moving the files from pps to midway 
+First I copy the first individual, first plate from spudhead to gateway.  
+```
+scp 19098.1* pps-gateway
+```
+Move the files to midway:
+```
+scp 19098.1* brimittleman@midway.rcc.uchicago.edu:
+```
+Remove the files from gateway: 
+```
+rm 19098.1*
+```
+Move to the midway cluster and move the files to a directory in scratch. 
+```
+mv 19098.1* scratch-midway/19098.1 
+```
+
+Create a code directory for scripts. 
+```
+mkdir code
+```
+Copy contents of create-genome.sh from John's github to a script in my own directory using vi. 
+
+```
+vi create-genome.sh
+```
+Use escape then :wq to write out file.  
+
+Run each script seperatly:
+```
+sbatch --mem=8g --wrap="create-genome.sh genome"
+```
+This submits the job.To view the job I use this command.
+```
+squeue -u brimittleman
+```
