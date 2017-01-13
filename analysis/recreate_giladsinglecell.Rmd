@@ -127,10 +127,11 @@ chmod 700 run-fastqc.sh #make file executable
 ```
 Load the fastqc package and submit the job to the cluster: 
 ```
-sbatch --mem=8g run-fastqc.sh ../19098.1/*fastq.gz
+sbatch --mem=8g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz
 ```
-
 Run this command for each fastq. 
+
+Each new time: load fastqc, subread, samtools.
 
 
 
