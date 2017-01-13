@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-11</p>
-<p><strong>Code version:</strong> b775fbe</p>
+<p><strong>Last updated:</strong> 2017-01-13</p>
+<p><strong>Code version:</strong> 2447fec</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
@@ -327,11 +327,36 @@ git commit -m &quot;message&quot;</code></pre>
 <ul>
 <li>umitools v2.1.1</li>
 <li>sickle version 1.33</li>
-<li>Subread version 1.5.0-p1</li>
-<li>samtools version 0.1.18-dev (r982:313)</li>
+<li>Subread version 1.5.0-p1 <strong>on midway</strong></li>
+<li>samtools version 0.1.18-dev (r982:313) <strong>version 1.2 on midway</strong></li>
 <li>UMI-tools (version e0ade5d)</li>
-<li>featureCounts version 1.5.0-p1</li>
+<li>featureCounts version 1.5.0-p1 <strong>i think this is a part of subread</strong></li>
 </ul>
+<p>To use modules on midway:</p>
+<pre><code>module load [name]
+module list #show loaded modules 
+module unload [name]
+</code></pre>
+</div>
+<div id="moving-the-files-from-pps-to-midway" class="section level4">
+<h4>Moving the files from pps to midway</h4>
+<p>First I copy the first individual, first plate from spudhead to gateway.</p>
+<pre><code>scp 19098.1* pps-gateway</code></pre>
+<p>Move the files to midway:</p>
+<pre><code>scp 19098.1* brimittleman@midway.rcc.uchicago.edu:</code></pre>
+<p>Remove the files from gateway:</p>
+<pre><code>rm 19098.1*</code></pre>
+<p>Move to the midway cluster and move the files to a directory in scratch.</p>
+<pre><code>mv 19098.1* scratch-midway/19098.1 </code></pre>
+<p>Create a code directory for scripts.</p>
+<pre><code>mkdir code</code></pre>
+<p>Copy contents of create-genome.sh from John’s github to a script in my own directory using vi.</p>
+<pre><code>vi create-genome.sh</code></pre>
+<p>Use escape then :wq to write out file.</p>
+<p>Run each script seperatly:</p>
+<pre><code>sbatch --mem=8g --wrap=&quot;create-genome.sh genome&quot;</code></pre>
+<p>This submits the job.To view the job I use this command.</p>
+<pre><code>squeue -u brimittleman</code></pre>
 </div>
 
 <hr>
