@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-13</p>
-<p><strong>Code version:</strong> 2f380b0</p>
+<p><strong>Code version:</strong> cb64a4d</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
@@ -325,12 +325,12 @@ git commit -m &quot;message&quot;</code></pre>
 <h4>Programs for analysis</h4>
 <p>First I need to document the programs I will need to add to midway to complete the processing recreation.</p>
 <ul>
-<li>umitools v2.1.1 -fastqc <strong>on midway- not told you need it in github commands!</strong></li>
-<li>sickle version 1.33</li>
+<li><p>umitools v2.1.1 -fastqc <strong>on midway- not told you need it in github commands!</strong></p></li>
+<li>sickle version 1.33 <strong>used make function</strong></li>
 <li>Subread version 1.5.0-p1 <strong>on midway</strong></li>
 <li>samtools version 0.1.18-dev (r982:313) <strong>version 1.2 on midway</strong></li>
 <li>UMI-tools (version e0ade5d)</li>
-<li>featureCounts version 1.5.0-p1 <strong>i think this is a part of subread</strong></li>
+<li><p>featureCounts version 1.5.0-p1 <strong>i think this is a part of subread</strong></p></li>
 </ul>
 <p>To use modules on midway:</p>
 <pre><code>module load [name]
@@ -380,7 +380,7 @@ subread-buildindex -o combined *.fa</code></pre>
 chmod 700 run-fastqc.sh #make file executable</code></pre>
 <p>Load the fastqc package and submit the job to the cluster:</p>
 <pre><code>sbatch --mem=8g run-fastqc.sh ../19098.1/*fastq.gz</code></pre>
-<p>This only runs the fastqc for the first file. Need to learn how to wrap the code for each fastq file.</p>
+<p>Run this command for each fastq.</p>
 </div>
 
 <hr>
