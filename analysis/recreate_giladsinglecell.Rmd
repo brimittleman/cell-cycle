@@ -38,6 +38,7 @@ Run `commit_site()` in R terminal.
 First I need to document the programs I will need to add to midway to complete the processing recreation. 
 
 - umitools v2.1.1
+-fastqc **on midway- not told you need it in github commands!**
 - sickle version 1.33
 - Subread version 1.5.0-p1 **on midway**
 - samtools version 0.1.18-dev (r982:313) **version 1.2 on midway**
@@ -72,6 +73,7 @@ Move to the midway cluster and move the files to a directory in scratch.
 mv 19098.1* scratch-midway/19098.1 
 ```
 
+####Create genome for mapping
 Create a code directory for scripts. 
 ```
 mkdir code
@@ -81,7 +83,10 @@ Copy contents of create-genome.sh from John's github to a script in my own direc
 ```
 vi create-genome.sh
 ```
-Use escape then :wq to write out file.  
+Use escape then :wq to write out file.  Make a file executable using the following:
+```
+chmod 700 <file>
+```
 
 Run each script seperatly:
 ```
@@ -91,3 +96,38 @@ This submits the job.To view the job I use this command.
 ```
 squeue -u brimittleman
 ```
+
+Try this one command at a time in a genome directory. This is buiding the reference index genome for later transcriptome mapping. 
+```
+mkdir genome
+cd genome
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr{1..22}.fa.gz
+wget http://hgdownload.soe.ucsc.edu/goldenPath/hg19/chromosomes/chr{X,Y,M}.fa.gz
+gunzip chr*fa.gz
+wget http://tools.invitrogen.com/downloads/ERCC92.fa
+#load subread
+subread-buildindex -o combined *.fa
+```
+
+I need to move data and scripts to the gilad project folder. scratch is not permanant.
+
+```
+mkdir /project/gilad/brimittleman
+```
+
+
+####Run FastQC
+Create run-fastqc.sh file:
+
+```
+vi run-fastqc.sh
+chmod 700 run-fastqc.sh #make file executable
+```
+Load the fastqc package and submit the job to the cluster: 
+```
+sbatch --mem=8g run-fastqc.sh ../19098.1/*fastq.gz
+```
+This only runs the fastqc for the first file. Need to learn how to wrap the code for each fastq file. 
+
+
+
