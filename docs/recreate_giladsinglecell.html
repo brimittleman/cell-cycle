@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-13</p>
-<p><strong>Code version:</strong> cb64a4d</p>
+<p><strong>Code version:</strong> e35cd09</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
@@ -379,8 +379,9 @@ subread-buildindex -o combined *.fa</code></pre>
 <pre><code>vi run-fastqc.sh
 chmod 700 run-fastqc.sh #make file executable</code></pre>
 <p>Load the fastqc package and submit the job to the cluster:</p>
-<pre><code>sbatch --mem=8g run-fastqc.sh ../19098.1/*fastq.gz</code></pre>
+<pre><code>sbatch --mem=8g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz</code></pre>
 <p>Run this command for each fastq.</p>
+<p>Each new time: load fastqc, subread, samtools.</p>
 </div>
 
 <hr>
