@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-13</p>
-<p><strong>Code version:</strong> e35cd09</p>
+<p><strong>Last updated:</strong> 2017-01-16</p>
+<p><strong>Code version:</strong> d43717e</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
@@ -379,9 +379,26 @@ subread-buildindex -o combined *.fa</code></pre>
 <pre><code>vi run-fastqc.sh
 chmod 700 run-fastqc.sh #make file executable</code></pre>
 <p>Load the fastqc package and submit the job to the cluster:</p>
-<pre><code>sbatch --mem=8g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz</code></pre>
+<pre><code>sbatch --mem=2g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz</code></pre>
 <p>Run this command for each fastq.</p>
 <p>Each new time: load fastqc, subread, samtools.</p>
+<p>Files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end are empty. Cannot run the fast qc on these.</p>
+<pre><code>ls fastqc/ | wc -l
+#201
+grep -w success ~/log/run-fastqc.sh/* | wc -l
+#grep: /home/brimittleman/log/run-fastqc.sh/*: No such file or directory</code></pre>
+<p><strong>Where/what is the log file? I ran these 1 by 1 so maybe this doesn’t get created.</strong></p>
+</div>
+<div id="trim-umi" class="section level4">
+<h4>Trim UMI</h4>
+<p>Create the trim.sh script using the code from github in the code folder.</p>
+<pre><code>sbatch --mem=2g trim.sh ../19098.1/19098.1.A01.ATTAGACG.L002.R1.C6WYKACXX.fastq.gz
+#says bioawk not found</code></pre>
+<p>Try to run this on all of the files:</p>
+<pre><code> sbatch --mem=8g --wrap=&quot;./trim.sh ../19098.1/19098.1*&quot;
+#stops because bioawk is not found</code></pre>
+<p>Questions for Peter: - Why won’t bioawk work?</p>
+<p>Questions for John: - Why are files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end empty?</p>
 </div>
 
 <hr>
