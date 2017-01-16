@@ -127,12 +127,41 @@ chmod 700 run-fastqc.sh #make file executable
 ```
 Load the fastqc package and submit the job to the cluster: 
 ```
-sbatch --mem=8g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz
+sbatch --mem=2g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz
 ```
 Run this command for each fastq. 
 
-Each new time: load fastqc, subread, samtools.
+Each new time: load fastqc, subread, samtools.  
+
+Files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end are empty. Cannot run the fast qc on these.  
+
+```
+ls fastqc/ | wc -l
+#201
+grep -w success ~/log/run-fastqc.sh/* | wc -l
+#grep: /home/brimittleman/log/run-fastqc.sh/*: No such file or directory
+```
+
+**Where/what is the log file? I ran these 1 by 1 so maybe this doesn't get created.**
+
+####Trim UMI  
+Create the trim.sh script using the code from github in the code folder.  
+```
+sbatch --mem=2g trim.sh ../19098.1/19098.1.A01.ATTAGACG.L002.R1.C6WYKACXX.fastq.gz
+#says bioawk not found
+```
+
+Try to run this on all of the files:
+```
+ sbatch --mem=8g --wrap="./trim.sh ../19098.1/19098.1*"
+#stops because bioawk is not found
+```
 
 
 
 
+Questions for Peter:
+- Why won't bioawk work?
+
+Questions for John:
+- Why are files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end empty?
