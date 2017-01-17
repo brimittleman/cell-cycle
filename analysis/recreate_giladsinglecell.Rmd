@@ -60,7 +60,7 @@ module unload [name]
 ####Moving the files from pps to midway 
 First I copy the first individual, first plate from spudhead to gateway.  
 ```
-scp 19098.1* pps-gateway
+scp 19098.1* pps-gateway:
 ```
 Move the files to midway:
 ```
@@ -127,14 +127,24 @@ chmod 700 run-fastqc.sh #make file executable
 ```
 Load the fastqc package and submit the job to the cluster: 
 ```
-sbatch --mem=2g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz
+sbatch --mem=2g run-fastqc.sh ../19098.1/19098.1.A09.GGTATTCA.L003.R1.C6WURACXX.fastq.gz #Run this command for each fastq. 
 ```
-Run this command for each fastq. 
 
-Each new time: load fastqc, subread, samtools.  
+**Each new Session: load fastqc, subread, samtools. **  
 
-Files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end are empty. Cannot run the fast qc on these.  
+Problem at this step:  
 
+ - Files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end are empty. Cannot run the fast qc on these.   
+ 
+ - To check this I go back to the pps spudhead and look at the files using.  
+ 
+```
+ zcat file |wc -l
+```
+ - The files are correct on spudhead. I will recopy them over to midway. 
+
+
+Return to workflow:
 ```
 ls fastqc/ | wc -l
 #201
@@ -142,26 +152,14 @@ grep -w success ~/log/run-fastqc.sh/* | wc -l
 #grep: /home/brimittleman/log/run-fastqc.sh/*: No such file or directory
 ```
 
-**Where/what is the log file? I ran these 1 by 1 so maybe this doesn't get created.**
-
 ####Trim UMI  
-Create the trim.sh script using the code from github in the code folder.  
+Create the trim.sh script using the code from github in the code folder. Try to run this on all of the files:  
 ```
-sbatch --mem=2g trim.sh ../19098.1/19098.1.A01.ATTAGACG.L002.R1.C6WYKACXX.fastq.gz
-#says bioawk not found
-```
-
-Try to run this on all of the files:
-```
- sbatch --mem=8g --wrap="./trim.sh ../19098.1/19098.1*"
+sbatch --mem=8g --wrap="./trim.sh ../19098.1/19098.1*"
 #stops because bioawk is not found
 ```
 
 
-
-
-Questions for Peter:
-- Why won't bioawk work?
-
-Questions for John:
-- Why are files -19098.1.C08.TTGGTACA.L002.R1.C6WYKACXX.fastq.gz to the end empty?
+To do from meeting with Peter 1/17:  
+ - move programs to bin in software - (ln -s /project/gilad/brimittleman/bioawk/bioawk 
+)  
