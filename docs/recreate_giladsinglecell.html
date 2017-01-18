@@ -309,17 +309,15 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-17</p>
-<p><strong>Code version:</strong> 731cc0b</p>
+<p><strong>Last updated:</strong> 2017-01-18</p>
+<p><strong>Code version:</strong> e74de5d</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
 <h4>General information for committing changes to the git hub site:</h4>
-<pre><code>#in R
-git add analysis/*.Rmd
+<pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
 <p>Run <code>commit_site()</code> in R terminal.</p>
-<pre><code>#in R
- git push origin master</code></pre>
+<pre><code>git push origin master</code></pre>
 </div>
 <div id="programs-for-analysis" class="section level4">
 <h4>Programs for analysis</h4>
@@ -393,16 +391,38 @@ chmod 700 run-fastqc.sh #make file executable</code></pre>
 <p>Return to workflow:</p>
 <pre><code>ls fastqc/ | wc -l
 #201
-grep -w success ~/log/run-fastqc.sh/* | wc -l
-#grep: /home/brimittleman/log/run-fastqc.sh/*: No such file or directory</code></pre>
+</code></pre>
+</div>
+<div id="run-fastqc-2" class="section level4">
+<h4>Run Fastqc 2</h4>
+<p>Create run-fastqc.sh file:</p>
+<pre><code>vi run-fastqc.sh
+chmod 700 run-fastqc.sh #make file executable</code></pre>
+<p>I am redoing the run fastqc step using a code that can run all of the files at the same time. I created a file called wrap-sbatch.sh that will run the run-fastqc.sh script in a loop over all of the fastq files. To complete this task all of the .sh scripts have to be in the same directory as the data. I also added a module load command for the fastqc module within the run-fastqc.sh script for completness. I run the sbatch for all of the fastq files using the following command:</p>
+<pre><code>./wrap_sbatch.sh *fastq.gz</code></pre>
+<p>This submits a job per file and I can check which jobs are running using the squeue - u command.</p>
+<pre><code>ls fastqc/ | wc -l</code></pre>
+<p>I have 447 lines in the fastqc directory.</p>
 </div>
 <div id="trim-umi" class="section level4">
 <h4>Trim UMI</h4>
-<p>Create the trim.sh script using the code from github in the code folder. Try to run this on all of the files:</p>
-<pre><code>sbatch --mem=8g --wrap=&quot;./trim.sh ../19098.1/19098.1*&quot;
-#stops because bioawk is not found</code></pre>
-<p>To do from meeting with Peter 1/17:<br />
- - move programs to bin in software - (ln -s /project/gilad/brimittleman/bioawk/bioawk )</p>
+<p>Create the trim.sh script using the code from github in the code folder. Run this on all the files by making a script like the wrap_sbatch.sh one above.</p>
+<pre><code>./wrap_trim.sh *fastq.gz
+ls trim/*fastq.gz | wc -l
+#224 this is one file per fastq.gz file in the data.  
+ls invalid/*fastq.gz | wc -l
+#no invalid files were created </code></pre>
+</div>
+<div id="quality-trim-3-end-of-reads" class="section level4">
+<h4>Quality trim 3’ end of reads</h4>
+<p>This uses sickle.sh to perform quality trimming of the 2’ end of the reats. I am using sickle-1.33. I will create a new wrap function for this segmant of code as well that will wrap the sickle.sh code. This code is within the trim folder because those are the files that I will run the command on.</p>
+<pre><code>./wrap_sickle.sh *fastq.gz
+ls sickle/*fastq.gz | wc -l
+#224</code></pre>
+</div>
+<div id="map-genome" class="section level4">
+<h4>Map genome</h4>
+<p>I will use the map-subujunc.sh script to map the fastq files to the genome. I will create a new wrap script for this job as well. In the wrap I will load the subread module. I am copying the genome directory to sickle directory so all of the paths are easy.</p>
 </div>
 
 <hr>
