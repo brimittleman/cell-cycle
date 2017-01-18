@@ -310,17 +310,17 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-18</p>
-<p><strong>Code version:</strong> e74de5d</p>
+<p><strong>Code version:</strong> e3f2631</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
-<div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level4">
-<h4>General information for committing changes to the git hub site:</h4>
+<div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
+<h3>General information for committing changes to the git hub site:</h3>
 <pre><code>git add analysis/*.Rmd
 git commit -m &quot;message&quot;</code></pre>
 <p>Run <code>commit_site()</code> in R terminal.</p>
 <pre><code>git push origin master</code></pre>
 </div>
-<div id="programs-for-analysis" class="section level4">
-<h4>Programs for analysis</h4>
+<div id="programs-for-analysis" class="section level3">
+<h3>Programs for analysis</h3>
 <p>First I need to document the programs I will need to add to midway to complete the processing recreation.</p>
 <ul>
 <li><p>umitools v2.1.1 -fastqc <strong>on midway- not told you need it in github commands!</strong></p></li>
@@ -336,8 +336,8 @@ module list #show loaded modules
 module unload [name]
 </code></pre>
 </div>
-<div id="moving-the-files-from-pps-to-midway" class="section level4">
-<h4>Moving the files from pps to midway</h4>
+<div id="moving-the-files-from-pps-to-midway" class="section level3">
+<h3>Moving the files from pps to midway</h3>
 <p>First I copy the first individual, first plate from spudhead to gateway.</p>
 <pre><code>scp 19098.1* pps-gateway:</code></pre>
 <p>Move the files to midway:</p>
@@ -347,8 +347,8 @@ module unload [name]
 <p>Move to the midway cluster and move the files to a directory in scratch.</p>
 <pre><code>mv 19098.1* scratch-midway/19098.1 </code></pre>
 </div>
-<div id="create-genome-for-mapping" class="section level4">
-<h4>Create genome for mapping</h4>
+<div id="create-genome-for-mapping" class="section level3">
+<h3>Create genome for mapping</h3>
 <p>Create a code directory for scripts.</p>
 <pre><code>mkdir code</code></pre>
 <p>Copy contents of create-genome.sh from John’s github to a script in my own directory using vi.</p>
@@ -371,8 +371,8 @@ subread-buildindex -o combined *.fa</code></pre>
 <p>I need to move data and scripts to the gilad project folder. scratch is not permanant.</p>
 <pre><code>mkdir /project/gilad/brimittleman</code></pre>
 </div>
-<div id="run-fastqc" class="section level4">
-<h4>Run FastQC</h4>
+<div id="run-fastqc" class="section level3">
+<h3>Run FastQC</h3>
 <p>Create run-fastqc.sh file:</p>
 <pre><code>vi run-fastqc.sh
 chmod 700 run-fastqc.sh #make file executable</code></pre>
@@ -393,8 +393,8 @@ chmod 700 run-fastqc.sh #make file executable</code></pre>
 #201
 </code></pre>
 </div>
-<div id="run-fastqc-2" class="section level4">
-<h4>Run Fastqc 2</h4>
+<div id="run-fastqc-2" class="section level3">
+<h3>Run Fastqc 2</h3>
 <p>Create run-fastqc.sh file:</p>
 <pre><code>vi run-fastqc.sh
 chmod 700 run-fastqc.sh #make file executable</code></pre>
@@ -404,8 +404,8 @@ chmod 700 run-fastqc.sh #make file executable</code></pre>
 <pre><code>ls fastqc/ | wc -l</code></pre>
 <p>I have 447 lines in the fastqc directory.</p>
 </div>
-<div id="trim-umi" class="section level4">
-<h4>Trim UMI</h4>
+<div id="trim-umi" class="section level3">
+<h3>Trim UMI</h3>
 <p>Create the trim.sh script using the code from github in the code folder. Run this on all the files by making a script like the wrap_sbatch.sh one above.</p>
 <pre><code>./wrap_trim.sh *fastq.gz
 ls trim/*fastq.gz | wc -l
@@ -413,16 +413,24 @@ ls trim/*fastq.gz | wc -l
 ls invalid/*fastq.gz | wc -l
 #no invalid files were created </code></pre>
 </div>
-<div id="quality-trim-3-end-of-reads" class="section level4">
-<h4>Quality trim 3’ end of reads</h4>
+<div id="quality-trim-3-end-of-reads" class="section level3">
+<h3>Quality trim 3’ end of reads</h3>
 <p>This uses sickle.sh to perform quality trimming of the 2’ end of the reats. I am using sickle-1.33. I will create a new wrap function for this segmant of code as well that will wrap the sickle.sh code. This code is within the trim folder because those are the files that I will run the command on.</p>
 <pre><code>./wrap_sickle.sh *fastq.gz
 ls sickle/*fastq.gz | wc -l
 #224</code></pre>
 </div>
-<div id="map-genome" class="section level4">
-<h4>Map genome</h4>
+<div id="map-genome" class="section level3">
+<h3>Map genome</h3>
 <p>I will use the map-subujunc.sh script to map the fastq files to the genome. I will create a new wrap script for this job as well. In the wrap I will load the subread module. I am copying the genome directory to sickle directory so all of the paths are easy.</p>
+<pre><code>./wrap_map.sh *fastq.gz
+ls bam/*bam | wc -l
+#224</code></pre>
+<p>The bam files were empty because I exceeded the memory needed. I need to figure out how to run this on the mstephens partition.</p>
+</div>
+<div id="process-bam-files" class="section level3">
+<h3>Process bam files</h3>
+<p>I will use the process-bam.sh script to process the bam files. I will create a new wrap script for this and will have it load samtools module in the script. All of this takes place in the bam folder.</p>
 </div>
 
 <hr>
