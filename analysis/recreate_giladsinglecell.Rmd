@@ -19,7 +19,7 @@ knitr::read_chunk("chunks.R")
 
 I will use this to document my recreating of the single cell data processing from http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html.  
 
-####General information for committing changes to the git hub site: 
+###General information for committing changes to the git hub site: 
 
 ```
 git add analysis/*.Rmd
@@ -32,7 +32,7 @@ git push origin master
 ```
 
 
-####Programs for analysis 
+###Programs for analysis 
 First I need to document the programs I will need to add to midway to complete the processing recreation. 
 
 - umitools v2.1.1
@@ -55,7 +55,7 @@ module unload [name]
 
 
 
-####Moving the files from pps to midway 
+###Moving the files from pps to midway 
 First I copy the first individual, first plate from spudhead to gateway.  
 ```
 scp 19098.1* pps-gateway:
@@ -73,7 +73,7 @@ Move to the midway cluster and move the files to a directory in scratch.
 mv 19098.1* scratch-midway/19098.1 
 ```
 
-####Create genome for mapping
+###Create genome for mapping
 Create a code directory for scripts. 
 ```
 mkdir code
@@ -116,7 +116,7 @@ mkdir /project/gilad/brimittleman
 ```
 
 
-####Run FastQC
+###Run FastQC
 Create run-fastqc.sh file:
 
 ```
@@ -149,7 +149,7 @@ ls fastqc/ | wc -l
 
 ```
 
-####Run Fastqc 2
+###Run Fastqc 2
 Create run-fastqc.sh file:
 
 ```
@@ -167,7 +167,7 @@ ls fastqc/ | wc -l
 ```
 I have 447 lines in the fastqc directory. 
 
-####Trim UMI  
+###Trim UMI  
 Create the trim.sh script using the code from github in the code folder. Run this on all the files by making a script like the wrap_sbatch.sh one above.   
 ```
 ./wrap_trim.sh *fastq.gz
@@ -176,7 +176,7 @@ ls trim/*fastq.gz | wc -l
 ls invalid/*fastq.gz | wc -l
 #no invalid files were created 
 ```
-####Quality trim 3' end of reads  
+###Quality trim 3' end of reads  
 This uses sickle.sh to perform quality trimming of the 2' end of the reats. I am using sickle-1.33. I will create a new wrap function for this segmant of code as well that will wrap the sickle.sh code. This code is within the trim folder because those are the files that I will run the command on.  
 
 ```
@@ -185,6 +185,19 @@ ls sickle/*fastq.gz | wc -l
 #224
 ```
 
-####Map genome
+###Map genome
+
 I will use the map-subujunc.sh script to map the fastq files to the genome. I will create a new wrap script for this job as well. In the wrap I will load the subread module. I am copying the genome directory to sickle directory so all of the paths are easy.    
+
+```
+./wrap_map.sh *fastq.gz
+ls bam/*bam | wc -l
+#224
+```
+
+The bam files were empty because I exceeded the memory needed. I need to figure out how to run this on the mstephens partition. 
+
+###Process bam files
+I will use the process-bam.sh script to process the bam files. I will create a new wrap script for this and will have it load samtools module in the script. All of this takes place in the bam folder.  
+
 
