@@ -21,16 +21,14 @@ I will use this to document my recreating of the single cell data processing fro
 
 ####General information for committing changes to the git hub site: 
 
-``` 
-#in R
+```
 git add analysis/*.Rmd
 git commit -m "message"
 ```
 Run `commit_site()` in R terminal.
 
 ```
-#in R
- git push origin master
+git push origin master
 ```
 
 
@@ -148,18 +146,45 @@ Return to workflow:
 ```
 ls fastqc/ | wc -l
 #201
-grep -w success ~/log/run-fastqc.sh/* | wc -l
-#grep: /home/brimittleman/log/run-fastqc.sh/*: No such file or directory
+
 ```
+
+####Run Fastqc 2
+Create run-fastqc.sh file:
+
+```
+vi run-fastqc.sh
+chmod 700 run-fastqc.sh #make file executable
+```
+I am redoing the run fastqc step using a code that can run all of the files at the same time. I created a file called wrap-sbatch.sh that will run the run-fastqc.sh script in a loop over all of the fastq files. To complete this task all of the .sh scripts have to be in the same directory as the data. I also added a module load command for the fastqc module within the run-fastqc.sh script for completness. I run the sbatch for all of the fastq files using the following command:  
+```
+./wrap_sbatch.sh *fastq.gz
+```
+This submits a job per file and I can check which jobs are running using the squeue - u command.  
+
+```
+ls fastqc/ | wc -l
+```
+I have 447 lines in the fastqc directory. 
 
 ####Trim UMI  
-Create the trim.sh script using the code from github in the code folder. Try to run this on all of the files:  
+Create the trim.sh script using the code from github in the code folder. Run this on all the files by making a script like the wrap_sbatch.sh one above.   
 ```
-sbatch --mem=8g --wrap="./trim.sh ../19098.1/19098.1*"
-#stops because bioawk is not found
+./wrap_trim.sh *fastq.gz
+ls trim/*fastq.gz | wc -l
+#224 this is one file per fastq.gz file in the data.  
+ls invalid/*fastq.gz | wc -l
+#no invalid files were created 
+```
+####Quality trim 3' end of reads  
+This uses sickle.sh to perform quality trimming of the 2' end of the reats. I am using sickle-1.33. I will create a new wrap function for this segmant of code as well that will wrap the sickle.sh code. This code is within the trim folder because those are the files that I will run the command on.  
+
+```
+./wrap_sickle.sh *fastq.gz
+ls sickle/*fastq.gz | wc -l
+#224
 ```
 
+####Map genome
+I will use the map-subujunc.sh script to map the fastq files to the genome. I will create a new wrap script for this job as well. In the wrap I will load the subread module. I am copying the genome directory to sickle directory so all of the paths are easy.    
 
-To do from meeting with Peter 1/17:  
- - move programs to bin in software - (ln -s /project/gilad/brimittleman/bioawk/bioawk 
-)  
