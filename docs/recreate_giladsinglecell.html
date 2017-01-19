@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-18</p>
-<p><strong>Code version:</strong> e3f2631</p>
+<p><strong>Code version:</strong> f974b9c</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -426,11 +426,16 @@ ls sickle/*fastq.gz | wc -l
 <pre><code>./wrap_map.sh *fastq.gz
 ls bam/*bam | wc -l
 #224</code></pre>
-<p>The bam files were empty because I exceeded the memory needed. I need to figure out how to run this on the mstephens partition.</p>
+<p>The bam files were empty because I exceeded the memory needed. I added –mem=12G to the wrap script. I also changed it to the mstephen partition with –partition=mstephens and changed account with –account=pi-mstephens.</p>
 </div>
 <div id="process-bam-files" class="section level3">
 <h3>Process bam files</h3>
 <p>I will use the process-bam.sh script to process the bam files. I will create a new wrap script for this and will have it load samtools module in the script. All of this takes place in the bam folder.</p>
+</div>
+<div id="re-organize-my-files" class="section level2">
+<h2>Re-organize my files</h2>
+<p>I am reorganizing my data and code according to John’s organization. I created a single cell directory in my home directory and in my project/gilad directory. I keep all of the scripts I have created in a code directory within the home single cell directory and edit my path variable to include this. The file containing my path directort in called .bashrc and is in the home directory. The fastq files were moved to a fastq directory within the single cell directory in the project folder. This way I am now keeping scripts in my home folder and have all large data in my project folder. I run jobs from the single cell directory in my project/gilad folder.</p>
+<p>Umitools seems to still not work - line 26: umitools: command not found</p>
 </div>
 
 <hr>
