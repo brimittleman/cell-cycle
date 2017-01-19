@@ -195,9 +195,21 @@ ls bam/*bam | wc -l
 #224
 ```
 
-The bam files were empty because I exceeded the memory needed. I need to figure out how to run this on the mstephens partition. 
+The bam files were empty because I exceeded the memory needed. I added --mem=12G to the wrap script. I also changed it to the mstephen partition with --partition=mstephens and changed account with --account=pi-mstephens.
+
+
 
 ###Process bam files
 I will use the process-bam.sh script to process the bam files. I will create a new wrap script for this and will have it load samtools module in the script. All of this takes place in the bam folder.  
+
+
+
+##Re-organize my files
+I am reorganizing my data and code according to John's organization. I created a single cell directory in my home directory and in my project/gilad directory. I keep all of the scripts I have created in a code directory within the home single cell directory and edit my path variable to include this. The file containing my path directort in called .bashrc and is in the home directory. The fastq files were moved to a fastq directory within the single cell directory in the project folder. This way I am now keeping scripts in my home folder and have all large data in my project folder. I run jobs from the single cell directory in my project/gilad folder.  
+
+
+Umitools seems to still not work
+- line 26: umitools: command not found
+
 
 
