@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-22</p>
-<p><strong>Code version:</strong> b104186</p>
+<p><strong>Code version:</strong> 2b206f6</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -435,11 +435,23 @@ ls bam/*bam | wc -l
 <div id="re-organize-my-files" class="section level2">
 <h2>Re-organize my files</h2>
 <p>I am reorganizing my data and code according to John’s organization. I created a single cell directory in my home directory and in my project/gilad directory. I keep all of the scripts I have created in a code directory within the home single cell directory and edit my path variable to include this. The file containing my path directort in called .bashrc and is in the home directory. The fastq files were moved to a fastq directory within the single cell directory in the project folder. This way I am now keeping scripts in my home folder and have all large data in my project folder. I run jobs from the single cell directory in my project/gilad folder.</p>
+<div id="umi-trim" class="section level3">
+<h3>Umi trim</h3>
 <p>-I need to update the trim.sh script for the umi_tools extract command.</p>
 <p>The code below works but it puts the output in the directory I ran the script in instead of the trim folder. Going to wrap it for all the files anyway: <code>umi_tools extract --stdin=$FILE  --bc-pattern=[NNNNNGGG]  -L extract.log --stdout=$BASE.trim.fastq.gz \   -E $INVALID_DIR/$BASE.invalid.fastq \   2&gt; $INVALID_DIR/$BASE.trim.stats.txt | gzip -c &gt; $OUTDIR/$BASE.trim.fastq.gz</code></p>
 <p>I added code to increase memory and run the code in the mstephens partition to the wrap_trim.sh script and ran it on all of the fastq files using the following code in the project single cell directory.</p>
 <pre><code>wrap_trim.sh fastq/*fastq.gz</code></pre>
 <p>Only works when I run this in the fastq directory. The output files have *.trim.fastq.gz. I will move these to the trim directory and more the trim directory out of the fastq directory.</p>
+</div>
+<div id="sickle" class="section level3">
+<h3>Sickle</h3>
+<p>Run the same wrap sick command within the trim directory. I will move this out when it is done.</p>
+</div>
+<div id="map-genome-1" class="section level3">
+<h3>Map genome</h3>
+<p>I am copying the genome directory to sickle directory so all of the paths are easy. Run the following command in the sick directory. I will more the files out later.</p>
+<pre><code>wrap_map.sh *trim.sickle.fastq.gz</code></pre>
+</div>
 </div>
 
 <hr>
