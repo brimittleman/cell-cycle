@@ -25,7 +25,7 @@ I will use this to document my recreating of the single cell data processing fro
 git add analysis/*.Rmd
 git commit -m "message"
 ```
-Run `commit_site()` in R terminal.
+Run `wflow_commit()` in R terminal.
 
 ```
 git push origin master
