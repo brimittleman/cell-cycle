@@ -205,9 +205,10 @@ I will use the process-bam.sh script to process the bam files. I will create a n
 
 
 ##Re-organize my files
+
 I am reorganizing my data and code according to John's organization. I created a single cell directory in my home directory and in my project/gilad directory. I keep all of the scripts I have created in a code directory within the home single cell directory and edit my path variable to include this. The file containing my path directort in called .bashrc and is in the home directory. The fastq files were moved to a fastq directory within the single cell directory in the project folder. This way I am now keeping scripts in my home folder and have all large data in my project folder. I run jobs from the single cell directory in my project/gilad folder.  
 
-
+###Umi trim
 -I need to update the trim.sh script for the umi_tools extract command.  
 
 
@@ -226,4 +227,13 @@ wrap_trim.sh fastq/*fastq.gz
 
 Only works when I run this in the fastq directory. The output files have *.trim.fastq.gz. I will move these to the trim directory and more the trim directory out of the fastq directory.  
 
+###Sickle 
+Run the same wrap sick command within the trim directory. I will move this out when it is done. 
 
+
+###Map genome 
+I am copying the genome directory to sickle directory so all of the paths are easy. Run the following command in the sick directory. I will more the files out later.  
+
+```
+wrap_map.sh *trim.sickle.fastq.gz
+```
