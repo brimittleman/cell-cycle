@@ -142,7 +142,7 @@ Problem at this step:
  - The files are correct on spudhead. I will recopy them over to midway. 
 
 
-Return to workflow:
+Return to workflow:  
 ```
 ls fastqc/ | wc -l
 #201
@@ -150,7 +150,7 @@ ls fastqc/ | wc -l
 ```
 
 ###Run Fastqc 2
-Create run-fastqc.sh file:
+Create run-fastqc.sh file:  
 
 ```
 vi run-fastqc.sh
@@ -250,10 +250,10 @@ ls bam-processed/*sorted*0*bam
 ```
 No such files have been created.  
 
-###COmbine Single cells
+###Combine Single cells
 I will run this code 
 ```
-# From head node
+#!/bin/bash
 module load samtools
 mkdir -p bam-combined
 mkdir -p ~/log/combine
@@ -261,35 +261,115 @@ for IND in 19098 #19101,19239
 do
   for REP in 1
   do
-    for ROW in {A..H}
+    for ROW in {A..F}
     do
       for COL in {1..12}
       do
         ID=`printf "%s.%s.%s%02d\n" $IND $REP $ROW $COL`
         echo $ID
-        echo "samtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam" > tmp-$ID.sh
+        echo -e "#!/bin/bash\nsamtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam" > tmp-$ID.sh
         sbatch tmp-$ID.sh
       done
     done
   done
 done
 ```
-Files are now in bam-combined. There are 72 files.You must specify at least 2 input files.  
+Files are now in bam-combined. There are 72 files.
+**Missing G and H from the beginning. once I have pipeline working maybe I will go back and add these files**
 
-The slurm-out files have the following information.  
-Usage:   samtools merge [-nurlf] [-h inh.sam] [-b <bamlist.fofn>] <out.bam> <in1.bam> <in2.bam> [<in3.bam> ... <inN.
-bam>]
+Index each merged sample. Using the following code in a script called index.sh.  
 
-Options: -n       sort by read names
-         -r       attach RG tag (inferred from file names)
-         -u       uncompressed BAM output
-         -f       overwrite the output BAM if exist
-         -1       compress level 1
-         -l INT   compression level, from 0 to 9 [-1]
-         -@ INT   number of BAM compression threads [0]
-         -R STR   merge file in the specified region STR [all]
-         -h FILE  copy the header in FILE to <out.bam> [in1.bam]
-         -c       combine RG tags with colliding IDs rather than amending them
-         -p       combine PG tags with colliding IDs rather than amending them
-         -s VALUE override random seed
-         -b FILE  list of input BAM filenames, one per line [nul
+
+```
+
+module load samtools
+for IND in 19098 #19101,19239
+do
+  for REP in 1
+  do
+    for ROW in {A..F}
+    do
+      for COL in {1..12}
+      do
+        ID=`printf "%s.%s.%s%02d\n" $IND $REP $ROW $COL`
+        echo $ID
+        echo -e "#!/bin/bash\nsamtools index bam-combined/$ID.trim.sickle.sorted.combined.bam" > tmp2-$ID.sh
+        sbatch tmp2-$ID.sh
+      done
+    done
+  done
+done
+
+```
+```
+ls bam-combined/*bai | wc -l
+```
+72
+```
+cat tmp_index/slurm* | head
+```
+No output. 
+
+###Remove Duplicate UMIs 
+I will now use UMI_tools to remove duplicate UMIs. 
+```
+#Example code:
+umi_tools dedup -I example.bam --output-stats=deduplicated -S deduplicated.bam
+#options to think about
+--edit-distance-threshold (int) #used 1 in original code 
+```
+
+I made the following changes to the original rmdum-umi.sh 
+```
+#prior code
+dedup_umi.py --method="directional-adjacency" --edit-distance-threshold=1 \
+  -I $FILE -v 0 -S $OUTDIR/$BASE.rmdup.bam
+#new code using UMI_tools 
+umi_tools dedup  -I $FILE --output-stats=$OUTDIR/dedup_outputstat  -S $OUTDIR/$B
+ASE.rmdup.bam
+```
+
+Created a wrap script called wrap_dedup.sh.  Run this on the processed and combined samples. 
+
+In the bam-combined folder.  
+```
+ wrap_dedup.sh *bam
+```
+To run this in the processed folder not including the bulk I use. 
+```
+wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  
+```
+  
+Error:  
+```
+<!--  Traceback (most recent call last): -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools", line 11, in <mo -->
+<!-- dule> -->
+<!--     sys.exit(main()) -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi -->
+<!-- _tools/umi_tools.py", line 43, in main -->
+<!--     module = imp.load_module(command, file, pathname, description) -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi -->
+<!-- _tools/dedup.py", line 219, in <module> -->
+<!--     import pandas as pd -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/pan -->
+<!-- das/__init__.py", line 13, in <module> -->
+<!--     "extensions first.".format(module)) -->
+<!-- ImportError: C extension: libptf77blas.so.3: cannot open shared object file: N -->
+<!-- o such file or directory not built. If you want to import pandas from the sour -->
+<!-- ce directory, you may need to run 'python setup.py build_ext --inplace' to bui -->
+<!-- ld the C extensions first. -->
+```
+  
+When I try to run this on one file I get the following error:  
+```
+<!-- Removing reads with duplicate UMIs... -->
+<!-- Traceback (most recent call last): -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools", line 11, in <module> -->
+<!--     sys.exit(main()) -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/umi_tools.py", line 43, in main -->
+<!--     module = imp.load_module(command, file, pathname, description) -->
+<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/dedup.py", line 227, in <module> -->
+<!--     import Utilities as U -->
+<!-- ImportError: No module named Utilities -->
+``
