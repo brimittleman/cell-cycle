@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-23</p>
-<p><strong>Code version:</strong> e69f17c</p>
+<p><strong>Code version:</strong> 4977949</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -461,9 +461,9 @@ ls bam/*bam | wc -l
 <p>No such files have been created.</p>
 </div>
 <div id="combine-single-cells" class="section level3">
-<h3>COmbine Single cells</h3>
+<h3>Combine Single cells</h3>
 <p>I will run this code</p>
-<pre><code># From head node
+<pre><code>#!/bin/bash
 module load samtools
 mkdir -p bam-combined
 mkdir -p ~/log/combine
@@ -471,23 +471,83 @@ for IND in 19098 #19101,19239
 do
   for REP in 1
   do
-    for ROW in {A..H}
+    for ROW in {A..F}
     do
       for COL in {1..12}
       do
         ID=`printf &quot;%s.%s.%s%02d\n&quot; $IND $REP $ROW $COL`
         echo $ID
-        echo &quot;samtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam&quot; &gt; tmp-$ID.sh
+        echo -e &quot;#!/bin/bash\nsamtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam&quot; &gt; tmp-$ID.sh
         sbatch tmp-$ID.sh
       done
     done
   done
 done</code></pre>
-<p>Files are now in bam-combined. There are 72 files.You must specify at least 2 input files.</p>
-<p>The slurm-out files have the following information.<br />
-Usage: samtools merge [-nurlf] [-h inh.sam] [-b <bamlist.fofn>] <out.bam> <in1.bam> <in2.bam> [<in3.bam> … <inN.
-bam>]</p>
-<p>Options: -n sort by read names -r attach RG tag (inferred from file names) -u uncompressed BAM output -f overwrite the output BAM if exist -1 compress level 1 -l INT compression level, from 0 to 9 [-1] -@ INT number of BAM compression threads [0] -R STR merge file in the specified region STR [all] -h FILE copy the header in FILE to <out.bam> [in1.bam] -c combine RG tags with colliding IDs rather than amending them -p combine PG tags with colliding IDs rather than amending them -s VALUE override random seed -b FILE list of input BAM filenames, one per line [nul</p>
+<p>Files are now in bam-combined. There are 72 files. <strong>Missing G and H from the beginning. once I have pipeline working maybe I will go back and add these files</strong></p>
+<p>Index each merged sample. Using the following code in a script called index.sh.</p>
+<pre><code>
+module load samtools
+for IND in 19098 #19101,19239
+do
+  for REP in 1
+  do
+    for ROW in {A..F}
+    do
+      for COL in {1..12}
+      do
+        ID=`printf &quot;%s.%s.%s%02d\n&quot; $IND $REP $ROW $COL`
+        echo $ID
+        echo -e &quot;#!/bin/bash\nsamtools index bam-combined/$ID.trim.sickle.sorted.combined.bam&quot; &gt; tmp2-$ID.sh
+        sbatch tmp2-$ID.sh
+      done
+    done
+  done
+done
+</code></pre>
+<pre><code>ls bam-combined/*bai | wc -l</code></pre>
+<p>72</p>
+<pre><code>cat tmp_index/slurm* | head</code></pre>
+<p>No output.</p>
+</div>
+<div id="remove-duplicate-umis" class="section level3">
+<h3>Remove Duplicate UMIs</h3>
+<p>I will now use UMI_tools to remove duplicate UMIs.</p>
+<pre><code>#Example code:
+umi_tools dedup -I example.bam --output-stats=deduplicated -S deduplicated.bam
+#options to think about
+--edit-distance-threshold (int) #used 1 in original code </code></pre>
+<p>I made the following changes to the original rmdum-umi.sh</p>
+<pre><code>#prior code
+dedup_umi.py --method=&quot;directional-adjacency&quot; --edit-distance-threshold=1 \
+  -I $FILE -v 0 -S $OUTDIR/$BASE.rmdup.bam
+#new code using UMI_tools 
+umi_tools dedup  -I $FILE --output-stats=$OUTDIR/dedup_outputstat  -S $OUTDIR/$B
+ASE.rmdup.bam</code></pre>
+<p>Created a wrap script called wrap_dedup.sh. Run this on the processed and combined samples.</p>
+<p>In the bam-combined folder.</p>
+<pre><code> wrap_dedup.sh *bam</code></pre>
+<p>To run this in the processed folder not including the bulk I use.</p>
+<pre><code>wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  </code></pre>
+<p>Error:</p>
+<pre><code>&lt;!--  Traceback (most recent call last): --&gt;
+&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools&quot;, line 11, in &lt;mo --&gt;
+&lt;!-- dule&gt; --&gt;
+&lt;!--     sys.exit(main()) --&gt;
+&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi --&gt;
+&lt;!-- _tools/umi_tools.py&quot;, line 43, in main --&gt;
+&lt;!--     module = imp.load_module(command, file, pathname, description) --&gt;
+&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi --&gt;
+&lt;!-- _tools/dedup.py&quot;, line 219, in &lt;module&gt; --&gt;
+&lt;!--     import pandas as pd --&gt;
+&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/pan --&gt;
+&lt;!-- das/__init__.py&quot;, line 13, in &lt;module&gt; --&gt;
+&lt;!--     &quot;extensions first.&quot;.format(module)) --&gt;
+&lt;!-- ImportError: C extension: libptf77blas.so.3: cannot open shared object file: N --&gt;
+&lt;!-- o such file or directory not built. If you want to import pandas from the sour --&gt;
+&lt;!-- ce directory, you may need to run &#39;python setup.py build_ext --inplace&#39; to bui --&gt;
+&lt;!-- ld the C extensions first. --&gt;</code></pre>
+<p>When I try to run this on one file I get the following error:<br />
+`<code>&lt;!-- Removing reads with duplicate UMIs... --&gt; &lt;!-- Traceback (most recent call last): --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools&quot;, line 11, in &lt;module&gt; --&gt; &lt;!--     sys.exit(main()) --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/umi_tools.py&quot;, line 43, in main --&gt; &lt;!--     module = imp.load_module(command, file, pathname, description) --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/dedup.py&quot;, line 227, in &lt;module&gt; --&gt; &lt;!--     import Utilities as U --&gt; &lt;!-- ImportError: No module named Utilities --&gt;</code></p>
 </div>
 </div>
 
