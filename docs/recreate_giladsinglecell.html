@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-22</p>
-<p><strong>Code version:</strong> 2b206f6</p>
+<p><strong>Last updated:</strong> 2017-01-23</p>
+<p><strong>Code version:</strong> e69f17c</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -451,6 +451,43 @@ ls bam/*bam | wc -l
 <h3>Map genome</h3>
 <p>I am copying the genome directory to sickle directory so all of the paths are easy. Run the following command in the sick directory. I will more the files out later.</p>
 <pre><code>wrap_map.sh *trim.sickle.fastq.gz</code></pre>
+</div>
+<div id="process-bam-files-1" class="section level3">
+<h3>Process Bam files</h3>
+<p>I copied the code from process-bam.sh and created the same file in my code directory. I will also make a wrap script for this code. I run these commands in the bam folder and will move them out after.</p>
+<pre><code>wrap_processbam.sh *trim.sickle.bam</code></pre>
+<p>Check for processense of intermediate files output during sorting.</p>
+<pre><code>ls bam-processed/*sorted*0*bam</code></pre>
+<p>No such files have been created.</p>
+</div>
+<div id="combine-single-cells" class="section level3">
+<h3>COmbine Single cells</h3>
+<p>I will run this code</p>
+<pre><code># From head node
+module load samtools
+mkdir -p bam-combined
+mkdir -p ~/log/combine
+for IND in 19098 #19101,19239
+do
+  for REP in 1
+  do
+    for ROW in {A..H}
+    do
+      for COL in {1..12}
+      do
+        ID=`printf &quot;%s.%s.%s%02d\n&quot; $IND $REP $ROW $COL`
+        echo $ID
+        echo &quot;samtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam&quot; &gt; tmp-$ID.sh
+        sbatch tmp-$ID.sh
+      done
+    done
+  done
+done</code></pre>
+<p>Files are now in bam-combined. There are 72 files.You must specify at least 2 input files.</p>
+<p>The slurm-out files have the following information.<br />
+Usage: samtools merge [-nurlf] [-h inh.sam] [-b <bamlist.fofn>] <out.bam> <in1.bam> <in2.bam> [<in3.bam> … <inN.
+bam>]</p>
+<p>Options: -n sort by read names -r attach RG tag (inferred from file names) -u uncompressed BAM output -f overwrite the output BAM if exist -1 compress level 1 -l INT compression level, from 0 to 9 [-1] -@ INT number of BAM compression threads [0] -R STR merge file in the specified region STR [all] -h FILE copy the header in FILE to <out.bam> [in1.bam] -c combine RG tags with colliding IDs rather than amending them -p combine PG tags with colliding IDs rather than amending them -s VALUE override random seed -b FILE list of input BAM filenames, one per line [nul</p>
 </div>
 </div>
 
