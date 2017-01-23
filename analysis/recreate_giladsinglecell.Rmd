@@ -237,3 +237,59 @@ I am copying the genome directory to sickle directory so all of the paths are ea
 ```
 wrap_map.sh *trim.sickle.fastq.gz
 ```
+
+###Process Bam files
+I copied the code from process-bam.sh and created the same file in my code directory. I will also make a wrap script for this code. I run these commands in the bam folder and will move them out after.
+
+```
+wrap_processbam.sh *trim.sickle.bam
+```
+Check for processense of intermediate files output during sorting.
+```
+ls bam-processed/*sorted*0*bam
+```
+No such files have been created.  
+
+###COmbine Single cells
+I will run this code 
+```
+# From head node
+module load samtools
+mkdir -p bam-combined
+mkdir -p ~/log/combine
+for IND in 19098 #19101,19239
+do
+  for REP in 1
+  do
+    for ROW in {A..H}
+    do
+      for COL in {1..12}
+      do
+        ID=`printf "%s.%s.%s%02d\n" $IND $REP $ROW $COL`
+        echo $ID
+        echo "samtools merge bam-combined/$ID.trim.sickle.sorted.combined.bam bam-processed/$ID*trim.sickle.sorted.bam" > tmp-$ID.sh
+        sbatch tmp-$ID.sh
+      done
+    done
+  done
+done
+```
+Files are now in bam-combined. There are 72 files.You must specify at least 2 input files.  
+
+The slurm-out files have the following information.  
+Usage:   samtools merge [-nurlf] [-h inh.sam] [-b <bamlist.fofn>] <out.bam> <in1.bam> <in2.bam> [<in3.bam> ... <inN.
+bam>]
+
+Options: -n       sort by read names
+         -r       attach RG tag (inferred from file names)
+         -u       uncompressed BAM output
+         -f       overwrite the output BAM if exist
+         -1       compress level 1
+         -l INT   compression level, from 0 to 9 [-1]
+         -@ INT   number of BAM compression threads [0]
+         -R STR   merge file in the specified region STR [all]
+         -h FILE  copy the header in FILE to <out.bam> [in1.bam]
+         -c       combine RG tags with colliding IDs rather than amending them
+         -p       combine PG tags with colliding IDs rather than amending them
+         -s VALUE override random seed
+         -b FILE  list of input BAM filenames, one per line [nul
