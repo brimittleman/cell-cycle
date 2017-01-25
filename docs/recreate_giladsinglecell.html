@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-24</p>
-<p><strong>Code version:</strong> 9c6081a</p>
+<p><strong>Last updated:</strong> 2017-01-25</p>
+<p><strong>Code version:</strong> 47cfeb9</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -528,25 +528,7 @@ ASE.rmdup.bam</code></pre>
 <pre><code> wrap_dedup.sh *bam</code></pre>
 <p>To run this in the processed folder not including the bulk I use.</p>
 <pre><code>wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  </code></pre>
-<p>The code now works when I run it on one bam file at a time on the login node. When I try to run the wrap command to run sbatch jobs for each file, I get the following error:</p>
-<p>Error:</p>
-<pre><code>&lt;!--  Traceback (most recent call last): --&gt;
-&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools&quot;, line 11, in &lt;mo --&gt;
-&lt;!-- dule&gt; --&gt;
-&lt;!--     sys.exit(main()) --&gt;
-&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi --&gt;
-&lt;!-- _tools/umi_tools.py&quot;, line 43, in main --&gt;
-&lt;!--     module = imp.load_module(command, file, pathname, description) --&gt;
-&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi --&gt;
-&lt;!-- _tools/dedup.py&quot;, line 219, in &lt;module&gt; --&gt;
-&lt;!--     import pandas as pd --&gt;
-&lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/pan --&gt;
-&lt;!-- das/__init__.py&quot;, line 13, in &lt;module&gt; --&gt;
-&lt;!--     &quot;extensions first.&quot;.format(module)) --&gt;
-&lt;!-- ImportError: C extension: libptf77blas.so.3: cannot open shared object file: N --&gt;
-&lt;!-- o such file or directory not built. If you want to import pandas from the sour --&gt;
-&lt;!-- ce directory, you may need to run &#39;python setup.py build_ext --inplace&#39; to bui --&gt;
-&lt;!-- ld the C extensions first. --&gt;</code></pre>
+<p>The umi_tools module is only on midway 1. I need to specify the sandyb partition in my wrap script to be able to run this code over all of the bam files.</p>
 </div>
 </div>
 
