@@ -319,7 +319,7 @@ umi_tools dedup -I example.bam --output-stats=deduplicated -S deduplicated.bam
 --edit-distance-threshold (int) #used 1 in original code 
 ```
 
-I made the following changes to the original rmdum-umi.sh 
+I made the following changes to the original 
 ```
 #prior code
 dedup_umi.py --method="directional-adjacency" --edit-distance-threshold=1 \
@@ -339,6 +339,10 @@ To run this in the processed folder not including the bulk I use.
 ```
 wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  
 ```
+
+The code now works when I run it on one bam file at a time on the login node. When I try to run the wrap command to run sbatch jobs for each file, I get the following error: 
+  
+
   
 Error:  
 ```
@@ -360,16 +364,4 @@ Error:
 <!-- ce directory, you may need to run 'python setup.py build_ext --inplace' to bui -->
 <!-- ld the C extensions first. -->
 ```
-  
-When I try to run this on one file I get the following error:  
-```
-<!-- Removing reads with duplicate UMIs... -->
-<!-- Traceback (most recent call last): -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools", line 11, in <module> -->
-<!--     sys.exit(main()) -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/umi_tools.py", line 43, in main -->
-<!--     module = imp.load_module(command, file, pathname, description) -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/dedup.py", line 227, in <module> -->
-<!--     import Utilities as U -->
-<!-- ImportError: No module named Utilities -->
-``
+ 
