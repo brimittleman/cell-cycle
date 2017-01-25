@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-23</p>
-<p><strong>Code version:</strong> 4977949</p>
+<p><strong>Last updated:</strong> 2017-01-24</p>
+<p><strong>Code version:</strong> 9c6081a</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -516,7 +516,7 @@ done
 umi_tools dedup -I example.bam --output-stats=deduplicated -S deduplicated.bam
 #options to think about
 --edit-distance-threshold (int) #used 1 in original code </code></pre>
-<p>I made the following changes to the original rmdum-umi.sh</p>
+<p>I made the following changes to the original</p>
 <pre><code>#prior code
 dedup_umi.py --method=&quot;directional-adjacency&quot; --edit-distance-threshold=1 \
   -I $FILE -v 0 -S $OUTDIR/$BASE.rmdup.bam
@@ -528,6 +528,7 @@ ASE.rmdup.bam</code></pre>
 <pre><code> wrap_dedup.sh *bam</code></pre>
 <p>To run this in the processed folder not including the bulk I use.</p>
 <pre><code>wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  </code></pre>
+<p>The code now works when I run it on one bam file at a time on the login node. When I try to run the wrap command to run sbatch jobs for each file, I get the following error:</p>
 <p>Error:</p>
 <pre><code>&lt;!--  Traceback (most recent call last): --&gt;
 &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools&quot;, line 11, in &lt;mo --&gt;
@@ -546,8 +547,6 @@ ASE.rmdup.bam</code></pre>
 &lt;!-- o such file or directory not built. If you want to import pandas from the sour --&gt;
 &lt;!-- ce directory, you may need to run &#39;python setup.py build_ext --inplace&#39; to bui --&gt;
 &lt;!-- ld the C extensions first. --&gt;</code></pre>
-<p>When I try to run this on one file I get the following error:<br />
-`<code>&lt;!-- Removing reads with duplicate UMIs... --&gt; &lt;!-- Traceback (most recent call last): --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools&quot;, line 11, in &lt;module&gt; --&gt; &lt;!--     sys.exit(main()) --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/umi_tools.py&quot;, line 43, in main --&gt; &lt;!--     module = imp.load_module(command, file, pathname, description) --&gt; &lt;!--   File &quot;/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi_tools/dedup.py&quot;, line 227, in &lt;module&gt; --&gt; &lt;!--     import Utilities as U --&gt; &lt;!-- ImportError: No module named Utilities --&gt;</code></p>
 </div>
 </div>
 
