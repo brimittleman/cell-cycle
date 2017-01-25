@@ -339,29 +339,4 @@ To run this in the processed folder not including the bulk I use.
 ```
 wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  
 ```
-
-The code now works when I run it on one bam file at a time on the login node. When I try to run the wrap command to run sbatch jobs for each file, I get the following error: 
-  
-
-  
-Error:  
-```
-<!--  Traceback (most recent call last): -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/bin/umi_tools", line 11, in <mo -->
-<!-- dule> -->
-<!--     sys.exit(main()) -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi -->
-<!-- _tools/umi_tools.py", line 43, in main -->
-<!--     module = imp.load_module(command, file, pathname, description) -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/umi -->
-<!-- _tools/dedup.py", line 219, in <module> -->
-<!--     import pandas as pd -->
-<!--   File "/software/python-2.7-2015q2-el6-x86_64/lib/python2.7/site-packages/pan -->
-<!-- das/__init__.py", line 13, in <module> -->
-<!--     "extensions first.".format(module)) -->
-<!-- ImportError: C extension: libptf77blas.so.3: cannot open shared object file: N -->
-<!-- o such file or directory not built. If you want to import pandas from the sour -->
-<!-- ce directory, you may need to run 'python setup.py build_ext --inplace' to bui -->
-<!-- ld the C extensions first. -->
-```
- 
+The umi_tools module is only on midway 1. I need to specify the sandyb partition in my wrap script to be able to run this code over all of the bam files.  
