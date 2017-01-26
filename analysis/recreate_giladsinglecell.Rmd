@@ -339,4 +339,31 @@ To run this in the processed folder not including the bulk I use.
 ```
 wrap_dedup.sh `ls -1 *.bam | grep -v bulk`  
 ```
-The umi_tools module is only on midway 1. I need to specify the sandyb partition in my wrap script to be able to run this code over all of the bam files.  
+The umi_tools module is only on midway 1. I need to specify the sandyb partition in my wrap script to be able to run this code over all of the bam files. 
+
+I created a new script to run the code on more than one directory at a time called 2dir_dedup.sh. I can use similar code to run the counting functions later on files from 2 directories.  
+
+```
+#!/bin/bash
+
+module load samtools
+module load python
+
+for file in `ls bam-processed/*bam | grep -v bulk`  bam-combined/*bam
+do
+	sbatch --mem=4G rmdum-umi.sh $file
+done
+```
+
+
+###Count reads per gene 
+I created the count-reads-per-gene.sh and a wrap script for it. I will run it first on the bam-processed files.
+```
+wrap_CRPG.sh *bam
+```
+
+To run this I need to use the create exon script in R to make the necssesary file for the featurecounts tool to use.  
+
+```
+Rscript create-exons.R  genome/ERCC92.gtf > genome/exons.saf
+```
