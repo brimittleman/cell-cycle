@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-26</p>
-<p><strong>Code version:</strong> 69190fe</p>
+<p><strong>Last updated:</strong> 2017-01-27</p>
+<p><strong>Code version:</strong> 4b25e2e</p>
 <p>I will use this to document my recreating of the single cell data processing from <a href="http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/process-samples.html</a>.</p>
 <div id="general-information-for-committing-changes-to-the-git-hub-site" class="section level3">
 <h3>General information for committing changes to the git hub site:</h3>
@@ -542,10 +542,35 @@ done</code></pre>
 </div>
 <div id="count-reads-per-gene" class="section level3">
 <h3>Count reads per gene</h3>
-<p>I created the count-reads-per-gene.sh and a wrap script for it. I will run it first on the bam-processed files.</p>
-<pre><code>wrap_CRPG.sh *bam</code></pre>
-<p>To run this I need to use the create exon script in R to make the necssesary file for the featurecounts tool to use.</p>
-<pre><code>Rscript create-exons.R  genome/ERCC92.gtf &gt; genome/exons.saf</code></pre>
+<p>To run this I need to use the create exon script in R to make the necssesary file for the featurecounts tool to use. Do this on midway2 from the genome folder.</p>
+<pre><code>Rscript create-exons.R ERCC92.gtf.1 &gt; exons.saf 
+</code></pre>
+<p>I created the count-reads-per-gene.sh and a code to run it on 2 directories. It is called 2dir_count.sh. I ran this script in the project single cell directory and the ouput is in counts.</p>
+</div>
+<div id="gather-total-counts-skip-this-section" class="section level3">
+<h3>Gather total counts (Skip this section)</h3>
+<p>I copied gather-total-counts.py code from the github. This section relies on text files I have not created in all of the directories. It is not necessary I do it.</p>
+<pre><code>gather-total-counts.py &gt; total-counts.txt</code></pre>
+</div>
+<div id="gather-summmary-counts" class="section level3">
+<h3>Gather summmary counts</h3>
+<p>I copy the gather-summary-counts.py script and comment out the lines that check the number of files. Because I only did one plate these numbers would stop the code from running.</p>
+<pre><code>gather-summary-counts.py &gt; summary-counts.txt</code></pre>
+</div>
+<div id="gather-gene-counts" class="section level3">
+<h3>Gather gene counts</h3>
+<p>Coppy the gather-gene-counts.py from github. Need to comment out lines that check the number or files becasue I am not working with all of the samples.</p>
+<pre><code>mkdir -p counts-matrix
+gather-gene-counts.py counts-matrix/ counts/*genecounts.txt</code></pre>
+<p>In the end I have a directory called counts-matrix with 6 files in it that will be loaded ito R to continue the process. They are:</p>
+<ul>
+<li><p>molecules-raw-single-per-lane.txt</p></li>
+<li><p>molecules-raw-single-per-sample.txt</p></li>
+<li><p>reads-raw-bulk-per-lane.txt</p></li>
+<li><p>reads-raw-bulk-per-sample.txt</p></li>
+<li><p>reads-raw-single-per-lane.txt</p></li>
+<li><p>reads-raw-single-per-sample.txt</p></li>
+</ul>
 </div>
 </div>
 
