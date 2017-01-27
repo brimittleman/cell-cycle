@@ -5,15 +5,19 @@ output:
     toc: false
 ---
 
-The goal of this new template is to simplify the setup and maintenance of a research website.
-Specifically,
+This was made using the workflowr package in R.   
 
-*  Easier to build and extend the website using the new tools in the [rmarkdown][] package and [latest RStudio release][rstudio]
-*  Easier to deploy the website with Git and GitHub by only using one branch
+*  Easier to build and extend the website using the new tools in the [rmarkdown][] package and [latest RStudio release][rstudio]  
+
+*  Easier to deploy the website with Git and GitHub by only using one branch  
+
 
 [rmarkdown]: http://rmarkdown.rstudio.com/rmarkdown_websites.htm
 [rstudio]: https://www.rstudio.com/products/rstudio/download/preview/
 
-[Cell cycle single cell data](recreate_cell_cycle_analysis.html)
+These are the projects I am working on during the my rotation in the Stephens lab. Each analysis file is treated like a lab notebook file for future anaylsis of single cell data.
 
-[Gilad single cell recreation](recreate_giladsinglecell.html)
+
+* [Cell cycle single cell data](recreate_cell_cycle_analysis.html)
+
+* [Gilad single cell fastq processing recreation](recreate_giladsinglecell.html)
