@@ -306,7 +306,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-01-27</p>
-<p><strong>Code version:</strong> 5decb6d</p>
+<p><strong>Code version:</strong> 5a4cc89</p>
 <p>This is recreating code from <a href="http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html</a>.</p>
 <pre class="r"><code>library(&quot;data.table&quot;)
 library(&quot;dplyr&quot;)
@@ -5420,6 +5420,20 @@ setDF(reads_raw)</code></pre>
 ##   ERCC-00168 ERCC-00170 ERCC-00171
 ##  [ reached getOption(&quot;max.print&quot;) -- omitted 6 rows ]</code></pre>
 <p>Ths has rows for each individule and the columns give information about the sample then give counts for each gene.</p>
+<p>Create annotation file for single cell samples:</p>
+<pre class="r"><code>anno &lt;- reads_raw %&gt;%
+  select(individual:well) %&gt;%
+  mutate(batch = paste(individual, replicate, sep = &quot;.&quot;),
+         sample_id = paste(batch, well, sep = &quot;.&quot;))
+head(anno)</code></pre>
+<pre><code>##   individual replicate well      batch      sample_id
+## 1    NA19098        r1  A01 NA19098.r1 NA19098.r1.A01
+## 2    NA19098        r1  A02 NA19098.r1 NA19098.r1.A02
+## 3    NA19098        r1  A03 NA19098.r1 NA19098.r1.A03
+## 4    NA19098        r1  A04 NA19098.r1 NA19098.r1.A04
+## 5    NA19098        r1  A05 NA19098.r1 NA19098.r1.A05
+## 6    NA19098        r1  A06 NA19098.r1 NA19098.r1.A06</code></pre>
+<p>This annoation file has information about the sample, replicatte, patch</p>
 </div>
 
 <hr>
