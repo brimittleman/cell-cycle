@@ -357,13 +357,49 @@ done
 
 
 ###Count reads per gene 
-I created the count-reads-per-gene.sh and a wrap script for it. I will run it first on the bam-processed files.
-```
-wrap_CRPG.sh *bam
-```
-
-To run this I need to use the create exon script in R to make the necssesary file for the featurecounts tool to use.  
+To run this I need to use the create exon script in R to make the necssesary file for the featurecounts tool to use. Do this on midway2 from the genome folder.  
 
 ```
-Rscript create-exons.R  genome/ERCC92.gtf > genome/exons.saf
+Rscript create-exons.R ERCC92.gtf.1 > exons.saf 
+
 ```
+
+
+I created the count-reads-per-gene.sh and a code to run it on 2 directories. It is called 2dir_count.sh. I ran this script in the project single cell directory and the ouput is in counts.   
+
+
+###Gather total counts  (Skip this section)
+I copied gather-total-counts.py code from the github. This section relies on text files I have not created in all of the directories. It is not necessary I do it.
+
+```
+gather-total-counts.py > total-counts.txt
+```
+
+###Gather summmary counts  
+I copy the gather-summary-counts.py script and comment out the lines that check the number of files. Because I only did one plate these numbers would stop the code from running. 
+
+```
+gather-summary-counts.py > summary-counts.txt
+```  
+
+###Gather gene counts  
+Coppy the gather-gene-counts.py from github. Need to comment out lines that check the number or files becasue I am not working with all of the samples. 
+```
+mkdir -p counts-matrix
+gather-gene-counts.py counts-matrix/ counts/*genecounts.txt
+```  
+
+
+In the end I have a directory called counts-matrix with 6 files in it that will be loaded ito R to continue the process. They are:
+
+* molecules-raw-single-per-lane.txt 
+
+* molecules-raw-single-per-sample.txt 
+
+* reads-raw-bulk-per-lane.txt 
+
+* reads-raw-bulk-per-sample.txt
+
+*  reads-raw-single-per-lane.txt
+
+* reads-raw-single-per-sample.txt 
