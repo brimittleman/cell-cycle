@@ -12,7 +12,3 @@ library("data.table")
 ```
 
 Import data from John's Github:
-```
-```{r}
-data_gilad <- fread("../../singleCellSeq/data/molecules-raw-single-per-sample.txt")
-```
