@@ -35,4 +35,15 @@ head(reads_raw)
 ```
 
 Ths has rows for each individule and the columns give information about the sample then give counts for each gene.  
+  
+  
+Create annotation file for single cell samples: 
+```{r}
+anno <- reads_raw %>%
+  select(individual:well) %>%
+  mutate(batch = paste(individual, replicate, sep = "."),
+         sample_id = paste(batch, well, sep = "."))
+head(anno)
+```
 
+This annoation file has information about the sample, replicatte, patch 
