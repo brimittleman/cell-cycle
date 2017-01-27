@@ -1,5 +1,5 @@
 ---
-title: "gene_x_sample_count_matrix"
+title: "Create gene-x-sample count matrices and annotation file"
 output: html_document
 ---
 
@@ -7,8 +7,32 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
 **Last updated:** `r Sys.Date()`
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
 
-This is recreating code from http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html.  
+This is recreating code from http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html.
+
+```{r}
+library("data.table")
+library("dplyr")
+library("VennDiagram")
+```
+
+This analysis will take the matrix from the fastq to counts anayisis pipeline (sample-by-gene) to a standard gene-x-sample matrix. I will also create annotation files and romove the genes with no observed sequencing data in the experiment. I will use the data from git hub rather than the data I created because I want to look at the whole experiment rather than one plate at this point.  
+
+###Read Counts for single cell samples: 
+```{r}
+reads_raw <- fread("../../singleCellSeq/data/reads-raw-single-per-sample.txt")
+setDF(reads_raw)
+```
+
+Explore this data:
+```{r}
+dim(reads_raw)
+head(reads_raw)
+```
+
+Ths has rows for each individule and the columns give information about the sample then give counts for each gene.  
+
