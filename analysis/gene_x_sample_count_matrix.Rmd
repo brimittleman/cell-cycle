@@ -1,0 +1,14 @@
+---
+title: "gene_x_sample_count_matrix"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+This is recreating code from http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html.  
