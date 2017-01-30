@@ -22,6 +22,8 @@ These are the projects I am working on during the my rotation in the Stephens la
 
 * [Gilad single cell fastq processing recreation](recreate_giladsinglecell.html)
 
+* [Compare Gilad single cell counts to my analysis](compare_count_data.Rmd)
+
 Continue the Gilad single cell anaylsis:
 
 * [Create gene-x-sample count matrices and annotation file](gene_x_sample_count_matrix.Rmd)
