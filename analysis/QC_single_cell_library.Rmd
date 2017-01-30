@@ -28,7 +28,7 @@ theme_update(panel.grid.minor.x = element_blank(),
              panel.grid.major.y = element_blank(),
              legend.key = element_blank(),
              plot.title = element_text(size = rel(1)))
-source("functions.R")
+source("../../singleCellSeq/analysis/functions.R")
 ```
 
 Summary counts from featureCounts program using gather-summary-counts.py. These data were colected from the summary files of the combined samples. The code below makes sure all samples are included.
@@ -92,4 +92,53 @@ head(qc)
 ```
 
 ###Total ERCC and removal of NA19098.r2
+```{r}
+summary_per_sample_reads <- summary_per_sample[summary_per_sample$rmdup == "reads",]
+summary_per_sample_reads$sample_id <- anno$sample_id
+summary_per_sample_reads$batch <- anno$batch
+stopifnot(colnames(reads) == summary_per_sample_reads$sample_id )
 
+summary_per_sample_reads$ERCC_reads <- apply(reads[grep("ERCC", rownames(reads)), ],2,sum)
+summary_per_sample_reads$ERCC_molecules <- apply(molecules[grep("ERCC", rownames(molecules)), ],2,sum)
+```
+
+```{r}
+## create a color palette with one color per individual and different shades for repplicates
+great_color <- c("#CC3300", "#FF9966", "#FFCC99", "#006633", "#009900", "#99FF99", "#3366FF", "#6699FF", "#66CCFF")
+great_color_8 <- c("#CC3300", "#FF9966", "#006633", "#009900", "#99FF99", "#3366FF", "#6699FF", "#66CCFF")
+
+ercc_reads_plot <- ggplot(summary_per_sample_reads,
+                   aes(x = factor(batch), y = ERCC_reads,
+                   fill = factor(batch)), height = 600, width = 2000) +
+                   geom_violin(alpha = .5) + 
+                   geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+                   scale_fill_manual(values = great_color) + 
+                   labs(x = "", y = "Total ERCC read-counts per cell", 
+                        title = "Excess amount of ERCC in NA19098.r2") +
+                   theme(axis.text.x = element_text(hjust=1, angle = 45))
+
+ercc_molecule_plot <- ggplot(summary_per_sample_reads,
+                   aes(x = factor(batch), y = ERCC_molecules,
+                   fill = factor(batch)), height = 600, width = 2000) +
+                   geom_violin(alpha = .5) + 
+                   geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+                   scale_fill_manual(values = great_color) + 
+                   labs(x = "", y = "Total ERCC molecule-counts per cell", 
+                        title = "Excess amount of ERCC in NA19098.r2") +
+                   theme(axis.text.x = element_text(hjust=1, angle = 45))
+
+plot_grid(ercc_reads_plot + theme(legend.position=c(.8,.7)),
+          ercc_molecule_plot + theme(legend.position = "none"),
+          labels = LETTERS[1:2])
+```
+These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.  
+**Why could this be? **  
+Understand ERCC RNA spike-ins by looking at the thermofisher documentation.  
+
+* Purpose: RNA controlls for performance quality assessment (preformulated sets of 92 polyA transcripts from ERCC plasmid reference
+
+* Use: add Spike-in Mix to each sample (about 10^6-fold concentration)
+
+* Known mix1:mix2 ratios can be used to assess differencial gene expression 
+
+Note from paper on this: "It appeared that too much ERCC spike-in mix was added to each cell"
