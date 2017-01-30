@@ -9,6 +9,130 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library("data.table")
+library("dplyr")
+library("VennDiagram")
 ```
 
 Import data from John's Github:
+
+```{r}
+reads_raw <- fread("../../singleCellSeq/data/reads-raw-single-per-sample.txt")
+bri_reads_raw <- fread("../../single-cell/data/counts-matrix/reads-raw-single-per-sample.txt"
+)
+setDF(bri_reads_raw)
+reads_raw[1:10, 10:20]
+bri_reads_raw[1:10, 10:20]
+```
+My data consitently shows higher gene counts for the genes and samples I am looking at. I am going to transpose my data similar to the gene_x_sample_count_matrix.Rmd anaylsis so I can see if I detected more genes. 
+
+```{r}
+bri_reads_raw <- fread("../../single-cell/data/counts-matrix/reads-raw-single-per-sample.txt"
+)
+setDF(bri_reads_raw)
+```
+
+Create annotation file for the data. 
+```{r}
+anno_bri <- bri_reads_raw %>%
+  select(individual:well) %>%
+  mutate(batch = paste(individual, replicate, sep = "."),
+         sample_id = paste(batch, well, sep = "."))
+head(anno_bri)
+```
+
+Transpose matrix. 
+```{r}
+reads_bri <-  bri_reads_raw %>%
+  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(reads_bri) <- anno$sample_id
+reads_bri[1:5, 1:5]
+```
+###Molecule counts for single cell samples
+```{r}
+molecules_raw_bri <- fread("../../single-cell/data/counts-matrix/molecules-raw-single-per-sample.txt")
+setDF(molecules_raw_bri)
+dim(molecules_raw_bri)
+```
+
+Confirm order:
+```{r}
+stopifnot(anno_bri$individual == molecules_raw_bri$individual,
+          anno_bri$replicate == molecules_raw_bri$replicate,
+          anno_bri$well == molecules_raw_bri$well)
+```
+Transpoe matrix:
+
+```{r}
+molecules_bri <- molecules_raw_bri %>%
+  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(molecules_bri) <- anno_bri$sample_id
+molecules_bri[1:5, 1:5]
+```
+
+###Read counts for bulk samples 
+
+```{r}
+reads_bulk_raw_bri <- fread("../../single-cell/data/counts-matrix/reads-raw-bulk-per-sample.txt")
+setDF(reads_bulk_raw_bri)
+```
+
+Create annotation file for bulk samples.  
+
+```{r}
+anno_bulk_bri <- reads_bulk_raw_bri %>%
+  select(individual:well) %>%
+  mutate(batch = paste(individual, replicate, sep = "."),
+         sample_id = paste(batch, well, sep = "."))
+head(anno_bulk_bri)
+
+```
+
+
+Transpose bulk read information.
+
+```{r}
+reads_bulk_bri <- reads_bulk_raw_bri %>%
+  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(reads_bulk_bri) <- anno_bulk_bri$sample_id
+reads_bulk[1:5, 1:5]
+```
+
+###Observed genes
+
+```{r}
+stopifnot(rownames(reads_bulk_bri) == rownames(reads_bri),
+          rownames(reads_bri) == rownames(molecules_bri))
+
+genes_observed_reads_bulk_bri <- rownames(reads_bulk_bri)[rowSums(reads_bulk_bri) > 0]
+genes_observed_reads_bri <- rownames(reads_bri)[rowSums(reads_bri) > 0]
+genes_observed_molecules_bri <- rownames(molecules_bri)[rowSums(molecules_bri) > 0]
+stopifnot(genes_observed_molecules_bri %in% genes_observed_reads_bri)
+```
+
+
+
+```{r}
+genes_venn_bri <- venn.diagram(x = list("reads" = genes_observed_reads_bri,
+                                    "molecules" = genes_observed_molecules_bri,
+                                    "reads bulk" = genes_observed_reads_bulk_bri),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(genes_venn_bri)
+```
+
+Unlike the full data from git_hub. This data set has reads that are shared between reads and bulk but not in molecules. This could be due to the small samples size in this set.
+
+
+###Look between github analysis and my analysis:
+
+```{r}
+bri_github_ven <- venn.diagram(x = list("reads" = genes_observed_reads,
+                                    "reads_bri" = genes_observed_reads_bri),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(bri_github_ven)
+```
+The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.  
