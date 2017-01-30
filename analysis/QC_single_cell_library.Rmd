@@ -1,0 +1,95 @@
+---
+title: "QC of single cell libraries"
+author: "Briana Mittlemant"
+date: YYYY-MM-DD
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+```{r}
+library("dplyr")
+library("edgeR")
+library("ggplot2")
+library("cowplot")
+theme_set(theme_bw(base_size = 16))
+theme_update(panel.grid.minor.x = element_blank(),
+             panel.grid.minor.y = element_blank(),
+             panel.grid.major.x = element_blank(),
+             panel.grid.major.y = element_blank(),
+             legend.key = element_blank(),
+             plot.title = element_text(size = rel(1)))
+source("functions.R")
+```
+
+Summary counts from featureCounts program using gather-summary-counts.py. These data were colected from the summary files of the combined samples. The code below makes sure all samples are included.
+
+```{r}
+summary_per_sample <- read.table("../../singleCellSeq/data/summary-counts.txt",header=TRUE, stringsAsFactors= FALSE)
+
+stopifnot(summary_per_sample$well != "bulk",
+          sum(summary_per_sample$rmdup == "reads")==864,
+          sum(summary_per_sample$rmdup == "molecules")==864)
+          
+
+```
+
+Remove feautureCounts classification with zero counts. 
+```{r}
+stopifnot(colSums(summary_per_sample[, c(7, 10:15)]) == 0)
+summary_per_sample <- summary_per_sample[, c(-7, -10:-15)]
+head(summary_per_sample)
+```
+Input annotation.  
+
+```{r}
+anno <- read.table("../../singleCellSeq//data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+stopifnot(anno$well != "bulk", nrow(anno) == 864,
+          rep(anno$individual, each = 2) == summary_per_sample$individual,
+          rep(anno$replicate, each = 2) == summary_per_sample$replicate,
+          rep(anno$well, each = 2) == summary_per_sample$well)
+head(anno)
+```
+
+Input read counts  
+
+```{r}
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+stopifnot(ncol(reads) == nrow(anno),
+          colnames(reads) == anno$sample_id)
+```
+
+Input molecule counts
+
+```{r}
+molecules <- read.table("../../singleCellSeq//data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+stopifnot(ncol(molecules) == nrow(anno),
+          colnames(reads) == anno$sample_id)
+```
+
+
+Input single cell observation quality control data.  
+
+```{r}
+qc <- read.table("../../singleCellSeq/data/qc-ipsc.txt", header = TRUE,
+                 stringsAsFactors = FALSE)
+stopifnot(qc$individual == anno$individual,
+          qc$replicate == anno$replicate,
+          qc$well == anno$well)
+head(qc)
+```
+
+###Total ERCC and removal of NA19098.r2
+
