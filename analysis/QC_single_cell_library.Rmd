@@ -325,5 +325,102 @@ ggplot(summary_per_sample_reads_qc, aes(x = concentration, y = total_gene_molecu
   labs(x = "Concentration", y = "Gene molecules (thousands)") +
   scale_color_brewer(palette = "Dark2") +
   theme(legend.position = "none")
+
+```
+
+```{r}
+outliers <- summary_per_sample_reads_qc %>% filter(cell_number == 1, concentration < 1.25, concentration > .15,
+                                   total_gene_molecule > 100000)
+#you could use code like this to look for the cells that failed the qc checks above.
+
+outliers %>% dplyr::select(sample_id)
+```
+
+###Linear Discrimination analysis  
+
+Linear discrimination analysis: 
+
+* releated to ANOVA  
+
+* Use pattern recognition and machine learning to find linear combination of features that characterizes or separates two or more classes of objects or events  
+
+* Use resulting combination for dimensional reduction  
+
+* one dependent variable as a linear combinaton of other features 
+
+* also like PCA- linear combination to best explain data  
+```{r}
+library(MASS)
+```
+
+```{r}
+## create 3 groups according to cell number
+group_3 <- rep("multiple cells",dim(summary_per_sample_reads_qc)[1])
+         group_3[grep("0", summary_per_sample_reads_qc$cell_number)] <- "no cells"
+         group_3[grep("1", summary_per_sample_reads_qc$cell_number)] <- "one cell"
+         
+         
+## create data frame
+data_lda <- data.frame(anno_rm,
+                       cell_number = summary_per_sample_reads_qc$cell_number,
+                       concentration = summary_per_sample_reads_qc$concentration,
+                       total_gene_molecule = summary_per_sample_reads_qc$total_gene_molecule,
+                       group = group_3)
+
+
+## remove 19098.r1
+data_con <- data_lda %>% filter(batch != "NA19098.r1")
+plot_before <- ggplot(data_con, aes(x = concentration, y = total_gene_molecule / 10^3,
+               color = as.factor(group))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = "Sample concentration", 
+                    y = "Total gene molecule-count per sample (thousands)", 
+                    title = "Before linear discriminant analysis (LDA) \n A few samples with one cell (purple) \n clustered with samples with multiple cells (green)") +
+               scale_color_brewer(palette = "Dark2") +
+               theme(legend.position = "none")
+
+## perform lda
+data_con_lda <- lda(group ~ concentration + total_gene_molecule,
+                    data = data_con) 
+#this analysis uses the group we gave and a function that looks at the number of cells we saw, the concentration of the well and the total molecules counts 
+data_con_lda_p <- predict(data_con_lda, 
+                          newdata = data_con[,c("concentration", "total_gene_molecule")])$class
+
+#predict- predict results of a model fitting from varius model fitting functions 
+
+## determine how well the model fix
+table(data_con_lda_p, data_con[, "group"])
+
+```
+
+```{r}
+data_con$data_con_lda_p <- data_con_lda_p
+
+plot_after <- ggplot(data_con, aes(x = concentration, y = total_gene_molecule / 10^3,
+               color = as.factor(data_con_lda_p))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = "Sample concentration", 
+                    y = "Total gene molecule-count per sample (thousands)", 
+                    title = "After linear discriminant analysis (LDA) \n Removal of samples classified as \n samples with multiple cells (green)") +
+               scale_color_brewer(palette = "Dark2") +
+               theme(legend.position = "none")
+
+## identify the outlier 
+outliers_lda <- data_con %>% filter(cell_number == 1, data_con_lda_p == "multiple cells")
+outliers_lda$sample_id
+```
+
+
+```{r}
+## The lds method identifies outliers
+plot_grid(plot_before + theme(legend.position=c(.8,.85)), 
+          plot_after + theme(legend.position = "none"),
+          labels = LETTERS[1:2])
+```
+
+```{r}
+## create filter
+summary_per_sample_reads_qc$molecule_outlier <- summary_per_sample_reads_qc$sample_id %in% outliers_lda$sample_id
+
 ```
 

@@ -386,7 +386,8 @@ reads_raw[1:10, 10:20]</code></pre>
 )
 setDF(bri_reads_raw)</code></pre>
 <p>Create annotation file for the data.</p>
-<pre class="r"><code>anno_bri &lt;- bri_reads_raw %&gt;%
+<pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq//data/annotation.txt&quot;, header = TRUE,stringsAsFactors = FALSE)
+anno_bri &lt;- bri_reads_raw %&gt;%
   select(individual:well) %&gt;%
   mutate(batch = paste(individual, replicate, sep = &quot;.&quot;),
          sample_id = paste(batch, well, sep = &quot;.&quot;))
@@ -402,7 +403,7 @@ head(anno_bri)</code></pre>
 <pre class="r"><code>reads_bri &lt;-  bri_reads_raw %&gt;%
   select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
   t
-colnames(reads_bri) &lt;- anno$sample_id
+colnames(reads_bri) &lt;- anno_bri$sample_id
 reads_bri[1:5, 1:5]</code></pre>
 <pre><code>##                 NA19098.r1.A01 NA19098.r1.A02 NA19098.r1.A03
 ## ENSG00000186092              0              0              0
@@ -461,20 +462,7 @@ head(anno_bulk_bri)</code></pre>
 <pre class="r"><code>reads_bulk_bri &lt;- reads_bulk_raw_bri %&gt;%
   select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
   t
-colnames(reads_bulk_bri) &lt;- anno_bulk_bri$sample_id
-reads_bulk[1:5, 1:5]</code></pre>
-<pre><code>##                 NA19098.r1.bulk NA19098.r2.bulk NA19098.r3.bulk
-## ENSG00000237683              50              61              39
-## ENSG00000187634               2               8               9
-## ENSG00000188976            3575            2794            4034
-## ENSG00000187961              54              68              96
-## ENSG00000187583               8               8               0
-##                 NA19101.r1.bulk NA19101.r2.bulk
-## ENSG00000237683              56              41
-## ENSG00000187634               3               2
-## ENSG00000188976            2675            3642
-## ENSG00000187961              58              44
-## ENSG00000187583               3               0</code></pre>
+colnames(reads_bulk_bri) &lt;- anno_bulk_bri$sample_id</code></pre>
 </div>
 <div id="observed-genes" class="section level3">
 <h3>Observed genes</h3>
@@ -491,17 +479,25 @@ stopifnot(genes_observed_molecules_bri %in% genes_observed_reads_bri)</code></pr
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(genes_venn_bri)</code></pre>
-<p><img src="compare_count_data_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<p><img src="compare_count_data_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
 <p>Unlike the full data from git_hub. This data set has reads that are shared between reads and bulk but not in molecules. This could be due to the small samples size in this set.</p>
 </div>
 <div id="look-between-github-analysis-and-my-analysis" class="section level3">
 <h3>Look between github analysis and my analysis:</h3>
-<pre class="r"><code>bri_github_ven &lt;- venn.diagram(x = list(&quot;reads&quot; = genes_observed_reads,
+<pre class="r"><code>reads_raw &lt;- fread(&quot;../../singleCellSeq/data/reads-raw-single-per-sample.txt&quot;)
+reads &lt;- reads_raw %&gt;%
+  select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
+  t
+genes_observed_reads &lt;- rownames(reads)[rowSums(reads) &gt; 0]
+
+
+bri_github_ven &lt;- venn.diagram(x = list(&quot;reads&quot; = genes_observed_reads,
                                     &quot;reads_bri&quot; = genes_observed_reads_bri),
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(bri_github_ven)</code></pre>
-<p><img src="compare_count_data_files/figure-html/unnamed-chunk-34-1.png" width="672" /> The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.</p>
+<p><img src="compare_count_data_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<p>The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.</p>
 </div>
 
 <hr>
