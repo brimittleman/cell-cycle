@@ -131,14 +131,199 @@ plot_grid(ercc_reads_plot + theme(legend.position=c(.8,.7)),
           ercc_molecule_plot + theme(legend.position = "none"),
           labels = LETTERS[1:2])
 ```
-These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.  
-**Why could this be? **  
-Understand ERCC RNA spike-ins by looking at the thermofisher documentation.  
+These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.   
+**Why could this be? **   
+Understand ERCC RNA spike-ins by looking at the thermofisher documentation.    
 
-* Purpose: RNA controlls for performance quality assessment (preformulated sets of 92 polyA transcripts from ERCC plasmid reference
+* Purpose: RNA controlls for performance quality assessment (preformulated sets of 92 polyA transcripts from ERCC plasmid reference  
 
-* Use: add Spike-in Mix to each sample (about 10^6-fold concentration)
+* Use: add Spike-in Mix to each sample (about 10^6-fold concentration)  
 
-* Known mix1:mix2 ratios can be used to assess differencial gene expression 
+* Known mix1:mix2 ratios can be used to assess differencial gene expression   
 
-Note from paper on this: "It appeared that too much ERCC spike-in mix was added to each cell"
+Note from paper on this: "It appeared that too much ERCC spike-in mix was added to each cell"  
+  
+Remove NA19098r2 for all the following analsis:
+
+```{r}
+remove_19098r2 <- anno$batch != "NA19098.r2"
+anno_rm <- anno[remove_19098r2,]
+summary_per_sample_reads_rm <- summary_per_sample_reads[remove_19098r2,]
+reads_rm <- reads[, remove_19098r2]
+molecules_rm <- molecules[, remove_19098r2]
+
+stopifnot(summary_per_sample_reads_rm$sample_id == colnames(reads_rm))
+```
+
+###Total mapped reads  
+```{r}
+## add cell number per well by merging qc file
+summary_per_sample_reads_qc <- merge(summary_per_sample_reads_rm,qc,by=c("individual","replicate","well"))
+## calculate total mapped reads per sample
+summary_per_sample_reads_qc$total_mapped <- apply(summary_per_sample_reads_qc[,5:7],1,sum)
+
+## cut off 
+cut_off_reads <- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,"total_mapped"], 0.95)
+
+cut_off_reads
+```
+ 
+The cut off is the 95% percentile when there are 0 cells in the well. This is used to look for wells that appeared to have a cell but do not produce reads at the level expected for 1 cell. We are loooking for cells that were bad quality and therefore didn't produce ample reads. 95% cuttoff was used troughtout the study but it is an arbutrary number.  
+
+```{r}
+summary_per_sample_reads_qc$cut_off_reads <- summary_per_sample_reads_qc$total_mapped > cut_off_reads
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "total_mapped"] > cut_off_reads)
+```
+Total mapped reads need to be higher than the 95% cuttoff found for 0 cell and the well needed to hold only one cell.  
+
+
+```{r}
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "total_mapped"] <= cut_off_reads)
+```
+
+This is the number of wells that have 1 cell and have less than the 95% cut off for reads. In the data these cells act more like they did not have a cell in the well due to bad quality.  
+
+```{r}
+## density plots
+plot_reads <- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = total_mapped, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_reads, colour="grey", linetype = "longdash") +
+       labs(x = "Total mapped reads per sample", title = "Cutoff based on the number of total mapped reads", fill = "Cell number")
+
+```
+
+###Unmapped ratios  
+```{r}
+## calculate unmapped ratios
+summary_per_sample_reads_qc$unmapped_ratios <- summary_per_sample_reads_qc[,8]/apply(summary_per_sample_reads_qc[,5:8],1,sum)
+
+## cut off 
+cut_off_unmapped <- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,"unmapped_ratios"], 0.05)
+
+cut_off_unmapped
+```
+
+This is similar to the step above. We are looking for the lower 5% of unmapped reads when no cell was present in the well. This is because when no cell is present we will have a lot of unmapped reads that come from the spikeins. 
+```{r}
+summary_per_sample_reads_qc$cut_off_unmapped <- summary_per_sample_reads_qc$unmapped_ratios < cut_off_unmapped
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "unmapped_ratios"] >= cut_off_unmapped)
+```
+
+Now we look at the samples with 1 cell to see if they have more than the cuttoff of unmapped reads. This is to check mapping quality.  
+
+```{r}
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "unmapped_ratios"] < cut_off_unmapped)
+```
+
+```{r}
+# density plots
+plot_unmapped <- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = unmapped_ratios *100, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_unmapped *100, colour="grey", linetype = "longdash") +
+       labs(x = "Unmapped reads / Total reads per sample (%)", title = "Cutoff based on the percentage unmapped reads")
+
+```
+
+###ERCC Percentage  
+
+```{r}
+## calculate ercc reads percentage
+summary_per_sample_reads_qc$ercc_percentage <- apply(reads_rm[grep("ERCC", rownames(reads_rm)), ],2,sum)/apply(summary_per_sample_reads_qc[,5:7],1,sum) 
+
+## cut off 
+cut_off_ercc <- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,"ercc_percentage"], 0.05)
+
+cut_off_ercc
+```
+This is looking at the percent of reads that map to the ERCC spike ins. We are looking at the lower 5% because higher than that assumes too much of the sample was composed of ERCC mapping reads rather than sample reads.  
+```{r}
+summary_per_sample_reads_qc$cut_off_ercc <- summary_per_sample_reads_qc$ercc_percentage < cut_off_ercc
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "ercc_percentage"] >= cut_off_ercc)
+```
+
+```{r}
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "ercc_percentage"] < cut_off_ercc)
+```
+
+
+```{r}
+## density plots
+plot_ercc <- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = ercc_percentage *100, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_ercc *100, colour="grey", linetype = "longdash") +
+       labs(x = "ERCC reads / Total mapped reads per sample", title = "Cutoff based on the percentage of ERCC reads")
+
+```
+
+
+```{r}
+## endogenous genes
+reads_rm_gene <- reads_rm[grep("ENSG", rownames(reads_rm)), ]
+
+## number of genes detected 
+summary_per_sample_reads_qc$gene_number <- colSums(reads_rm_gene >= 1)
+
+## cut off 
+cut_off_genes <- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,"gene_number"], 0.95)
+
+cut_off_genes
+```
+
+```{r}
+summary_per_sample_reads_qc$cut_off_genes <- summary_per_sample_reads_qc$gene_number > cut_off_genes
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "gene_number"] > cut_off_genes)
+```
+
+```{r}
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, "gene_number"] <= cut_off_genes)
+```
+
+```{r}
+## density plots
+plot_gene <- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = gene_number, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_genes, colour="grey", linetype = "longdash") +
+       labs(x = "Gene numbers per sample", title = "Cutoff based on the number of detected genes")
+```
+
+```{r}
+plot_grid(plot_reads + theme(legend.position=c(.7,.7)),
+          plot_unmapped + theme(legend.position = "none"),
+          plot_ercc + theme(legend.position = "none"), 
+          plot_gene + theme(legend.position = "none"),
+          labels = LETTERS[3:6])
+```
+
+**We should look at the numbers that fail in each of these tests. If they are similar we should see if the same cells make up that count in each of the tests. We would expect this if each of these are good tests for cell quality**  
+
+###Total molecule counts  
+
+```{r}
+## calculate total gene molecule counts
+summary_per_sample_reads_qc$total_gene_molecule <- colSums(molecules_rm[grep("ENSG", rownames(molecules_rm)),])
+
+## look for outiers
+ggplot(summary_per_sample_reads_qc, aes(x = concentration, y = total_gene_molecule / 10^3,
+  color = as.factor(cell_number))) +
+  geom_text(aes(label = cell_number)) +
+  labs(x = "Concentration", y = "Gene molecules (thousands)") +
+  scale_color_brewer(palette = "Dark2") +
+  theme(legend.position = "none")
+```
+
