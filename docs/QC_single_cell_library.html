@@ -308,8 +308,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-30</p>
-<p><strong>Code version:</strong> d3502f1</p>
+<p><strong>Last updated:</strong> 2017-02-01</p>
+<p><strong>Code version:</strong> 0479a73</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
 library(&quot;ggplot2&quot;)
@@ -421,7 +421,7 @@ ercc_molecule_plot &lt;- ggplot(summary_per_sample_reads,
 plot_grid(ercc_reads_plot + theme(legend.position=c(.8,.7)),
           ercc_molecule_plot + theme(legend.position = &quot;none&quot;),
           labels = LETTERS[1:2])</code></pre>
-<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /> These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.<br />
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /> These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.<br />
 <strong>Why could this be? </strong><br />
 Understand ERCC RNA spike-ins by looking at the thermofisher documentation.</p>
 <ul>
@@ -430,6 +430,245 @@ Understand ERCC RNA spike-ins by looking at the thermofisher documentation.</p>
 <li><p>Known mix1:mix2 ratios can be used to assess differencial gene expression</p></li>
 </ul>
 <p>Note from paper on this: “It appeared that too much ERCC spike-in mix was added to each cell”</p>
+<p>Remove NA19098r2 for all the following analsis:</p>
+<pre class="r"><code>remove_19098r2 &lt;- anno$batch != &quot;NA19098.r2&quot;
+anno_rm &lt;- anno[remove_19098r2,]
+summary_per_sample_reads_rm &lt;- summary_per_sample_reads[remove_19098r2,]
+reads_rm &lt;- reads[, remove_19098r2]
+molecules_rm &lt;- molecules[, remove_19098r2]
+
+stopifnot(summary_per_sample_reads_rm$sample_id == colnames(reads_rm))</code></pre>
+</div>
+<div id="total-mapped-reads" class="section level3">
+<h3>Total mapped reads</h3>
+<pre class="r"><code>## add cell number per well by merging qc file
+summary_per_sample_reads_qc &lt;- merge(summary_per_sample_reads_rm,qc,by=c(&quot;individual&quot;,&quot;replicate&quot;,&quot;well&quot;))
+## calculate total mapped reads per sample
+summary_per_sample_reads_qc$total_mapped &lt;- apply(summary_per_sample_reads_qc[,5:7],1,sum)
+
+## cut off 
+cut_off_reads &lt;- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,&quot;total_mapped&quot;], 0.95)
+
+cut_off_reads</code></pre>
+<pre><code>    95% 
+1556255 </code></pre>
+<p>The cut off is the 95% percentile when there are 0 cells in the well. This is used to look for wells that appeared to have a cell but do not produce reads at the level expected for 1 cell. We are loooking for cells that were bad quality and therefore didn’t produce ample reads. 95% cuttoff was used troughtout the study but it is an arbutrary number.</p>
+<pre class="r"><code>summary_per_sample_reads_qc$cut_off_reads &lt;- summary_per_sample_reads_qc$total_mapped &gt; cut_off_reads
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;total_mapped&quot;] &gt; cut_off_reads)</code></pre>
+<pre><code>[1] 603</code></pre>
+<p>Total mapped reads need to be higher than the 95% cuttoff found for 0 cell and the well needed to hold only one cell.</p>
+<pre class="r"><code>sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;total_mapped&quot;] &lt;= cut_off_reads)</code></pre>
+<pre><code>[1] 96</code></pre>
+<p>This is the number of wells that have 1 cell and have less than the 95% cut off for reads. In the data these cells act more like they did not have a cell in the well due to bad quality.</p>
+<pre class="r"><code>## density plots
+plot_reads &lt;- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = total_mapped, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_reads, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+       labs(x = &quot;Total mapped reads per sample&quot;, title = &quot;Cutoff based on the number of total mapped reads&quot;, fill = &quot;Cell number&quot;)</code></pre>
+</div>
+<div id="unmapped-ratios" class="section level3">
+<h3>Unmapped ratios</h3>
+<pre class="r"><code>## calculate unmapped ratios
+summary_per_sample_reads_qc$unmapped_ratios &lt;- summary_per_sample_reads_qc[,8]/apply(summary_per_sample_reads_qc[,5:8],1,sum)
+
+## cut off 
+cut_off_unmapped &lt;- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,&quot;unmapped_ratios&quot;], 0.05)
+
+cut_off_unmapped</code></pre>
+<pre><code>       5% 
+0.3640165 </code></pre>
+<p>This is similar to the step above. We are looking for the lower 5% of unmapped reads when no cell was present in the well. This is because when no cell is present we will have a lot of unmapped reads that come from the spikeins.</p>
+<pre class="r"><code>summary_per_sample_reads_qc$cut_off_unmapped &lt;- summary_per_sample_reads_qc$unmapped_ratios &lt; cut_off_unmapped
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;unmapped_ratios&quot;] &gt;= cut_off_unmapped)</code></pre>
+<pre><code>[1] 101</code></pre>
+<p>Now we look at the samples with 1 cell to see if they have more than the cuttoff of unmapped reads. This is to check mapping quality.</p>
+<pre class="r"><code>sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;unmapped_ratios&quot;] &lt; cut_off_unmapped)</code></pre>
+<pre><code>[1] 598</code></pre>
+<pre class="r"><code># density plots
+plot_unmapped &lt;- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = unmapped_ratios *100, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_unmapped *100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+       labs(x = &quot;Unmapped reads / Total reads per sample (%)&quot;, title = &quot;Cutoff based on the percentage unmapped reads&quot;)</code></pre>
+</div>
+<div id="ercc-percentage" class="section level3">
+<h3>ERCC Percentage</h3>
+<pre class="r"><code>## calculate ercc reads percentage
+summary_per_sample_reads_qc$ercc_percentage &lt;- apply(reads_rm[grep(&quot;ERCC&quot;, rownames(reads_rm)), ],2,sum)/apply(summary_per_sample_reads_qc[,5:7],1,sum) 
+
+## cut off 
+cut_off_ercc &lt;- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,&quot;ercc_percentage&quot;], 0.05)
+
+cut_off_ercc</code></pre>
+<pre><code>       5% 
+0.0323008 </code></pre>
+<p>This is looking at the percent of reads that map to the ERCC spike ins. We are looking at the lower 5% because higher than that assumes too much of the sample was composed of ERCC mapping reads rather than sample reads.</p>
+<pre class="r"><code>summary_per_sample_reads_qc$cut_off_ercc &lt;- summary_per_sample_reads_qc$ercc_percentage &lt; cut_off_ercc
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;ercc_percentage&quot;] &gt;= cut_off_ercc)</code></pre>
+<pre><code>[1] 90</code></pre>
+<pre class="r"><code>sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;ercc_percentage&quot;] &lt; cut_off_ercc)</code></pre>
+<pre><code>[1] 609</code></pre>
+<pre class="r"><code>## density plots
+plot_ercc &lt;- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = ercc_percentage *100, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_ercc *100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+       labs(x = &quot;ERCC reads / Total mapped reads per sample&quot;, title = &quot;Cutoff based on the percentage of ERCC reads&quot;)</code></pre>
+<pre class="r"><code>## endogenous genes
+reads_rm_gene &lt;- reads_rm[grep(&quot;ENSG&quot;, rownames(reads_rm)), ]
+
+## number of genes detected 
+summary_per_sample_reads_qc$gene_number &lt;- colSums(reads_rm_gene &gt;= 1)
+
+## cut off 
+cut_off_genes &lt;- quantile(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0,&quot;gene_number&quot;], 0.95)
+
+cut_off_genes</code></pre>
+<pre><code>   95% 
+6788.9 </code></pre>
+<pre class="r"><code>summary_per_sample_reads_qc$cut_off_genes &lt;- summary_per_sample_reads_qc$gene_number &gt; cut_off_genes
+
+## numbers of cells 
+sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;gene_number&quot;] &gt; cut_off_genes)</code></pre>
+<pre><code>[1] 629</code></pre>
+<pre class="r"><code>sum(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1, &quot;gene_number&quot;] &lt;= cut_off_genes)</code></pre>
+<pre><code>[1] 70</code></pre>
+<pre class="r"><code>## density plots
+plot_gene &lt;- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 0 |
+                                           summary_per_sample_reads_qc$cell_number == 1 , ],
+       aes(x = gene_number, fill = as.factor(cell_number))) + 
+       geom_density(alpha = 0.5) +
+       geom_vline(xintercept = cut_off_genes, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+       labs(x = &quot;Gene numbers per sample&quot;, title = &quot;Cutoff based on the number of detected genes&quot;)</code></pre>
+<pre class="r"><code>plot_grid(plot_reads + theme(legend.position=c(.7,.7)),
+          plot_unmapped + theme(legend.position = &quot;none&quot;),
+          plot_ercc + theme(legend.position = &quot;none&quot;), 
+          plot_gene + theme(legend.position = &quot;none&quot;),
+          labels = LETTERS[3:6])</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><strong>We should look at the numbers that fail in each of these tests. If they are similar we should see if the same cells make up that count in each of the tests. We would expect this if each of these are good tests for cell quality</strong></p>
+</div>
+<div id="total-molecule-counts" class="section level3">
+<h3>Total molecule counts</h3>
+<pre class="r"><code>## calculate total gene molecule counts
+summary_per_sample_reads_qc$total_gene_molecule &lt;- colSums(molecules_rm[grep(&quot;ENSG&quot;, rownames(molecules_rm)),])
+
+## look for outiers
+ggplot(summary_per_sample_reads_qc, aes(x = concentration, y = total_gene_molecule / 10^3,
+  color = as.factor(cell_number))) +
+  geom_text(aes(label = cell_number)) +
+  labs(x = &quot;Concentration&quot;, y = &quot;Gene molecules (thousands)&quot;) +
+  scale_color_brewer(palette = &quot;Dark2&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>outliers &lt;- summary_per_sample_reads_qc %&gt;% filter(cell_number == 1, concentration &lt; 1.25, concentration &gt; .15,
+                                   total_gene_molecule &gt; 100000)
+#you could use code like this to look for the cells that failed the qc checks above.
+
+outliers %&gt;% dplyr::select(sample_id)</code></pre>
+<pre><code>        sample_id
+1  NA19098.r3.B04
+2  NA19098.r3.B11
+3  NA19101.r1.B10
+4  NA19101.r2.D07
+5  NA19101.r3.C07
+6  NA19101.r3.D08
+7  NA19101.r3.F05
+8  NA19101.r3.F10
+9  NA19239.r2.A12
+10 NA19239.r2.B07</code></pre>
+</div>
+<div id="linear-discrimination-analysis" class="section level3">
+<h3>Linear Discrimination analysis</h3>
+<p>Linear discrimination analysis:</p>
+<ul>
+<li><p>releated to ANOVA</p></li>
+<li><p>Use pattern recognition and machine learning to find linear combination of features that characterizes or separates two or more classes of objects or events</p></li>
+<li><p>Use resulting combination for dimensional reduction</p></li>
+<li><p>one dependent variable as a linear combinaton of other features</p></li>
+<li><p>also like PCA- linear combination to best explain data</p></li>
+</ul>
+<pre class="r"><code>library(MASS)</code></pre>
+<pre><code>
+Attaching package: &#39;MASS&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    select</code></pre>
+<pre class="r"><code>## create 3 groups according to cell number
+group_3 &lt;- rep(&quot;multiple cells&quot;,dim(summary_per_sample_reads_qc)[1])
+         group_3[grep(&quot;0&quot;, summary_per_sample_reads_qc$cell_number)] &lt;- &quot;no cells&quot;
+         group_3[grep(&quot;1&quot;, summary_per_sample_reads_qc$cell_number)] &lt;- &quot;one cell&quot;
+         
+         
+## create data frame
+data_lda &lt;- data.frame(anno_rm,
+                       cell_number = summary_per_sample_reads_qc$cell_number,
+                       concentration = summary_per_sample_reads_qc$concentration,
+                       total_gene_molecule = summary_per_sample_reads_qc$total_gene_molecule,
+                       group = group_3)
+
+
+## remove 19098.r1
+data_con &lt;- data_lda %&gt;% filter(batch != &quot;NA19098.r1&quot;)
+plot_before &lt;- ggplot(data_con, aes(x = concentration, y = total_gene_molecule / 10^3,
+               color = as.factor(group))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = &quot;Sample concentration&quot;, 
+                    y = &quot;Total gene molecule-count per sample (thousands)&quot;, 
+                    title = &quot;Before linear discriminant analysis (LDA) \n A few samples with one cell (purple) \n clustered with samples with multiple cells (green)&quot;) +
+               scale_color_brewer(palette = &quot;Dark2&quot;) +
+               theme(legend.position = &quot;none&quot;)
+
+## perform lda
+data_con_lda &lt;- lda(group ~ concentration + total_gene_molecule,
+                    data = data_con) 
+#this analysis uses the group we gave and a function that looks at the number of cells we saw, the concentration of the well and the total molecules counts 
+data_con_lda_p &lt;- predict(data_con_lda, 
+                          newdata = data_con[,c(&quot;concentration&quot;, &quot;total_gene_molecule&quot;)])$class
+
+#predict- predict results of a model fitting from varius model fitting functions 
+
+## determine how well the model fix
+table(data_con_lda_p, data_con[, &quot;group&quot;])</code></pre>
+<pre><code>                
+data_con_lda_p   multiple cells no cells one cell
+  multiple cells             34        0       10
+  no cells                    0        1        0
+  one cell                   15       16      596</code></pre>
+<pre class="r"><code>data_con$data_con_lda_p &lt;- data_con_lda_p
+
+plot_after &lt;- ggplot(data_con, aes(x = concentration, y = total_gene_molecule / 10^3,
+               color = as.factor(data_con_lda_p))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = &quot;Sample concentration&quot;, 
+                    y = &quot;Total gene molecule-count per sample (thousands)&quot;, 
+                    title = &quot;After linear discriminant analysis (LDA) \n Removal of samples classified as \n samples with multiple cells (green)&quot;) +
+               scale_color_brewer(palette = &quot;Dark2&quot;) +
+               theme(legend.position = &quot;none&quot;)
+
+## identify the outlier 
+outliers_lda &lt;- data_con %&gt;% filter(cell_number == 1, data_con_lda_p == &quot;multiple cells&quot;)
+outliers_lda$sample_id</code></pre>
+<pre><code> [1] &quot;NA19098.r3.B04&quot; &quot;NA19098.r3.B11&quot; &quot;NA19101.r1.B10&quot; &quot;NA19101.r2.D07&quot;
+ [5] &quot;NA19101.r3.C07&quot; &quot;NA19101.r3.D08&quot; &quot;NA19101.r3.F05&quot; &quot;NA19101.r3.F10&quot;
+ [9] &quot;NA19239.r2.A12&quot; &quot;NA19239.r2.B07&quot;</code></pre>
+<pre class="r"><code>## The lds method identifies outliers
+plot_grid(plot_before + theme(legend.position=c(.8,.85)), 
+          plot_after + theme(legend.position = &quot;none&quot;),
+          labels = LETTERS[1:2])</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>## create filter
+summary_per_sample_reads_qc$molecule_outlier &lt;- summary_per_sample_reads_qc$sample_id %in% outliers_lda$sample_id</code></pre>
 </div>
 
 <hr>
