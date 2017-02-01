@@ -33,6 +33,8 @@ setDF(bri_reads_raw)
 
 Create annotation file for the data. 
 ```{r}
+
+anno <- read.table("../../singleCellSeq//data/annotation.txt", header = TRUE,stringsAsFactors = FALSE)
 anno_bri <- bri_reads_raw %>%
   select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
@@ -45,7 +47,7 @@ Transpose matrix.
 reads_bri <-  bri_reads_raw %>%
   select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
-colnames(reads_bri) <- anno$sample_id
+colnames(reads_bri) <- anno_bri$sample_id
 reads_bri[1:5, 1:5]
 ```
 ###Molecule counts for single cell samples
@@ -97,7 +99,7 @@ reads_bulk_bri <- reads_bulk_raw_bri %>%
   select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads_bulk_bri) <- anno_bulk_bri$sample_id
-reads_bulk[1:5, 1:5]
+
 ```
 
 ###Observed genes
@@ -123,16 +125,25 @@ grid.newpage()
 grid.draw(genes_venn_bri)
 ```
 
-Unlike the full data from git_hub. This data set has reads that are shared between reads and bulk but not in molecules. This could be due to the small samples size in this set.
+Unlike the full data from git_hub. This data set has reads that are shared between reads and bulk but not in molecules. This could be due to the small samples size in this set.  
 
 
-###Look between github analysis and my analysis:
+###Look between github analysis and my analysis:  
 
 ```{r}
+reads_raw <- fread("../../singleCellSeq/data/reads-raw-single-per-sample.txt")
+reads <- reads_raw %>%
+  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
+
+
 bri_github_ven <- venn.diagram(x = list("reads" = genes_observed_reads,
                                     "reads_bri" = genes_observed_reads_bri),
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(bri_github_ven)
 ```
+
+
 The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.  
