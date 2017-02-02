@@ -479,7 +479,7 @@ stopifnot(genes_observed_molecules_bri %in% genes_observed_reads_bri)</code></pr
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(genes_venn_bri)</code></pre>
-<p><img src="compare_count_data_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<p><img src="compare_count_data_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p>Unlike the full data from git_hub. This data set has reads that are shared between reads and bulk but not in molecules. This could be due to the small samples size in this set.</p>
 </div>
 <div id="look-between-github-analysis-and-my-analysis" class="section level3">
@@ -496,8 +496,21 @@ bri_github_ven &lt;- venn.diagram(x = list(&quot;reads&quot; = genes_observed_re
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(bri_github_ven)</code></pre>
-<p><img src="compare_count_data_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
-<p>The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.</p>
+<p><img src="compare_count_data_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>The excess on the reads side may be due to the individual differneces. My analysis shows 59 unique genes not found in the githup analysis.</p>
+<p>Compare UMI-tools and unitools packages:</p>
+<ul>
+<li><p>UMI-tools:</p></li>
+<li><p>Extract: UMIs are removed and appended to the read name. Any other barcode, for example a library barcode, is left on the read.</p></li>
+<li><p>dedup: (The purpose of this command is to deduplicate BAM files based on the first mapping co-ordinate and the UMI attached to the read. It is assumed that the FASTQ files were processed with extract_umi.py before mapping and thus the UMI is the last word of the read name.) dedup can be run with multiple methods to identify group of reads with the same (or similar) UMI(s), from which a single read is returned. All methods start by identifying the reads with the same mapping position.</p></li>
+</ul>
+<p>The simpliest methods, unique and percentile, group reads with the exact same UMI. The network-based methods, cluster, adjacency and directional, build networks where nodes are UMIs and edges connect UMIs with an edit distance &lt;= threshold (usually 1). The groups of reads are then defined from the network in a method-specific manner. For all the network-based methods, a single read is returned with the most abundant UMI in each read group. For details about how the read is selected, see ‘Selecting the representative read’ below.</p>
+<ul>
+<li><p>Umitools:</p></li>
+<li><p>Trim: Incorporate the UMI into the read name in order to later identify while processing mapped reads.</p></li>
+<li><p>rmdup: For any given start site, save only one read per UMI. Writes bed3+ to stdout with before and after counts per start.</p></li>
+</ul>
+<p>Difference in dedup step: UMI-tools explicitly says it deals with similar UMI’s, umitools talks about specifying –mismatched for dealling with this.</p>
 </div>
 
 <hr>
