@@ -146,4 +146,43 @@ grid.draw(bri_github_ven)
 ```
 
 
-The excess on the reads side may be due to the individual differneces. My analysis hows 59 unique genes not found in the githup analysis.  
+The excess on the reads side may be due to the individual differneces. My analysis shows 59 unique genes not found in the githup analysis.  
+
+
+Compare UMI-tools and unitools packages:  
+
+*  UMI-tools:  
+ 
+- Extract: UMIs are removed and appended to the read name. Any other barcode, for example a library barcode, is left on the read.
+
+- dedup: (The purpose of this command is to deduplicate BAM files based
+on the first mapping co-ordinate and the UMI attached to the read.
+It is assumed that the FASTQ files were processed with extract_umi.py
+before mapping and thus the UMI is the last word of the read name.) dedup can be run with multiple methods to identify group of reads with
+the same (or similar) UMI(s), from which a single read is
+returned. All methods start by identifying the reads with the same
+mapping position.
+
+The simpliest methods, unique and percentile, group reads with
+the exact same UMI. The network-based methods, cluster, adjacency and
+directional, build networks where nodes are UMIs and edges connect UMIs
+with an edit distance <= threshold (usually 1). The groups of reads
+are then defined from the network in a method-specific manner. For all
+the network-based methods, a single read is returned with the most
+abundant UMI in each read group. For details about how the read is
+selected, see 'Selecting the representative read' below.
+
+
+* Umitools:  
+  
+- Trim: Incorporate the UMI into the read name in order to later identify while
+processing mapped reads.  
+
+- rmdup: For any given start site, save only one read per UMI. Writes bed3+ to stdout
+with before and after counts per start.  
+  
+
+Difference in dedup step: UMI-tools explicitly says it deals with similar UMI's, umitools talks about specifying --mismatched for dealling with this. 
+
+
+
