@@ -11,6 +11,7 @@
 
 <meta name="author" content="Briana Mittlemant" />
 
+<meta name="date" content="2017-02-04" />
 
 <title>QC of single cell libraries</title>
 
@@ -303,13 +304,13 @@ div.tocify {
 
 <h1 class="title toc-ignore">QC of single cell libraries</h1>
 <h4 class="author"><em>Briana Mittlemant</em></h4>
-<h4 class="date"><em>YYYY-MM-DD</em></h4>
+<h4 class="date"><em>2017-02-04</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-01</p>
-<p><strong>Code version:</strong> 0479a73</p>
+<p><strong>Last updated:</strong> 2017-02-04</p>
+<p><strong>Code version:</strong> 943148e</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
 library(&quot;ggplot2&quot;)
@@ -421,7 +422,7 @@ ercc_molecule_plot &lt;- ggplot(summary_per_sample_reads,
 plot_grid(ercc_reads_plot + theme(legend.position=c(.8,.7)),
           ercc_molecule_plot + theme(legend.position = &quot;none&quot;),
           labels = LETTERS[1:2])</code></pre>
-<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /> These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.<br />
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-65-1.png" width="672" style="display: block; margin: auto;" /> These plots show that in terms of the total read count and molecule count. NA19098.r2 had a large excess of ERCC per cell. We also see a lot more variability in the ERCC read and molecule counts in this sample/replicate.<br />
 <strong>Why could this be? </strong><br />
 Understand ERCC RNA spike-ins by looking at the thermofisher documentation.</p>
 <ul>
@@ -555,7 +556,7 @@ plot_gene &lt;- ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$c
           plot_ercc + theme(legend.position = &quot;none&quot;), 
           plot_gene + theme(legend.position = &quot;none&quot;),
           labels = LETTERS[3:6])</code></pre>
-<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-83-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>We should look at the numbers that fail in each of these tests. If they are similar we should see if the same cells make up that count in each of the tests. We would expect this if each of these are good tests for cell quality</strong></p>
 </div>
 <div id="total-molecule-counts" class="section level3">
@@ -570,7 +571,7 @@ ggplot(summary_per_sample_reads_qc, aes(x = concentration, y = total_gene_molecu
   labs(x = &quot;Concentration&quot;, y = &quot;Gene molecules (thousands)&quot;) +
   scale_color_brewer(palette = &quot;Dark2&quot;) +
   theme(legend.position = &quot;none&quot;)</code></pre>
-<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-84-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>outliers &lt;- summary_per_sample_reads_qc %&gt;% filter(cell_number == 1, concentration &lt; 1.25, concentration &gt; .15,
                                    total_gene_molecule &gt; 100000)
 #you could use code like this to look for the cells that failed the qc checks above.
@@ -599,11 +600,6 @@ outliers %&gt;% dplyr::select(sample_id)</code></pre>
 <li><p>also like PCA- linear combination to best explain data</p></li>
 </ul>
 <pre class="r"><code>library(MASS)</code></pre>
-<pre><code>
-Attaching package: &#39;MASS&#39;</code></pre>
-<pre><code>The following object is masked from &#39;package:dplyr&#39;:
-
-    select</code></pre>
 <pre class="r"><code>## create 3 groups according to cell number
 group_3 &lt;- rep(&quot;multiple cells&quot;,dim(summary_per_sample_reads_qc)[1])
          group_3[grep(&quot;0&quot;, summary_per_sample_reads_qc$cell_number)] &lt;- &quot;no cells&quot;
@@ -666,9 +662,297 @@ outliers_lda$sample_id</code></pre>
 plot_grid(plot_before + theme(legend.position=c(.8,.85)), 
           plot_after + theme(legend.position = &quot;none&quot;),
           labels = LETTERS[1:2])</code></pre>
-<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-89-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>## create filter
 summary_per_sample_reads_qc$molecule_outlier &lt;- summary_per_sample_reads_qc$sample_id %in% outliers_lda$sample_id</code></pre>
+</div>
+<div id="reads-to-molecule-conversion" class="section level3">
+<h3>Reads to molecule conversion</h3>
+<pre class="r"><code>## calculate convertion
+summary_per_sample_reads_qc$ERCC_conversion &lt;- summary_per_sample_reads_qc$ERCC_molecules / summary_per_sample_reads_qc$ERCC_reads
+
+summary_per_sample_reads_qc$conversion &lt;- summary_per_sample_reads_qc$total_gene_molecule /  colSums(reads_rm[grep(&quot;ENSG&quot;, rownames(reads_rm)),])
+
+ggplot(summary_per_sample_reads_qc, aes(x = ERCC_conversion, y = conversion,
+  color = as.factor(cell_number))) +
+  geom_text(aes(label = cell_number)) +
+  labs(x = &quot;Conversion of ERCC&quot;, y = &quot;Conversion of genes&quot;) +
+  scale_color_brewer(palette = &quot;Dark2&quot;) +
+  theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-91-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>out_ercc_con &lt;- summary_per_sample_reads_qc %&gt;% filter(cell_number == &quot;1&quot;, ERCC_conversion &gt; .094)
+
+## try lda
+data_lda$conversion &lt;- summary_per_sample_reads_qc$conversion
+data_lda$ERCC_conversion &lt;- summary_per_sample_reads_qc$ERCC_conversion
+
+data_ercc_lda &lt;- lda(group ~ ERCC_conversion + conversion,
+                    data = data_lda)
+data_ercc_lda_p &lt;- predict(data_ercc_lda, 
+                          newdata = data_lda[,c(&quot;ERCC_conversion&quot;, &quot;conversion&quot;)])$class
+table(data_con_lda_p, data_con[, &quot;group&quot;])</code></pre>
+<pre><code>                
+data_con_lda_p   multiple cells no cells one cell
+  multiple cells             34        0       10
+  no cells                    0        1        0
+  one cell                   15       16      596</code></pre>
+<pre class="r"><code>data_lda$data_ercc_lda_p &lt;- data_ercc_lda_p
+
+## identify the outlier 
+outliers_ercc &lt;- data_lda %&gt;% filter(cell_number == 1, data_ercc_lda_p == &quot;multiple cells&quot;)
+outliers_ercc$sample_id</code></pre>
+<pre><code> [1] &quot;NA19098.r1.F01&quot; &quot;NA19098.r3.B04&quot; &quot;NA19098.r3.B11&quot; &quot;NA19101.r2.D07&quot;
+ [5] &quot;NA19101.r3.C07&quot; &quot;NA19101.r3.D08&quot; &quot;NA19101.r3.F05&quot; &quot;NA19101.r3.F10&quot;
+ [9] &quot;NA19239.r2.A12&quot; &quot;NA19239.r2.B07&quot; &quot;NA19239.r3.G02&quot;</code></pre>
+<p>This gives the samples that look like they had one cell but act like they had more than one in the LDA analysis of ercc conversion.</p>
+<pre class="r"><code>## cutoff
+out_ercc_con &lt;- summary_per_sample_reads_qc %&gt;% filter(cell_number == &quot;1&quot;, ERCC_conversion &gt; .08)
+
+## create filter
+summary_per_sample_reads_qc$conversion_outlier &lt;- summary_per_sample_reads_qc$sample_id %in% outliers_ercc$sample_id
+
+plot_ercc_before &lt;- ggplot(data_lda, aes(x = ERCC_conversion, y = conversion,
+               color = as.factor(group))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = &quot;Read-to-molecule conversion of ERCC&quot;, 
+                    y = &quot;Read-to-molecule conversion of genes&quot;, 
+                    title = &quot;Before linear discriminant analysis (LDA) \n A few samples with one cell (purple) \n clustered with samples with multiple cells (green)&quot;) +
+               scale_color_brewer(palette = &quot;Dark2&quot;) +
+               theme(legend.position = &quot;none&quot;)
+
+plot_ercc_after &lt;- ggplot(data_lda, aes(x = ERCC_conversion, y = conversion,
+               color = as.factor(data_ercc_lda_p))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = &quot;Read-to-molecule conversion of ERCC&quot;, 
+                    y = &quot;Read-to-molecule conversion of genes&quot;, 
+                    title = &quot;After linear discriminant analysis (LDA) \n Removal of samples classified as \n samples with multiple cells (green)&quot;) +
+               scale_color_brewer(palette = &quot;Dark2&quot;) +
+               theme(legend.position = &quot;none&quot;)
+
+plot_grid(plot_ercc_before, 
+          plot_ercc_after,
+          labels = LETTERS[3:4])</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-94-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="mitochondrial-genes" class="section level3">
+<h3>Mitochondrial genes</h3>
+<pre class="r"><code>## create a list of mitochondrial genes (13 protein-coding genes)
+## MT-ATP6, MT-CYB, MT-ND1, MT-ND4, MT-ND4L, MT-ND5, MT-ND6, MT-CO2, MT-CO1, MT-ND2, MT-ATP8, MT-CO3, MT-ND3
+mtgene &lt;- c(&quot;ENSG00000198899&quot;, &quot;ENSG00000198727&quot;, &quot;ENSG00000198888&quot;, &quot;ENSG00000198886&quot;, &quot;ENSG00000212907&quot;, &quot;ENSG00000198786&quot;, &quot;ENSG00000198695&quot;, &quot;ENSG00000198712&quot;, &quot;ENSG00000198804&quot;, &quot;ENSG00000198763&quot;,&quot;ENSG00000228253&quot;, &quot;ENSG00000198938&quot;, &quot;ENSG00000198840&quot;)
+
+## reads of mt genes in single cells
+mt_reads &lt;- reads_rm_gene[mtgene,]
+dim(mt_reads)</code></pre>
+<pre><code>[1]  13 768</code></pre>
+<pre class="r"><code>stopifnot(colnames(reads_rm) == rownames(summary_per_sample_reads_qc$sample_id))
+
+## mt ratio of single cell
+summary_per_sample_reads_qc$mt_reads &lt;- apply(mt_reads, 2, sum)
+summary_per_sample_reads_qc$mt_reads_ratio &lt;- summary_per_sample_reads_qc$mt_reads /summary_per_sample_reads_qc$total_mapped
+
+## vs. number of genes detected
+ggplot(summary_per_sample_reads_qc,
+       aes(x = gene_number, y = mt_reads_ratio, 
+       color = as.factor(cell_number))) +
+       geom_text(aes(label = cell_number)) +
+       labs(x = &quot;Number of genes&quot;, y = &quot;Mitochondrial ratio&quot;) +
+       scale_color_brewer(palette = &quot;Dark2&quot;) +
+       theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-96-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="filter" class="section level3">
+<h3>Filter</h3>
+<div id="final-list" class="section level4">
+<h4>Final list</h4>
+<pre class="r"><code>## all filter
+summary_per_sample_reads_qc$filter_all &lt;- summary_per_sample_reads_qc$cell_number == 1 &amp;
+                                                 summary_per_sample_reads_qc$cut_off_reads &amp;
+                                                 summary_per_sample_reads_qc$cut_off_unmapped &amp;
+                                                 summary_per_sample_reads_qc$cut_off_ercc &amp;
+                                                 summary_per_sample_reads_qc$cut_off_genes &amp;
+                                                 summary_per_sample_reads_qc$molecule_outlier == &quot;FALSE&quot; &amp;
+                                                 summary_per_sample_reads_qc$conversion_outlier == &quot;FALSE&quot;
+                                                 
+table(summary_per_sample_reads_qc[summary_per_sample_reads_qc$filter_all,
+                           c(&quot;individual&quot;, &quot;replicate&quot;)])    </code></pre>
+<pre><code>          replicate
+individual r1 r2 r3
+   NA19098 85  0 57
+   NA19101 80 70 51
+   NA19239 74 68 79</code></pre>
+<p>This uses the information we found above to filter cells out of the analysis. The list created is the number of wells that passes all QC filters.</p>
+<pre class="r"><code>stopifnot(nrow(summary_per_sample_reads_qc) == nrow(anno_rm))
+quality_single_cells &lt;- anno_rm %&gt;%
+  filter(summary_per_sample_reads_qc$filter_all) %&gt;%
+  dplyr :: select(sample_id)
+
+write.table(quality_single_cells,
+            file = &quot;../../cell-cycle/data/quality-single-cells.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, row.names = FALSE, col.names = FALSE)</code></pre>
+<p>I wrote the quality single cells file to the data directory in my cell cycle git hub project.</p>
+</div>
+</div>
+<div id="mito-ratios" class="section level3">
+<h3>Mito Ratios</h3>
+<pre class="r"><code>ggplot(summary_per_sample_reads_qc,
+       aes(x = gene_number, y = mt_reads_ratio, 
+       color = as.factor(filter_all))) +
+       geom_text(aes(label = cell_number)) +
+       labs(x = &quot;Number of genes&quot;, y = &quot;Mitochondrial ratio&quot;) +
+       theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-99-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1,],
+       aes(x = factor(filter_all), y = mt_reads_ratio,
+           fill = factor(filter_all)), height = 600, width = 2000) +
+geom_violin(alpha = .5) + 
+geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+labs(x = &quot;Quality&quot;, y = &quot;Mitochonrial ratio&quot;, title = &quot;Mitochondrial ratio of libraries with 1 cell&quot;)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-100-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Filter describes weather the well made ti past the above QC filter step.</p>
+<pre class="r"><code>## check the batch of those outliers
+mito_outliers &lt;- summary_per_sample_reads_qc %&gt;% filter(filter_all == &quot;TRUE&quot;, mt_reads_ratio &gt; .15)
+mito_outliers  %&gt;% dplyr::select(sample_id, mt_reads_ratio)</code></pre>
+<pre><code>       sample_id mt_reads_ratio
+1 NA19098.r1.D07      0.1573689
+2 NA19098.r3.G03      0.1618823
+3 NA19098.r3.G04      0.1508871
+4 NA19101.r3.A09      0.1718202</code></pre>
+<p>These are the top outliers in the true graph in terms of mitochondrial read ratios. 3 of the4 come from individual 19098so we will look further into this.</p>
+<pre class="r"><code>## check if 19098 have high mt genes
+ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$filter_all == &quot;TRUE&quot;,],
+                   aes(x = factor(batch), y = mt_reads_ratio,
+                   fill = factor(batch)), height = 600, width = 2000) +
+                   geom_violin(alpha = .5) + 
+                   geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+                   scale_fill_manual(values = great_color_8) +  
+                   labs(x = &quot;batch&quot;, y = &quot;Mitochondrial ratio&quot;) +
+                   theme(axis.text.x = element_text(hjust=1, angle = 45))</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-102-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The plots show that at an individual scale we dont see an increase in the mitochondrial gene ratio for 19098.</p>
+<p><strong>Do we have an expected mitochondrial gene ratio for the data?</strong></p>
+</div>
+<div id="plots" class="section level3">
+<h3>Plots</h3>
+<p>This shows all of the QC plots that were created in this analysis file.</p>
+<pre class="r"><code>genes_unmapped &lt;-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = gene_number, y = unmapped_ratios * 100,
+                   col = as.factor(individual), height = 600, width = 2000)) +
+                   geom_point(size = 3, alpha = 0.3) + 
+                   geom_vline(xintercept = cut_off_genes, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   geom_hline(yintercept = cut_off_unmapped * 100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   labs(x = &quot;Number of detected genes / sample&quot;, 
+                        y = &quot;Percentage of unmapped reads in each sample (%)&quot;,
+                        title = &quot;Number of genes detected as \n expressed as a function of \n the proportion of mapped reads&quot;) 
+
+genes_ercc &lt;-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = gene_number, y = ercc_percentage * 100,
+                   col = as.factor(individual), shape = as.factor(replicate), height = 600, width = 2000)) +
+                   geom_point(size = 3, alpha = 0.3) +
+                   geom_vline(xintercept = cut_off_genes, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   geom_hline(yintercept = cut_off_ercc * 100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   labs(x = &quot;Number of detected genes / sample&quot;, 
+                        y = &quot;Percentage of ERCC reads in each sample (%)&quot;,
+                        title = &quot;Samples with zero cell \n (visual inspection) have \n low number of reads&quot;) 
+
+reads_unmapped_num &lt;-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = total_mapped, y = unmapped_ratios * 100,
+                   col = as.factor(individual), label = as.character(cell_number), height = 600, width = 2000)) +
+                   geom_text(fontface = 3, alpha = 0.5) + 
+                   geom_vline(xintercept = cut_off_reads, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   geom_hline(yintercept = cut_off_unmapped * 100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   labs(x = &quot;Total mapped reads / sample&quot;, 
+                        y = &quot;Percentage of unmapped reads in each sample (%)&quot;,
+                        title = &quot;Samples with zero cells \n (visual inspection) have \n high proportion of unmapped reads&quot;) 
+
+reads_ercc_num &lt;-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = total_mapped, y = ercc_percentage * 100,
+                   col = as.factor(individual), label = as.character(cell_number), height = 600, width = 2000)) +
+                   geom_text(fontface = 3, alpha = 0.5) + 
+                   geom_vline(xintercept = cut_off_reads, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   geom_hline(yintercept = cut_off_ercc * 100, colour=&quot;grey&quot;, linetype = &quot;longdash&quot;) +
+                   labs(x = &quot;Total mapped reads / sample&quot;,
+                        y = &quot;Percentage of ERCC reads in each sample (%)&quot;,
+                        title = &quot;Samples with zero cells \n (visual inspection) have \n high proportion of ERCC reads&quot;) 
+
+plot_grid(genes_unmapped + theme(legend.position = &quot;none&quot;), 
+          genes_ercc + theme(legend.position = &quot;none&quot;),
+          reads_unmapped_num + theme(legend.position = &quot;none&quot;), 
+          reads_ercc_num + theme(legend.position = &quot;none&quot;),
+          labels = letters[1:4])</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-103-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_grid(genes_unmapped + theme(legend.position = c(.75,.9)) + labs(col = &quot;Individual&quot;), 
+          reads_unmapped_num + theme(legend.position = &quot;none&quot;), 
+          reads_ercc_num + theme(legend.position = &quot;none&quot;),
+          labels = letters[3:5],
+          nrow = 1)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-104-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_grid(ercc_reads_plot + theme(legend.position = &quot;none&quot;),
+          ercc_molecule_plot + theme(legend.position = &quot;none&quot;),
+          plot_reads + theme(legend.position=c(.8,.85)),
+          plot_unmapped + theme(legend.position = &quot;none&quot;),
+          plot_ercc + theme(legend.position = &quot;none&quot;), 
+          plot_gene + theme(legend.position = &quot;none&quot;),
+          labels = letters[1:6],
+          ncol = 2)</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-105-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_grid(plot_before + theme(legend.position=c(.85,.85)) + labs(col = &quot;Cell number&quot;), 
+          plot_after + theme(legend.position = &quot;none&quot;),
+          plot_ercc_before, 
+          plot_ercc_after,
+          labels = letters[1:4])</code></pre>
+<p><img src="figure/QC_single_cell_library.Rmd/unnamed-chunk-106-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="review" class="section level3">
+<h3>Review:</h3>
+<p>In this analysis we performed QC by checking the following criteria:</p>
+<ul>
+<li><p>Total reads in 0 cell wells</p></li>
+<li><p>Proportion of mapped reads</p></li>
+<li><p>ERCC read proportions</p></li>
+<li><p>Number of genes</p></li>
+<li><p>Total ERCC read counts</p></li>
+<li><p>LDA analysis for multiple cells in one well</p></li>
+<li><p>Mitochondrial read ratios</p></li>
+</ul>
+</div>
+<div id="session-info" class="section level3">
+<h3>Session Info:</h3>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] MASS_7.3-45          cowplot_0.7.0        ggplot2_2.2.1       
+ [4] edgeR_3.16.5         limma_3.30.9         BiocInstaller_1.24.0
+ [7] VennDiagram_1.6.17   futile.logger_1.4.3  dplyr_0.5.0         
+[10] data.table_1.10.0    devtools_1.12.0      workflowr_0.3.0     
+[13] rmarkdown_1.3       
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.9          RColorBrewer_1.1-2   git2r_0.18.0        
+ [4] plyr_1.8.4           futile.options_1.0.0 tools_3.3.2         
+ [7] digest_0.6.12        evaluate_0.10        memoise_1.0.0       
+[10] tibble_1.2           gtable_0.2.0         lattice_0.20-34     
+[13] DBI_0.5-1            yaml_2.1.14          withr_1.0.2         
+[16] stringr_1.1.0        knitr_1.15.1         locfit_1.5-9.1      
+[19] rprojroot_1.2        R6_2.2.0             lambda.r_1.1.9      
+[22] magrittr_1.5         backports_1.0.5      scales_0.4.1        
+[25] htmltools_0.3.5      assertthat_0.1       colorspace_1.3-2    
+[28] labeling_0.3         stringi_1.1.2        lazyeval_0.2.0      
+[31] munsell_0.4.3       </code></pre>
 </div>
 
 <hr>
