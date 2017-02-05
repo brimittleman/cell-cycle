@@ -1,7 +1,7 @@
 ---
 title: "QC of single cell libraries"
 author: "Briana Mittlemant"
-date: YYYY-MM-DD
+date: 2017-02-04
 output: html_document
 ---
 
@@ -422,5 +422,280 @@ plot_grid(plot_before + theme(legend.position=c(.8,.85)),
 ## create filter
 summary_per_sample_reads_qc$molecule_outlier <- summary_per_sample_reads_qc$sample_id %in% outliers_lda$sample_id
 
+```
+
+###Reads to molecule conversion
+
+```{r}
+## calculate convertion
+summary_per_sample_reads_qc$ERCC_conversion <- summary_per_sample_reads_qc$ERCC_molecules / summary_per_sample_reads_qc$ERCC_reads
+
+summary_per_sample_reads_qc$conversion <- summary_per_sample_reads_qc$total_gene_molecule /  colSums(reads_rm[grep("ENSG", rownames(reads_rm)),])
+
+ggplot(summary_per_sample_reads_qc, aes(x = ERCC_conversion, y = conversion,
+  color = as.factor(cell_number))) +
+  geom_text(aes(label = cell_number)) +
+  labs(x = "Conversion of ERCC", y = "Conversion of genes") +
+  scale_color_brewer(palette = "Dark2") +
+  theme(legend.position = "none")
+```
+```{r}
+out_ercc_con <- summary_per_sample_reads_qc %>% filter(cell_number == "1", ERCC_conversion > .094)
+
+## try lda
+data_lda$conversion <- summary_per_sample_reads_qc$conversion
+data_lda$ERCC_conversion <- summary_per_sample_reads_qc$ERCC_conversion
+
+data_ercc_lda <- lda(group ~ ERCC_conversion + conversion,
+                    data = data_lda)
+data_ercc_lda_p <- predict(data_ercc_lda, 
+                          newdata = data_lda[,c("ERCC_conversion", "conversion")])$class
+table(data_con_lda_p, data_con[, "group"])
+```
+```{r}
+data_lda$data_ercc_lda_p <- data_ercc_lda_p
+
+## identify the outlier 
+outliers_ercc <- data_lda %>% filter(cell_number == 1, data_ercc_lda_p == "multiple cells")
+outliers_ercc$sample_id
+```
+
+This gives the samples that look like they had one cell but act like they had more than one in the LDA analysis of ercc conversion.  
+
+```{r}
+## cutoff
+out_ercc_con <- summary_per_sample_reads_qc %>% filter(cell_number == "1", ERCC_conversion > .08)
+
+## create filter
+summary_per_sample_reads_qc$conversion_outlier <- summary_per_sample_reads_qc$sample_id %in% outliers_ercc$sample_id
+
+plot_ercc_before <- ggplot(data_lda, aes(x = ERCC_conversion, y = conversion,
+               color = as.factor(group))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = "Read-to-molecule conversion of ERCC", 
+                    y = "Read-to-molecule conversion of genes", 
+                    title = "Before linear discriminant analysis (LDA) \n A few samples with one cell (purple) \n clustered with samples with multiple cells (green)") +
+               scale_color_brewer(palette = "Dark2") +
+               theme(legend.position = "none")
+
+plot_ercc_after <- ggplot(data_lda, aes(x = ERCC_conversion, y = conversion,
+               color = as.factor(data_ercc_lda_p))) +
+               geom_text(aes(label = cell_number)) +
+               labs(x = "Read-to-molecule conversion of ERCC", 
+                    y = "Read-to-molecule conversion of genes", 
+                    title = "After linear discriminant analysis (LDA) \n Removal of samples classified as \n samples with multiple cells (green)") +
+               scale_color_brewer(palette = "Dark2") +
+               theme(legend.position = "none")
+
+plot_grid(plot_ercc_before, 
+          plot_ercc_after,
+          labels = LETTERS[3:4])
+```
+
+###Mitochondrial genes
+
+```{r}
+## create a list of mitochondrial genes (13 protein-coding genes)
+## MT-ATP6, MT-CYB, MT-ND1, MT-ND4, MT-ND4L, MT-ND5, MT-ND6, MT-CO2, MT-CO1, MT-ND2, MT-ATP8, MT-CO3, MT-ND3
+mtgene <- c("ENSG00000198899", "ENSG00000198727", "ENSG00000198888", "ENSG00000198886", "ENSG00000212907", "ENSG00000198786", "ENSG00000198695", "ENSG00000198712", "ENSG00000198804", "ENSG00000198763","ENSG00000228253", "ENSG00000198938", "ENSG00000198840")
+
+## reads of mt genes in single cells
+mt_reads <- reads_rm_gene[mtgene,]
+dim(mt_reads)
+```
+
+```{r}
+stopifnot(colnames(reads_rm) == rownames(summary_per_sample_reads_qc$sample_id))
+
+## mt ratio of single cell
+summary_per_sample_reads_qc$mt_reads <- apply(mt_reads, 2, sum)
+summary_per_sample_reads_qc$mt_reads_ratio <- summary_per_sample_reads_qc$mt_reads /summary_per_sample_reads_qc$total_mapped
+
+## vs. number of genes detected
+ggplot(summary_per_sample_reads_qc,
+       aes(x = gene_number, y = mt_reads_ratio, 
+       color = as.factor(cell_number))) +
+       geom_text(aes(label = cell_number)) +
+       labs(x = "Number of genes", y = "Mitochondrial ratio") +
+       scale_color_brewer(palette = "Dark2") +
+       theme(legend.position = "none")
+```
+
+###Filter  
+####Final list   
+```{r}
+## all filter
+summary_per_sample_reads_qc$filter_all <- summary_per_sample_reads_qc$cell_number == 1 &
+                                                 summary_per_sample_reads_qc$cut_off_reads &
+                                                 summary_per_sample_reads_qc$cut_off_unmapped &
+                                                 summary_per_sample_reads_qc$cut_off_ercc &
+                                                 summary_per_sample_reads_qc$cut_off_genes &
+                                                 summary_per_sample_reads_qc$molecule_outlier == "FALSE" &
+                                                 summary_per_sample_reads_qc$conversion_outlier == "FALSE"
+                                                 
+table(summary_per_sample_reads_qc[summary_per_sample_reads_qc$filter_all,
+                           c("individual", "replicate")])    
+```
+
+This uses the information we found above to filter cells out of the analysis. The list created is the number of wells that passes all QC filters.  
+
+```{r}
+stopifnot(nrow(summary_per_sample_reads_qc) == nrow(anno_rm))
+quality_single_cells <- anno_rm %>%
+  filter(summary_per_sample_reads_qc$filter_all) %>%
+  dplyr :: select(sample_id)
+
+write.table(quality_single_cells,
+            file = "../../cell-cycle/data/quality-single-cells.txt", quote = FALSE,
+            sep = "\t", row.names = FALSE, col.names = FALSE)
+
+```
+
+I wrote the quality single cells file to the data directory in my cell cycle git hub project.  
+
+
+###Mito Ratios  
+
+```{r}
+ggplot(summary_per_sample_reads_qc,
+       aes(x = gene_number, y = mt_reads_ratio, 
+       color = as.factor(filter_all))) +
+       geom_text(aes(label = cell_number)) +
+       labs(x = "Number of genes", y = "Mitochondrial ratio") +
+       theme(legend.position = "none")
+```
+```{r}
+ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$cell_number == 1,],
+       aes(x = factor(filter_all), y = mt_reads_ratio,
+           fill = factor(filter_all)), height = 600, width = 2000) +
+geom_violin(alpha = .5) + 
+geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+labs(x = "Quality", y = "Mitochonrial ratio", title = "Mitochondrial ratio of libraries with 1 cell")
+```
+
+Filter describes weather the well made ti past the above QC filter step.  
+
+```{r}
+## check the batch of those outliers
+mito_outliers <- summary_per_sample_reads_qc %>% filter(filter_all == "TRUE", mt_reads_ratio > .15)
+mito_outliers  %>% dplyr::select(sample_id, mt_reads_ratio)
+```
+
+These are the top outliers in the true graph in terms of mitochondrial read ratios. 3 of the4 come from individual 19098so we will look further into this.  
+
+```{r}
+## check if 19098 have high mt genes
+ggplot(summary_per_sample_reads_qc[summary_per_sample_reads_qc$filter_all == "TRUE",],
+                   aes(x = factor(batch), y = mt_reads_ratio,
+                   fill = factor(batch)), height = 600, width = 2000) +
+                   geom_violin(alpha = .5) + 
+                   geom_boxplot(alpha = .01, width = .2, position = position_dodge(width = .9)) +
+                   scale_fill_manual(values = great_color_8) +  
+                   labs(x = "batch", y = "Mitochondrial ratio") +
+                   theme(axis.text.x = element_text(hjust=1, angle = 45))
+```
+
+The plots show that at an individual scale we dont see an increase in the mitochondrial gene ratio for 19098. 
+
+**Do we have an expected mitochondrial gene ratio for the data?**  
+
+###Plots  
+This shows all of the QC plots that were created in this analysis file.  
+```{r}
+genes_unmapped <-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = gene_number, y = unmapped_ratios * 100,
+                   col = as.factor(individual), height = 600, width = 2000)) +
+                   geom_point(size = 3, alpha = 0.3) + 
+                   geom_vline(xintercept = cut_off_genes, colour="grey", linetype = "longdash") +
+                   geom_hline(yintercept = cut_off_unmapped * 100, colour="grey", linetype = "longdash") +
+                   labs(x = "Number of detected genes / sample", 
+                        y = "Percentage of unmapped reads in each sample (%)",
+                        title = "Number of genes detected as \n expressed as a function of \n the proportion of mapped reads") 
+
+genes_ercc <-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = gene_number, y = ercc_percentage * 100,
+                   col = as.factor(individual), shape = as.factor(replicate), height = 600, width = 2000)) +
+                   geom_point(size = 3, alpha = 0.3) +
+                   geom_vline(xintercept = cut_off_genes, colour="grey", linetype = "longdash") +
+                   geom_hline(yintercept = cut_off_ercc * 100, colour="grey", linetype = "longdash") +
+                   labs(x = "Number of detected genes / sample", 
+                        y = "Percentage of ERCC reads in each sample (%)",
+                        title = "Samples with zero cell \n (visual inspection) have \n low number of reads") 
+
+reads_unmapped_num <-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = total_mapped, y = unmapped_ratios * 100,
+                   col = as.factor(individual), label = as.character(cell_number), height = 600, width = 2000)) +
+                   geom_text(fontface = 3, alpha = 0.5) + 
+                   geom_vline(xintercept = cut_off_reads, colour="grey", linetype = "longdash") +
+                   geom_hline(yintercept = cut_off_unmapped * 100, colour="grey", linetype = "longdash") +
+                   labs(x = "Total mapped reads / sample", 
+                        y = "Percentage of unmapped reads in each sample (%)",
+                        title = "Samples with zero cells \n (visual inspection) have \n high proportion of unmapped reads") 
+
+reads_ercc_num <-  ggplot(summary_per_sample_reads_qc,
+                   aes(x = total_mapped, y = ercc_percentage * 100,
+                   col = as.factor(individual), label = as.character(cell_number), height = 600, width = 2000)) +
+                   geom_text(fontface = 3, alpha = 0.5) + 
+                   geom_vline(xintercept = cut_off_reads, colour="grey", linetype = "longdash") +
+                   geom_hline(yintercept = cut_off_ercc * 100, colour="grey", linetype = "longdash") +
+                   labs(x = "Total mapped reads / sample",
+                        y = "Percentage of ERCC reads in each sample (%)",
+                        title = "Samples with zero cells \n (visual inspection) have \n high proportion of ERCC reads") 
+
+plot_grid(genes_unmapped + theme(legend.position = "none"), 
+          genes_ercc + theme(legend.position = "none"),
+          reads_unmapped_num + theme(legend.position = "none"), 
+          reads_ercc_num + theme(legend.position = "none"),
+          labels = letters[1:4])
+```
+```{r}
+plot_grid(genes_unmapped + theme(legend.position = c(.75,.9)) + labs(col = "Individual"), 
+          reads_unmapped_num + theme(legend.position = "none"), 
+          reads_ercc_num + theme(legend.position = "none"),
+          labels = letters[3:5],
+          nrow = 1)
+```
+
+```{r}
+plot_grid(ercc_reads_plot + theme(legend.position = "none"),
+          ercc_molecule_plot + theme(legend.position = "none"),
+          plot_reads + theme(legend.position=c(.8,.85)),
+          plot_unmapped + theme(legend.position = "none"),
+          plot_ercc + theme(legend.position = "none"), 
+          plot_gene + theme(legend.position = "none"),
+          labels = letters[1:6],
+          ncol = 2)
+```
+```{r}
+plot_grid(plot_before + theme(legend.position=c(.85,.85)) + labs(col = "Cell number"), 
+          plot_after + theme(legend.position = "none"),
+          plot_ercc_before, 
+          plot_ercc_after,
+          labels = letters[1:4])
+```
+
+###Review:  
+
+In this analysis we performed QC by checking the following criteria:  
+
+* Total reads in 0 cell wells    
+
+* Proportion of mapped reads  
+
+* ERCC read proportions  
+
+* Number of genes  
+
+* Total ERCC read counts  
+
+* LDA analysis for multiple cells in one well  
+
+* Mitochondrial read ratios  
+
+
+
+###Session Info:
+```{r}
+sessionInfo()
 ```
 
