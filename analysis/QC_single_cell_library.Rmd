@@ -690,6 +690,8 @@ In this analysis we performed QC by checking the following criteria:
 
 * LDA analysis for multiple cells in one well  
 
+* Conversion ratios for genes and ERCCs 
+
 * Mitochondrial read ratios  
 
 

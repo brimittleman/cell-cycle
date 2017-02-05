@@ -1,0 +1,144 @@
+---
+title: "FIlter genes and low-quality single cells"
+author: "Briana Mittlemant"
+date: 2017-02-05
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+```{r}
+library("biomaRt")
+library("dplyr")
+library("edgeR")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+This file uses the list of quality single cells defined by the quality control analysis to filter the count matrices. It also removes lowly expressed genes and genes with invalid molecule counts (greater than the maximum allowlable 1024).  
+
+Creates the following files:  
+
+* annotation-filter.txt - Annotation file with only the high quality single cells  
+
+* reads-filter.txt - Read counts in high quality single cells for filtered genes  
+
+* reads-bulk-filter.txt - Read counts in bulk samples for filtered genes  
+
+* molecules-filter.txt - Molecule counts in high quality single cells for filtered genes  
+
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+head(anno)
+```
+
+Imput read counts:  
+
+```{r}
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+stopifnot(ncol(reads) == nrow(anno),
+          colnames(reads) == anno$sample_id)
+```
+
+Imput molecule counts:  
+
+```{r}
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+stopifnot(ncol(molecules) == nrow(anno),
+          colnames(molecules) == anno$sample_id)
+```
+ 
+
+Input read counts for bulk samples (in order to filter genes).  
+
+```{r}
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+stopifnot(ncol(reads_bulk) == 9)
+```
+
+Input annotation for bulk samples (for PCA plot).  
+
+```{r}
+anno_bulk <- read.table("../../singleCellSeq/data/annotation-bulk.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+head(anno_bulk)
+```
+###Filter low quality single cells  
+
+This uses the list of quality reads we found using the QC_single_cell_library analysis.  
+
+Imput list of quality single cells. This list is in my data folder on my cell cycle github.  
+
+```{r}
+quality_single_cells <- scan("../../cell-cycle/data/quality-single-cells.txt",
+                             what = "character")
+```
+
+We filter the annotation, reads, and molecules data to only include quality single cells.  
+
+```{r}
+anno_filter <- anno %>% filter(sample_id %in% quality_single_cells)
+reads_filter <- reads[, colnames(reads) %in% quality_single_cells]
+molecules_filter <- molecules[, colnames(molecules) %in% quality_single_cells]
+stopifnot(nrow(anno_filter) == ncol(reads_filter),
+          nrow(anno_filter) == ncol(molecules_filter),
+          anno_filter$sample_id == colnames(reads_filter),
+          anno_filter$sample_id == colnames(molecules_filter))
+```
+
+This shows us the number of cells by batch. The number of good quality cells is not consitent across batches.  
+
+```{r}
+table(anno_filter$individual, anno_filter$replicate)
+```
+
+###Filter genes  
+
+We filter the genes to exlude both those that are lowly expressed or over-expressed (>= 1024 molecules in a given cell).
+
+We identify the lower cutoff using the mean log2 molecule counts per million (cpm) in the 564 high quality single cells.
+
+```{r}
+molecules_cpm_mean <- rowMeans(cpm(molecules_filter, log = TRUE))
+hist(molecules_cpm_mean, xlab = "Mean log2 molecule cpm in single cells",
+     ylab = "Number of genes", main = "Identifying expression cutoff")
+lower_exp_cutoff <- 2
+abline(v = lower_exp_cutoff, col = "red")
+```
+
+**Why are we worried about overexpressed genes?**  
+
+```{r}
+genes_pass_filter <- rownames(molecules_filter)[molecules_cpm_mean > lower_exp_cutoff]
+
+```
+
+13112 genes have a mean log2 molecule cpm greater than 2, including 48 ERCC genes.  
+
+Next we identify any genes which have greater than 1024 molecules in any given single cell. These are above our theoretical maximum number of UMIs (it can happen when a highly expressed gene as multiple start sites), and thus we cannot correct them for the collision probability. **(is there another way to deal with this, isn't it a problem that we exclude genes just because we cant deal with them)**  
+
+```{r}
+overexpressed_rows <- apply(molecules_filter, 1, function(x) any(x >= 1024))
+overexpressed_genes <- rownames(molecules_filter)[overexpressed_rows]
+overexpressed_genes
+```
+
+I will look into what these genes are:   
+
+* ENSG00000198888- mitochondrially encoded NADH  
+
+* ENSG00000198804- 
