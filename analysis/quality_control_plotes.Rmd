@@ -54,7 +54,27 @@ Input read counts and filter for quality cells.
 
 ```{r}
 reads<- read.table("../../singleCellSeq/data/reads.txt", header=TRUE, stringsAsFactors = FALSE)
+quality_single_cells <- scan("../data/quality-single-cells.txt", what = "character")
+reads <- reads[, colnames(reads) %in% quality_single_cells]
 
+```
+Input read counts in high quality cells for filtered genes.    
 
+```{r}
+reads_filter <- read.table("../data/reads-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+
+```
+
+Input molecule counts and filter for quality cells.  
+
+```{r}
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header=TRUE, stringsAsFactors = FALSE)
+molecules <- molecules[,colnames(molecules) %in% quality_single_cells]
+```
+
+Input molecule counts in high quality cells for filtered genes.  
+
+```{r}
+molecules_filter <- read.table("../data/molecules-filter.txt", header = TRUE, stringsAsFactors = FALSE)
 ```
 
