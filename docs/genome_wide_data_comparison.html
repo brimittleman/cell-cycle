@@ -9,9 +9,10 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Briana Mittleman" />
 
 
-<title>Home</title>
+<title>Genome wide data comparison</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +20,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
@@ -162,6 +166,101 @@ $(document).ready(function () {
 
 
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
 
 
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
@@ -202,29 +301,71 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Home</h1>
+<h1 class="title toc-ignore">Genome wide data comparison</h1>
+<h4 class="author"><em>Briana Mittleman</em></h4>
+<h4 class="date"><em>2/6/2017</em></h4>
 
 </div>
 
 
-<p>This was made using the workflowr package in R.</p>
-<ul>
-<li><p>Easier to build and extend the website using the new tools in the <a href="http://rmarkdown.rstudio.com/rmarkdown_websites.htm">rmarkdown</a> package and <a href="https://www.rstudio.com/products/rstudio/download/preview/">latest RStudio release</a></p></li>
-<li><p>Easier to deploy the website with Git and GitHub by only using one branch</p></li>
-</ul>
-<p>These are the projects I am working on during the my rotation in the Stephens lab. Each analysis file is treated like a lab notebook file for future anaylsis of single cell data.</p>
-<ul>
-<li><p><a href="recreate_cell_cycle_analysis.html">Cell cycle single cell data</a></p></li>
-<li><p><a href="recreate_giladsinglecell.html">Gilad single cell fastq processing recreation</a></p></li>
-<li><p><a href="compare_count_data.html">Compare Gilad single cell counts to my analysis</a></p></li>
-<li><p><a href="genome_wide_data_comparison.html">Genome wide read count comparison between analysis</a></p></li>
-</ul>
-<p>Continue the Gilad single cell anaylsis:</p>
-<ul>
-<li><p><a href="gene_x_sample_count_matrix.html">Create gene-x-sample count matrices and annotation file</a></p></li>
-<li><p><a href="QC_single_cell_library.html">QC single cell libraries</a></p></li>
-<li><p><a href="filter_genes_low_quality_genes.html">Filter genes and find low quality single cells</a></p></li>
-</ul>
+<p><strong>Last updated:</strong> 2017-02-06</p>
+<p><strong>Code version:</strong> be895d0</p>
+<pre class="r"><code>library(&quot;biomaRt&quot;)
+library(&quot;dplyr&quot;)
+library(&quot;edgeR&quot;)
+library(&quot;ggplot2&quot;)
+theme_set(theme_bw(base_size = 12))
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+<div id="input-read-data" class="section level3">
+<h3>Input read data:</h3>
+<pre class="r"><code>reads &lt;-read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+#subset to look at same cells I did
+reads_subset &lt;-reads[ ,grep(&quot;NA19098.r1.A|NA19098.r1.B|NA19098.r1.C|NA19098.r1.D|NA19098.r1.E|NA19098.r1.F&quot;, colnames(reads))]
+reads_bri&lt;-read.table(&quot;../data/reads_bri.txt&quot;, header=TRUE, stringsAsFactors= FALSE)</code></pre>
+<p>Create a single matrix with the common genes in both sets.</p>
+<pre class="r"><code>#make my data different 
+colnames(reads_bri)&lt;- paste0(colnames(reads_bri), &quot;-bri&quot;)
+#list of common genes
+common_genes &lt;- intersect(row.names(reads_subset), row.names(reads_bri))
+reads_subset_common &lt;- reads_subset %&gt;% filter(row.names(reads_subset) %in% common_genes)
+row.names(reads_subset_common)&lt;- common_genes
+reads_bri_common &lt;- reads_bri %&gt;% filter(row.names(reads_bri) %in% common_genes)
+row.names(reads_bri_common)&lt;- common_genes</code></pre>
+<pre class="r"><code>#combine read matrics
+
+reads_all_common &lt;-cbind(reads_subset_common, reads_bri_common)
+#remove genes that are never seen
+genes_in_reads_all_common&lt;- rownames(reads_all_common)[rowSums(reads_all_common) &gt; 0]
+reads_all_common_no0 &lt;- reads_all_common %&gt;% filter(row.names(reads_all_common) %in% genes_in_reads_all_common)
+row.names(reads_all_common_no0) &lt;- genes_in_reads_all_common</code></pre>
+</div>
+<div id="create-plots-for-read-data" class="section level3">
+<h3>Create plots for read data:</h3>
+<pre class="r"><code>pca_commongenes &lt;- run_pca(reads_all_common_no0)
+
+#list_of_cells&lt;- colnames(reads_all_common_no0)
+#contains_bri&lt;- c()
+#for (i in colnames(reads_all_common_no0)) {
+ #  if (&quot;bri&quot; %in i) 
+#     contains_bri[contains_bri, &quot;BRI&quot;]
+   
+ # else
+#    contains_bri[contains_bri, &quot;GITHUB&quot;]
+#}  
+
+#grep(&quot;bri&quot;, colnames(reads_all_common_no0))
+  
+  
+
+pca_commongenes_plot &lt;- plot_pca(pca_commongenes$PCs, explained = pca_commongenes$explained ) + labs(title=&quot;Reads in github and Bri analysis&quot;) 
+
+
+#color=reads_all_common_no0[grep(&quot;bri&quot;, colnames(reads_all_common_no0)),])
+
+
+pca_commongenes_plot</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-127-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
 
 <hr>
 <p>
@@ -252,6 +393,8 @@ $(document).ready(function () {
 -->
 
 
+</div>
+</div>
 
 </div>
 
