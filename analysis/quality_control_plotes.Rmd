@@ -1,0 +1,60 @@
+---
+title: "Quality control of UMIs and ERCC spike-ins"
+author: "Briana Mittleman"
+date: "2/6/2017"
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Input
+```{r}
+library("biomaRt")
+library("data.table")
+library("dplyr")
+library("limma")
+library("ggplot2")
+library("grid")
+library("cowplot")
+theme_set(theme_bw(base_size = 16))
+theme_update(panel.grid.minor.x = element_blank(),
+             panel.grid.minor.y = element_blank(),
+             panel.grid.major.x = element_blank(),
+             panel.grid.major.y = element_blank(),
+             legend.key = element_blank(),
+             plot.title = element_text(size = rel(1)))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+Input ERCC molecule counts calculated in capture efficiency.  
+
+```{r}
+ercc <- read.table("../../singleCellSeq/data/expected-ercc-molecules.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+head(ercc)
+```
+
+Input annotation.  
+
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header=TRUE, stringsAsFactors = FALSE)
+head(anno)
+```
+
+Input read counts and filter for quality cells.  
+
+```{r}
+reads<- read.table("../../singleCellSeq/data/reads.txt", header=TRUE, stringsAsFactors = FALSE)
+
+quality_single_cells <- scall 
+```
+

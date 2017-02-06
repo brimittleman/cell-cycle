@@ -58,17 +58,20 @@ reads_bri <- reads_raw_bri %>%
   select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads_bri) <- anno_bri$sample_id
-reads[1:5, 1:5]
+reads_bri[1:5, 1:5]
 ```
 
 ###Molecule Counts for single cell samples  
 Import eaw molecules for single cell samples.
 
 ```{r}
-molecules_raw_bri <- fread("../../single-cell/data/counts-matrix/molecules-raw-single-per-lane.txt")
+molecules_raw_bri_lane <- fread("../../single-cell/data/counts-matrix/molecules-raw-single-per-lane.txt")
+molecules_raw_bri <- fread("../../single-cell/data/counts-matrix/molecules-raw-single-per-sample.txt")
                        
 setDF(molecules_raw_bri)
+setDF(molecules_raw_bri_lane)
 dim(molecules_raw_bri)
+dim(molecules_raw_bri_lane)
 ```
 
 This data has rows by individuale and has gene columns like the reads data. 
@@ -76,7 +79,118 @@ This data has rows by individuale and has gene columns like the reads data.
 Conform single cell samples in reads and molecules files are in same order. 
 
 ```{r}
-#stopifnot(anno_bri$individual == molecules_raw_bri$individual,
-#          anno_bri$replicate == molecules_raw_bri$replicate,
-#          anno_bri$well == molecules_raw_bri$well)
+stopifnot(anno_bri$individual == molecules_raw_bri$individual,
+          anno_bri$replicate == molecules_raw_bri$replicate,
+          anno_bri$well == molecules_raw_bri$well)
+```
+
+Transpose the matrix so it is also gene-x-sample. Had to change code to dplyr::select because select is also a function in biomaRt.  
+```{r}
+molecules_bri <- molecules_raw_bri %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(molecules_bri) <- anno_bri$sample_id
+molecules_bri[1:5, 1:5]
+```
+
+###Read counts for bulk samples  
+
+```{r}
+reads_bulk_raw_bri <- fread("../../single-cell/data/counts-matrix/reads-raw-bulk-per-sample.txt")
+setDF(reads_bulk_raw_bri)
+
+```
+
+Create annotation file for the bulk samples as we did for the single cells.  
+
+```{r}
+anno_bulk_bri <- reads_bulk_raw_bri %>%
+  dplyr::select(individual:well) %>%
+  mutate(batch = paste(individual, replicate, sep = "."),
+         sample_id = paste(batch, well, sep = "."))
+head(anno_bulk_bri)
+```
+
+
+Transpose the bulk read information to match the gene-x-sample format.  
+
+```{r}
+reads_bulk_bri <- reads_bulk_raw_bri %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(reads_bulk_bri) <- anno_bulk_bri$sample_id
+
+#pull in github data to compare
+reads_bulk_raw <- fread("../../singleCellSeq/data/reads-raw-bulk-per-sample.txt")
+setDF(reads_bulk_raw) #converts the data.table to a data.frame
+anno_bulk <- reads_bulk_raw %>%
+  select(individual:well) %>%
+  mutate(batch = paste(individual, replicate, sep = "."),
+         sample_id = paste(batch, well, sep = "."))
+reads_bulk <- reads_bulk_raw %>%
+  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  t
+colnames(reads_bulk) <- anno_bulk$sample_id
+
+
+
+reads_bulk_bri[1:15, 0:1]
+reads_bulk[1:15, 0:1]
+```
+
+
+I show more reads for the bulk samples as well.  
+
+###Observed genes:
+
+```{r}
+stopifnot(rownames(reads_bulk_bri) == rownames(reads_bri),
+          rownames(reads_bri) == rownames(molecules_bri))
+
+genes_observed_reads_bulk_bri <- rownames(reads_bulk_bri)[rowSums(reads_bulk_bri) > 0]
+genes_observed_reads_bri <- rownames(reads_bri)[rowSums(reads_bri) > 0]
+genes_observed_molecules_bri <- rownames(molecules_bri)[rowSums(molecules_bri) > 0]
+stopifnot(genes_observed_molecules_bri %in% genes_observed_reads_bri)
+```
+
+```{r}
+genes_venn_bri <- venn.diagram(x = list("reads" = genes_observed_reads_bri,
+                                    "molecules" = genes_observed_molecules_bri,
+                                    "reads bulk" = genes_observed_reads_bulk_bri),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(genes_venn_bri)
+```
+This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed read in either bulk or single cell sample.  
+
+```{r}
+genes_observed_bri <- union(genes_observed_reads_bri, genes_observed_reads_bulk_bri)
+reads_bri <- reads_bri[rownames(reads_bri) %in% genes_observed_bri, ]
+molecules_bri <- molecules_bri[rownames(molecules_bri) %in% genes_observed_bri, ]
+reads_bulk_bri <- reads_bulk_bri[rownames(reads_bulk_bri) %in% genes_observed_bri, ]
+```
+There are 17128 genes.  
+
+###Write files:
+Write the files to my cell_cycle git hub.   
+Annotations:  
+```{r}
+write.table(anno_bri, "../data/annotation_bri.txt", quote=FALSE, sep="\t", row.names = FALSE)
+write.table(anno_bulk, "../data/annotation-bulk_bri.txt", quote=FALSE, sep = "\t", row.names=FALSE)
+```
+
+Reads counts:  
+```{r}
+write.table(reads_bri, "../data/reads_bri.txt", quote = FALSE, sep = "\t", col.names = NA)
+write.table(reads_bulk, "../data/reads-bulk_bri.txt", quote=FALSE, sep="\t", col.names = NA)
+```
+
+Output molecule counts.  
+```{r}
+write.table(molecules_bri, "../data/molecules_bri.txt", quote= FALSE, sep= "\t", col.names = NA)
+```
+
+###Session Information
+```{r}
+sessionInfo()
 ```

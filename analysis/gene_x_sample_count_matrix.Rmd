@@ -142,7 +142,7 @@ grid.newpage()
 grid.draw(genes_venn)
 ```
 
-This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed rean in either bulk or single cell sample.
+This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed read in either bulk or single cell sample.
 
 ```{r}
 genes_observed <- union(genes_observed_reads, genes_observed_reads_bulk)
