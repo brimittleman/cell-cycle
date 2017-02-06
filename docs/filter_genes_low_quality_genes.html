@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-05</p>
-<p><strong>Code version:</strong> 32a183d</p>
+<p><strong>Code version:</strong> e42bf59</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;testit&quot;)
 library(&quot;dplyr&quot;)
@@ -392,7 +392,7 @@ hist(molecules_cpm_mean, xlab = &quot;Mean log2 molecule cpm in single cells&quo
      ylab = &quot;Number of genes&quot;, main = &quot;Identifying expression cutoff&quot;)
 lower_exp_cutoff &lt;- 2
 abline(v = lower_exp_cutoff, col = &quot;red&quot;)</code></pre>
-<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>Why are we worried about overexpressed genes?</strong></p>
 <pre class="r"><code>genes_pass_filter &lt;- rownames(molecules_filter)[molecules_cpm_mean &gt; lower_exp_cutoff]</code></pre>
 <p>13112 genes have a mean log2 molecule cpm greater than 2, including 48 ERCC genes.</p>
@@ -466,15 +466,15 @@ pca_reads_filter_plot &lt;- plot_pca(pca_reads_filter$PCs, explained = pca_reads
          shape = &quot;replicate&quot;) +
   labs(title = &quot;Filtered raw reads for single cells&quot;)
 pca_reads_filter_plot</code></pre>
-<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>pca_molecules_filter &lt;- run_pca(molecules_filter)
 pca_molecules_filter_plot &lt;- plot_pca(pca_molecules_filter$PCs, explained = pca_molecules_filter$explained,
          metadata = anno_filter, color = &quot;individual&quot;,
          shape = &quot;replicate&quot;) +
   labs(title = &quot;Filtered raw molecules for single cells&quot;)
 pca_molecules_filter_plot</code></pre>
-<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA.</p>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA. wo</p>
 <p>Because we start with the union of observed genes in the single cell or bulk samples and then the expression cutoff is based on the expresssion in the single cells, it is possible that a gene is not observed at all in the bulk samples. This causes an error with the PCA because that gene is invariant, so they are filtered before performing PCA. <strong>PLEASE EXPLAIN</strong></p>
 <pre class="r"><code>reads_bulk_zeros &lt;- rowSums(reads_bulk_filter) == 0
 rownames(reads_bulk_filter)[reads_bulk_zeros]</code></pre>
@@ -485,7 +485,7 @@ pca_reads_bulk_filter_plot &lt;- plot_pca(pca_reads_bulk_filter$PCs, explained =
          shape = &quot;replicate&quot;) +
   labs(title = &quot;Filtered raw reads for bulk samples&quot;)
 pca_reads_bulk_filter_plot</code></pre>
-<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="session-info" class="section level3">
 <h3>Session Info</h3>
