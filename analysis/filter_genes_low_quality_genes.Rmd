@@ -18,6 +18,7 @@ knitr::read_chunk("chunks.R")
 
 ```{r}
 library("biomaRt")
+library("testit")
 library("dplyr")
 library("edgeR")
 library("ggplot2")
@@ -139,6 +140,111 @@ overexpressed_genes
 
 I will look into what these genes are:   
 
-* ENSG00000198888- mitochondrially encoded NADH  
+* ENSG00000198888- mitochondrially encoded NADH   
 
-* ENSG00000198804- 
+* ENSG00000198804- mitochondrially encoded cytochrome c oxidase I   
+
+* ENSG00000198712- mitochondrially encoded cytochrome c oxidase II   
+
+* ENSG00000198899- mitochondrially encoded ATP synthase 6  
+
+* ENSG00000198938- mitochondrially encoded cytochrome c oxidase III  
+
+* ENSG00000198886- mitochondrially encoded NADH:ubiquinone oxidoreductase core subunit 4  
+
+
+```{r}
+ensembl <- useMart(host = "grch37.ensembl.org",
+                   biomart = "ENSEMBL_MART_ENSEMBL",
+                   dataset = "hsapiens_gene_ensembl")
+overexpressed_genes_info <- getBM(attributes = c("ensembl_gene_id", "chromosome_name",
+                                                 "external_gene_name", "transcript_count",
+                                                 "description"),
+                                  filters = "ensembl_gene_id",
+                                  values = overexpressed_genes[grep("ENSG", overexpressed_genes)],
+                                  mart = ensembl)
+overexpressed_genes_info
+```
+6 genes have counts greater than 1024 in at least 1 cell. They are all mitochondrial genes. This includes 0 ERCC control genes.  
+
+Update list of genes passing filters.  
+```{r}
+genes_pass_filter <- setdiff(genes_pass_filter, overexpressed_genes)
+```
+
+Filter the data to only include the subset of 13106 genes which pass the lower and upper expression cutoffs. This subset includes 48 ERCC genes.  
+
+```{r}
+reads_filter <- reads_filter[rownames(reads_filter) %in% genes_pass_filter, ]
+molecules_filter <- molecules_filter[rownames(molecules_filter) %in% genes_pass_filter, ]
+reads_bulk_filter <- reads_bulk[rownames(reads_bulk) %in% genes_pass_filter, ]
+stopifnot(nrow(reads_filter) == length(genes_pass_filter),
+          dim(reads_filter) == dim(molecules_filter),
+          nrow(reads_bulk_filter) == nrow(molecules_filter))
+```
+
+Output the filtered data to my data folder of the github cell cylce folder.  
+
+```{r}
+write.table(anno_filter, "../data/annotation-filter.txt", quote = FALSE,
+            sep = "\t", row.names = FALSE)
+write.table(reads_filter, "../data/reads-filter.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+write.table(molecules_filter, "../data/molecules-filter.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+write.table(reads_bulk_filter, "../data/reads-bulk-filter.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+```
+
+Output new gene list that includes all filtered genes.  
+
+```{r}
+write.table(genes_pass_filter, "../data/genes-pass-filter.txt", quote = FALSE,
+            sep = "\t", row.names = FALSE, col.names = FALSE)
+
+```
+
+###PCA of filtered data  
+```{r}
+pca_reads_filter <- run_pca(reads_filter)
+pca_reads_filter_plot <- plot_pca(pca_reads_filter$PCs, explained = pca_reads_filter$explained,
+         metadata = anno_filter, color = "individual",
+         shape = "replicate") +
+  labs(title = "Filtered raw reads for single cells")
+pca_reads_filter_plot
+```
+
+```{r}
+pca_molecules_filter <- run_pca(molecules_filter)
+pca_molecules_filter_plot <- plot_pca(pca_molecules_filter$PCs, explained = pca_molecules_filter$explained,
+         metadata = anno_filter, color = "individual",
+         shape = "replicate") +
+  labs(title = "Filtered raw molecules for single cells")
+pca_molecules_filter_plot
+```
+
+The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA.  
+
+Because we start with the union of observed genes in the single cell or bulk samples and then the expression cutoff is based on the expresssion in the single cells, it is possible that a gene is not observed at all in the bulk samples. This causes an error with the PCA because that gene is invariant, so they are filtered before performing PCA.  **PLEASE EXPLAIN**  
+
+
+```{r}
+reads_bulk_zeros <- rowSums(reads_bulk_filter) == 0
+rownames(reads_bulk_filter)[reads_bulk_zeros]
+```
+
+```{r}
+pca_reads_bulk_filter <- run_pca(reads_bulk_filter[!reads_bulk_zeros, ])
+pca_reads_bulk_filter_plot <- plot_pca(pca_reads_bulk_filter$PCs, explained = pca_reads_bulk_filter$explained,
+         metadata = anno_bulk, color = "individual",
+         shape = "replicate") +
+  labs(title = "Filtered raw reads for bulk samples")
+pca_reads_bulk_filter_plot
+```
+
+###Session Info  
+
+```{r}
+sessionInfo()
+```
+

@@ -1,0 +1,13 @@
+INFO [2017-01-30 10:21:10] $x
+INFO [2017-01-30 10:21:10] list(reads = genes_observed_reads, molecules = genes_observed_molecules, 
+INFO [2017-01-30 10:21:10]     `reads bulk` = genes_observed_reads_bulk)
+INFO [2017-01-30 10:21:10] 
+INFO [2017-01-30 10:21:10] $filename
+INFO [2017-01-30 10:21:10] NULL
+INFO [2017-01-30 10:21:10] 
+INFO [2017-01-30 10:21:10] $euler.d
+INFO [2017-01-30 10:21:10] [1] FALSE
+INFO [2017-01-30 10:21:10] 
+INFO [2017-01-30 10:21:10] $scaled
+INFO [2017-01-30 10:21:10] [1] FALSE
+INFO [2017-01-30 10:21:10] 

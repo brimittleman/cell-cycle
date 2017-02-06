@@ -1,0 +1,12 @@
+INFO [2017-02-02 11:07:32] $x
+INFO [2017-02-02 11:07:32] list(reads = genes_observed_reads, reads_bri = genes_observed_reads_bri)
+INFO [2017-02-02 11:07:32] 
+INFO [2017-02-02 11:07:32] $filename
+INFO [2017-02-02 11:07:32] NULL
+INFO [2017-02-02 11:07:32] 
+INFO [2017-02-02 11:07:32] $euler.d
+INFO [2017-02-02 11:07:32] [1] FALSE
+INFO [2017-02-02 11:07:32] 
+INFO [2017-02-02 11:07:32] $scaled
+INFO [2017-02-02 11:07:32] [1] FALSE
+INFO [2017-02-02 11:07:32] 

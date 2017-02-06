@@ -305,8 +305,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-01-30</p>
-<p><strong>Code version:</strong> aedf051</p>
+<p><strong>Last updated:</strong> 2017-02-01</p>
+<p><strong>Code version:</strong> 8f6504f</p>
 <p>This is recreating code from <a href="http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html</a>.</p>
 <pre class="r"><code>library(&quot;data.table&quot;)
 library(&quot;dplyr&quot;)
@@ -439,7 +439,7 @@ stopifnot(genes_observed_molecules %in% genes_observed_reads)</code></pre>
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(genes_venn)</code></pre>
-<p><img src="figure/gene_x_sample_count_matrix.Rmd/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/gene_x_sample_count_matrix.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed rean in either bulk or single cell sample.</p>
 <pre class="r"><code>genes_observed &lt;- union(genes_observed_reads, genes_observed_reads_bulk)
 reads &lt;- reads[rownames(reads) %in% genes_observed, ]
@@ -478,19 +478,17 @@ attached base packages:
 [8] base     
 
 other attached packages:
-[1] VennDiagram_1.6.17  futile.logger_1.4.3 dplyr_0.5.0        
-[4] data.table_1.10.0   devtools_1.12.0     workflowr_0.3.0    
-[7] rmarkdown_1.3      
+[1] workflowr_0.3.0     rmarkdown_1.3       VennDiagram_1.6.17 
+[4] futile.logger_1.4.3 dplyr_0.5.0         data.table_1.10.0  
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9          knitr_1.15.1         magrittr_1.5        
- [4] R6_2.2.0             stringr_1.1.0        tools_3.3.2         
- [7] DBI_0.5-1            lambda.r_1.1.9       git2r_0.18.0        
-[10] withr_1.0.2          htmltools_0.3.5      yaml_2.1.14         
-[13] lazyeval_0.2.0       rprojroot_1.2        digest_0.6.11       
-[16] assertthat_0.1       tibble_1.2           futile.options_1.0.0
-[19] memoise_1.0.0        evaluate_0.10        stringi_1.1.2       
-[22] backports_1.0.5     </code></pre>
+ [1] Rcpp_0.12.9          digest_0.6.12        rprojroot_1.2       
+ [4] assertthat_0.1       R6_2.2.0             futile.options_1.0.0
+ [7] DBI_0.5-1            backports_1.0.5      git2r_0.18.0        
+[10] magrittr_1.5         evaluate_0.10        stringi_1.1.2       
+[13] lazyeval_0.2.0       lambda.r_1.1.9       tools_3.3.2         
+[16] stringr_1.1.0        yaml_2.1.14          htmltools_0.3.5     
+[19] knitr_1.15.1         tibble_1.2          </code></pre>
 </div>
 
 <hr>
