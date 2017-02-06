@@ -42,7 +42,7 @@ Ths has rows for each individule and the columns give information about the samp
 Create annotation file for single cell samples: 
 ```{r}
 anno <- reads_raw %>%
-  select(individual:well) %>%
+  dplyr::select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
          sample_id = paste(batch, well, sep = "."))
 head(anno)
@@ -54,7 +54,7 @@ Transpose the matrix so that it is gene-x-sample.
 
 ```{r}
 reads <- reads_raw %>%
-  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads) <- anno$sample_id
 reads[1:5, 1:5]
@@ -84,7 +84,7 @@ Transpose the matrix so it is also gene-x-sample.
 
 ```{r}
 molecules <- molecules_raw %>%
-  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(molecules) <- anno$sample_id
 molecules[1:5, 1:5]
@@ -104,7 +104,7 @@ Create annotation file for the bulk samples as we did with the single cells.
 
 ```{r}
 anno_bulk <- reads_bulk_raw %>%
-  select(individual:well) %>%
+  dplyr::select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
          sample_id = paste(batch, well, sep = "."))
 head(anno_bulk)
@@ -114,7 +114,7 @@ Now transpose the bulk read informaiton to match the gene-x-sample format.
 
 ```{r}
 reads_bulk <- reads_bulk_raw %>%
-  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads_bulk) <- anno_bulk$sample_id
 reads_bulk[1:5, 1:5]
