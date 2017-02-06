@@ -223,7 +223,7 @@ pca_molecules_filter_plot <- plot_pca(pca_molecules_filter$PCs, explained = pca_
 pca_molecules_filter_plot
 ```
 
-The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA.  
+The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA.  wo
 
 Because we start with the union of observed genes in the single cell or bulk samples and then the expression cutoff is based on the expresssion in the single cells, it is possible that a gene is not observed at all in the bulk samples. This causes an error with the PCA because that gene is invariant, so they are filtered before performing PCA.  **PLEASE EXPLAIN**  
 

@@ -30,3 +30,5 @@ Continue the Gilad single cell anaylsis:
 
 
 * [QC single cell libraries](QC_single_cell_library.html)
+
+* [Filter genes and find low quality single cells](filter_genes_low_quality_genes.html)
