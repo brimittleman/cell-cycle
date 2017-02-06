@@ -310,8 +310,9 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-05</p>
-<p><strong>Code version:</strong> 3105a23</p>
+<p><strong>Code version:</strong> 32a183d</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
+library(&quot;testit&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
 library(&quot;ggplot2&quot;)
@@ -391,7 +392,7 @@ hist(molecules_cpm_mean, xlab = &quot;Mean log2 molecule cpm in single cells&quo
      ylab = &quot;Number of genes&quot;, main = &quot;Identifying expression cutoff&quot;)
 lower_exp_cutoff &lt;- 2
 abline(v = lower_exp_cutoff, col = &quot;red&quot;)</code></pre>
-<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>Why are we worried about overexpressed genes?</strong></p>
 <pre class="r"><code>genes_pass_filter &lt;- rownames(molecules_filter)[molecules_cpm_mean &gt; lower_exp_cutoff]</code></pre>
 <p>13112 genes have a mean log2 molecule cpm greater than 2, including 48 ERCC genes.</p>
@@ -404,8 +405,129 @@ overexpressed_genes</code></pre>
 <p>I will look into what these genes are:</p>
 <ul>
 <li><p>ENSG00000198888- mitochondrially encoded NADH</p></li>
-<li><p>ENSG00000198804-</p></li>
+<li><p>ENSG00000198804- mitochondrially encoded cytochrome c oxidase I</p></li>
+<li><p>ENSG00000198712- mitochondrially encoded cytochrome c oxidase II</p></li>
+<li><p>ENSG00000198899- mitochondrially encoded ATP synthase 6</p></li>
+<li><p>ENSG00000198938- mitochondrially encoded cytochrome c oxidase III</p></li>
+<li><p>ENSG00000198886- mitochondrially encoded NADH:ubiquinone oxidoreductase core subunit 4</p></li>
 </ul>
+<pre class="r"><code>ensembl &lt;- useMart(host = &quot;grch37.ensembl.org&quot;,
+                   biomart = &quot;ENSEMBL_MART_ENSEMBL&quot;,
+                   dataset = &quot;hsapiens_gene_ensembl&quot;)
+overexpressed_genes_info &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, &quot;chromosome_name&quot;,
+                                                 &quot;external_gene_name&quot;, &quot;transcript_count&quot;,
+                                                 &quot;description&quot;),
+                                  filters = &quot;ensembl_gene_id&quot;,
+                                  values = overexpressed_genes[grep(&quot;ENSG&quot;, overexpressed_genes)],
+                                  mart = ensembl)
+overexpressed_genes_info</code></pre>
+<pre><code>  ensembl_gene_id chromosome_name external_gene_name transcript_count
+1 ENSG00000198712              MT             MT-CO2                1
+2 ENSG00000198804              MT             MT-CO1                1
+3 ENSG00000198886              MT             MT-ND4                1
+4 ENSG00000198888              MT             MT-ND1                1
+5 ENSG00000198899              MT            MT-ATP6                1
+6 ENSG00000198938              MT             MT-CO3                1
+                                                                     description
+1  mitochondrially encoded cytochrome c oxidase II [Source:HGNC Symbol;Acc:7421]
+2   mitochondrially encoded cytochrome c oxidase I [Source:HGNC Symbol;Acc:7419]
+3     mitochondrially encoded NADH dehydrogenase 4 [Source:HGNC Symbol;Acc:7459]
+4     mitochondrially encoded NADH dehydrogenase 1 [Source:HGNC Symbol;Acc:7455]
+5           mitochondrially encoded ATP synthase 6 [Source:HGNC Symbol;Acc:7414]
+6 mitochondrially encoded cytochrome c oxidase III [Source:HGNC Symbol;Acc:7422]</code></pre>
+<p>6 genes have counts greater than 1024 in at least 1 cell. They are all mitochondrial genes. This includes 0 ERCC control genes.</p>
+<p>Update list of genes passing filters.</p>
+<pre class="r"><code>genes_pass_filter &lt;- setdiff(genes_pass_filter, overexpressed_genes)</code></pre>
+<p>Filter the data to only include the subset of 13106 genes which pass the lower and upper expression cutoffs. This subset includes 48 ERCC genes.</p>
+<pre class="r"><code>reads_filter &lt;- reads_filter[rownames(reads_filter) %in% genes_pass_filter, ]
+molecules_filter &lt;- molecules_filter[rownames(molecules_filter) %in% genes_pass_filter, ]
+reads_bulk_filter &lt;- reads_bulk[rownames(reads_bulk) %in% genes_pass_filter, ]
+stopifnot(nrow(reads_filter) == length(genes_pass_filter),
+          dim(reads_filter) == dim(molecules_filter),
+          nrow(reads_bulk_filter) == nrow(molecules_filter))</code></pre>
+<p>Output the filtered data to my data folder of the github cell cylce folder.</p>
+<pre class="r"><code>write.table(anno_filter, &quot;../data/annotation-filter.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, row.names = FALSE)
+write.table(reads_filter, &quot;../data/reads-filter.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)
+write.table(molecules_filter, &quot;../data/molecules-filter.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)
+write.table(reads_bulk_filter, &quot;../data/reads-bulk-filter.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)</code></pre>
+<p>Output new gene list that includes all filtered genes.</p>
+<pre class="r"><code>write.table(genes_pass_filter, &quot;../data/genes-pass-filter.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, row.names = FALSE, col.names = FALSE)</code></pre>
+</div>
+<div id="pca-of-filtered-data" class="section level3">
+<h3>PCA of filtered data</h3>
+<pre class="r"><code>pca_reads_filter &lt;- run_pca(reads_filter)
+pca_reads_filter_plot &lt;- plot_pca(pca_reads_filter$PCs, explained = pca_reads_filter$explained,
+         metadata = anno_filter, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;) +
+  labs(title = &quot;Filtered raw reads for single cells&quot;)
+pca_reads_filter_plot</code></pre>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pca_molecules_filter &lt;- run_pca(molecules_filter)
+pca_molecules_filter_plot &lt;- plot_pca(pca_molecules_filter$PCs, explained = pca_molecules_filter$explained,
+         metadata = anno_filter, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;) +
+  labs(title = &quot;Filtered raw molecules for single cells&quot;)
+pca_molecules_filter_plot</code></pre>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>The individuals seperate on PC2 when we look at the data by molecule counts but not by read counts. The batch/replicate seperates slightly for NA1929 on PC2 in the molecule count PCA.</p>
+<p>Because we start with the union of observed genes in the single cell or bulk samples and then the expression cutoff is based on the expresssion in the single cells, it is possible that a gene is not observed at all in the bulk samples. This causes an error with the PCA because that gene is invariant, so they are filtered before performing PCA. <strong>PLEASE EXPLAIN</strong></p>
+<pre class="r"><code>reads_bulk_zeros &lt;- rowSums(reads_bulk_filter) == 0
+rownames(reads_bulk_filter)[reads_bulk_zeros]</code></pre>
+<pre><code>[1] &quot;ERCC-00048&quot;</code></pre>
+<pre class="r"><code>pca_reads_bulk_filter &lt;- run_pca(reads_bulk_filter[!reads_bulk_zeros, ])
+pca_reads_bulk_filter_plot &lt;- plot_pca(pca_reads_bulk_filter$PCs, explained = pca_reads_bulk_filter$explained,
+         metadata = anno_bulk, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;) +
+  labs(title = &quot;Filtered raw reads for bulk samples&quot;)
+pca_reads_bulk_filter_plot</code></pre>
+<p><img src="figure/filter_genes_low_quality_genes.Rmd/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="session-info" class="section level3">
+<h3>Session Info</h3>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] testit_0.6           biomaRt_2.30.0       MASS_7.3-45         
+ [4] cowplot_0.7.0        ggplot2_2.2.1        edgeR_3.16.5        
+ [7] limma_3.30.9         BiocInstaller_1.24.0 VennDiagram_1.6.17  
+[10] futile.logger_1.4.3  dplyr_0.5.0          data.table_1.10.0   
+[13] devtools_1.12.0      workflowr_0.3.0      rmarkdown_1.3       
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.9          git2r_0.18.0         plyr_1.8.4          
+ [4] futile.options_1.0.0 bitops_1.0-6         tools_3.3.2         
+ [7] digest_0.6.12        RSQLite_1.1-2        evaluate_0.10       
+[10] memoise_1.0.0        tibble_1.2           gtable_0.2.0        
+[13] lattice_0.20-34      DBI_0.5-1            yaml_2.1.14         
+[16] parallel_3.3.2       withr_1.0.2          stringr_1.1.0       
+[19] knitr_1.15.1         IRanges_2.8.1        S4Vectors_0.12.1    
+[22] stats4_3.3.2         locfit_1.5-9.1       rprojroot_1.2       
+[25] Biobase_2.34.0       R6_2.2.0             AnnotationDbi_1.36.1
+[28] XML_3.98-1.5         lambda.r_1.1.9       magrittr_1.5        
+[31] BiocGenerics_0.20.0  backports_1.0.5      scales_0.4.1        
+[34] htmltools_0.3.5      assertthat_0.1       colorspace_1.3-2    
+[37] labeling_0.3         stringi_1.1.2        RCurl_1.95-4.8      
+[40] lazyeval_0.2.0       munsell_0.4.3       </code></pre>
 </div>
 
 <hr>
