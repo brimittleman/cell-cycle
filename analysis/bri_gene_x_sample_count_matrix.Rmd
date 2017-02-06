@@ -42,7 +42,7 @@ Ths has rows for each individule and the columns give information about the samp
 Create annotation file for single cell samples: 
 ```{r}
 anno_bri <- reads_raw_bri %>%
-  select(individual:well) %>%
+  dplyr::select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
          sample_id = paste(batch, well, sep = "."))
 head(anno_bri)
@@ -55,7 +55,7 @@ Transpose the matrix so that it is gene-x-sample.
 
 ```{r}
 reads_bri <- reads_raw_bri %>%
-  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads_bri) <- anno_bri$sample_id
 reads_bri[1:5, 1:5]
@@ -124,11 +124,11 @@ colnames(reads_bulk_bri) <- anno_bulk_bri$sample_id
 reads_bulk_raw <- fread("../../singleCellSeq/data/reads-raw-bulk-per-sample.txt")
 setDF(reads_bulk_raw) #converts the data.table to a data.frame
 anno_bulk <- reads_bulk_raw %>%
-  select(individual:well) %>%
+  dplyr::select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
          sample_id = paste(batch, well, sep = "."))
 reads_bulk <- reads_bulk_raw %>%
-  select(starts_with("ENSG"), starts_with("ERCC")) %>%
+  dplyr::select(starts_with("ENSG"), starts_with("ERCC")) %>%
   t
 colnames(reads_bulk) <- anno_bulk$sample_id
 
