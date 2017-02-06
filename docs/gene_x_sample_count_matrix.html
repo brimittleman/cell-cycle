@@ -305,8 +305,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-01</p>
-<p><strong>Code version:</strong> 8f6504f</p>
+<p><strong>Last updated:</strong> 2017-02-06</p>
+<p><strong>Code version:</strong> 2873ed4</p>
 <p>This is recreating code from <a href="http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html</a>.</p>
 <pre class="r"><code>library(&quot;data.table&quot;)
 library(&quot;dplyr&quot;)
@@ -322,7 +322,7 @@ setDF(reads_raw)</code></pre>
 <p>Ths has rows for each individule and the columns give information about the sample then give counts for each gene.</p>
 <p>Create annotation file for single cell samples:</p>
 <pre class="r"><code>anno &lt;- reads_raw %&gt;%
-  select(individual:well) %&gt;%
+  dplyr::select(individual:well) %&gt;%
   mutate(batch = paste(individual, replicate, sep = &quot;.&quot;),
          sample_id = paste(batch, well, sep = &quot;.&quot;))
 head(anno)</code></pre>
@@ -336,7 +336,7 @@ head(anno)</code></pre>
 <p>This annoation file has information about the sample, replicatte, batch.</p>
 <p>Transpose the matrix so that it is gene-x-sample.</p>
 <pre class="r"><code>reads &lt;- reads_raw %&gt;%
-  select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
+  dplyr::select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
   t
 colnames(reads) &lt;- anno$sample_id
 reads[1:5, 1:5]</code></pre>
@@ -367,7 +367,7 @@ dim(molecules_raw)</code></pre>
           anno$well == molecules_raw$well)</code></pre>
 <p>Transpose the matrix so it is also gene-x-sample.</p>
 <pre class="r"><code>molecules &lt;- molecules_raw %&gt;%
-  select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
+  dplyr::select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
   t
 colnames(molecules) &lt;- anno$sample_id
 molecules[1:5, 1:5]</code></pre>
@@ -392,7 +392,7 @@ ENSG00000269831              0              0</code></pre>
 setDF(reads_bulk_raw) #converts the data.table to a data.frame</code></pre>
 <p>Create annotation file for the bulk samples as we did with the single cells.</p>
 <pre class="r"><code>anno_bulk &lt;- reads_bulk_raw %&gt;%
-  select(individual:well) %&gt;%
+  dplyr::select(individual:well) %&gt;%
   mutate(batch = paste(individual, replicate, sep = &quot;.&quot;),
          sample_id = paste(batch, well, sep = &quot;.&quot;))
 head(anno_bulk)</code></pre>
@@ -405,7 +405,7 @@ head(anno_bulk)</code></pre>
 6    NA19101        r3 bulk NA19101.r3 NA19101.r3.bulk</code></pre>
 <p>Now transpose the bulk read informaiton to match the gene-x-sample format.</p>
 <pre class="r"><code>reads_bulk &lt;- reads_bulk_raw %&gt;%
-  select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
+  dplyr::select(starts_with(&quot;ENSG&quot;), starts_with(&quot;ERCC&quot;)) %&gt;%
   t
 colnames(reads_bulk) &lt;- anno_bulk$sample_id
 reads_bulk[1:5, 1:5]</code></pre>
@@ -440,7 +440,7 @@ stopifnot(genes_observed_molecules %in% genes_observed_reads)</code></pre>
 grid.newpage()
 grid.draw(genes_venn)</code></pre>
 <p><img src="figure/gene_x_sample_count_matrix.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed rean in either bulk or single cell sample.</p>
+<p>This ven diagram shows the intesection of the genes found in each type of sequencing data. I will now remove all genes with no observed read in either bulk or single cell sample.</p>
 <pre class="r"><code>genes_observed &lt;- union(genes_observed_reads, genes_observed_reads_bulk)
 reads &lt;- reads[rownames(reads) %in% genes_observed, ]
 molecules &lt;- molecules[rownames(molecules) %in% genes_observed, ]
@@ -478,17 +478,27 @@ attached base packages:
 [8] base     
 
 other attached packages:
-[1] workflowr_0.3.0     rmarkdown_1.3       VennDiagram_1.6.17 
-[4] futile.logger_1.4.3 dplyr_0.5.0         data.table_1.10.0  
+ [1] testit_0.6           MASS_7.3-45          cowplot_0.7.0       
+ [4] ggplot2_2.2.1        edgeR_3.16.5         limma_3.30.9        
+ [7] BiocInstaller_1.24.0 VennDiagram_1.6.17   futile.logger_1.4.3 
+[10] dplyr_0.5.0          data.table_1.10.0    devtools_1.12.0     
+[13] workflowr_0.3.0      rmarkdown_1.3       
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9          digest_0.6.12        rprojroot_1.2       
- [4] assertthat_0.1       R6_2.2.0             futile.options_1.0.0
- [7] DBI_0.5-1            backports_1.0.5      git2r_0.18.0        
-[10] magrittr_1.5         evaluate_0.10        stringi_1.1.2       
-[13] lazyeval_0.2.0       lambda.r_1.1.9       tools_3.3.2         
-[16] stringr_1.1.0        yaml_2.1.14          htmltools_0.3.5     
-[19] knitr_1.15.1         tibble_1.2          </code></pre>
+ [1] Rcpp_0.12.9          git2r_0.18.0         plyr_1.8.4          
+ [4] futile.options_1.0.0 bitops_1.0-6         tools_3.3.2         
+ [7] digest_0.6.12        RSQLite_1.1-2        evaluate_0.10       
+[10] memoise_1.0.0        tibble_1.2           gtable_0.2.0        
+[13] lattice_0.20-34      DBI_0.5-1            yaml_2.1.14         
+[16] curl_2.3             parallel_3.3.2       httr_1.2.1          
+[19] withr_1.0.2          stringr_1.1.0        knitr_1.15.1        
+[22] IRanges_2.8.1        S4Vectors_0.12.1     stats4_3.3.2        
+[25] locfit_1.5-9.1       rprojroot_1.2        Biobase_2.34.0      
+[28] R6_2.2.0             AnnotationDbi_1.36.1 XML_3.98-1.5        
+[31] lambda.r_1.1.9       magrittr_1.5         BiocGenerics_0.20.0 
+[34] backports_1.0.5      scales_0.4.1         htmltools_0.3.5     
+[37] assertthat_0.1       colorspace_1.3-2     stringi_1.1.2       
+[40] RCurl_1.95-4.8       lazyeval_0.2.0       munsell_0.4.3       </code></pre>
 </div>
 
 <hr>

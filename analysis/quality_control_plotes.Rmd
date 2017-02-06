@@ -55,6 +55,6 @@ Input read counts and filter for quality cells.
 ```{r}
 reads<- read.table("../../singleCellSeq/data/reads.txt", header=TRUE, stringsAsFactors = FALSE)
 
-quality_single_cells <- scall 
+
 ```
 
