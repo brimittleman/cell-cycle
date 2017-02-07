@@ -78,3 +78,29 @@ Input molecule counts in high quality cells for filtered genes.
 molecules_filter <- read.table("../data/molecules-filter.txt", header = TRUE, stringsAsFactors = FALSE)
 ```
 
+###Compare reads and molecules  
+
+```{r}
+## calculate mean accross all cells for each gene 
+#in apply- 1=rows, 2=columns
+reads_mean     <- apply(reads, 1, mean)
+molecules_mean <- apply(molecules, 1, mean)
+distribution <- data.frame(reads_mean, molecules_mean)
+
+reads_filter_mean <- apply(reads_filter, 1, mean)
+molecules_filter_mean <- apply(molecules_filter, 1, mean)
+distribution_filter <- data.frame(reads_filter_mean, molecules_filter_mean)
+
+## correlation between reads and molecules
+cor(distribution)
+cor(distribution_filter)
+```
+There is a higher correlation between molecules and read counts in the filtered data. I would expect a lower correlation if the reads come from sequencing each molecule multiple times. This could be driven by the large numbers of zeros in the data set. 
+
+```{r}
+##select ERCC
+#distribution has the mean read and molecule count for each gene
+distribution$type <- ifelse(grepl("ERCC", rownames(distribution)), "ERCC", "gene")
+distribution_filter$type <- ifelse(grepl("ERCC", rownames(distribution_filter)), "ERCC", "gene")
+```
+

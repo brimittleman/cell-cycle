@@ -59,37 +59,38 @@ row.names(reads_all_common_no0) <- genes_in_reads_all_common
 ```
 
 
+##Plots to explore differences in data
 
-
-###Create plots for read data:  
+###Create PCA plots  
 
 
 ```{r}
 pca_commongenes <- run_pca(reads_all_common_no0)
 
-#list_of_cells<- colnames(reads_all_common_no0)
-#contains_bri<- c()
-#for (i in colnames(reads_all_common_no0)) {
- #  if ("bri" %in i) 
-#     contains_bri[contains_bri, "BRI"]
-   
- # else
-#    contains_bri[contains_bri, "GITHUB"]
-#}  
+contains_bri<- ifelse(grepl("bri", colnames(reads_all_common_no0)), "Bri", "git")
+list_of_cells<- colnames(reads_all_common_no0)
 
-#grep("bri", colnames(reads_all_common_no0))
-  
-  
+analysis_rounds<- cbind(list_of_cells, contains_bri) 
 
-pca_commongenes_plot <- plot_pca(pca_commongenes$PCs, explained = pca_commongenes$explained ) + labs(title="Reads in github and Bri analysis") 
+pca_commongenes_plot <- plot_pca(pca_commongenes$PCs, explained = pca_commongenes$explained, color="contains_bri" ) + labs(title="Reads in github and Bri analysis") 
 
 
-#color=reads_all_common_no0[grep("bri", colnames(reads_all_common_no0)),])
 
 
 pca_commongenes_plot
 
+
 ```
 
 
+###Create correlation matrix
+```{r}
+reads_subset_mean<- apply(reads_subset_common, 1, mean)
+reads_bri_mean<-apply(reads_bri_common,1, mean)
+distribution_reads <-data.frame(reads_subset_mean, reads_bri_mean)
+cor(distribution_reads)
+
+
+
+```
 
