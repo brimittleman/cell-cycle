@@ -55,7 +55,7 @@ Input read counts and filter for quality cells.
 ```{r}
 reads<- read.table("../../singleCellSeq/data/reads.txt", header=TRUE, stringsAsFactors = FALSE)
 quality_single_cells <- scan("../data/quality-single-cells.txt", what = "character")
-reads <- reads[, colnames(reads) %in% quality_single_cells]
+reads<- reads[, colnames(reads) %in% quality_single_cells]
 
 ```
 Input read counts in high quality cells for filtered genes.    

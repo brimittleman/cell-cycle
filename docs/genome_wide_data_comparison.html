@@ -309,7 +309,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-06</p>
-<p><strong>Code version:</strong> be895d0</p>
+<p><strong>Code version:</strong> 80ea9c2</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
@@ -339,32 +339,35 @@ genes_in_reads_all_common&lt;- rownames(reads_all_common)[rowSums(reads_all_comm
 reads_all_common_no0 &lt;- reads_all_common %&gt;% filter(row.names(reads_all_common) %in% genes_in_reads_all_common)
 row.names(reads_all_common_no0) &lt;- genes_in_reads_all_common</code></pre>
 </div>
-<div id="create-plots-for-read-data" class="section level3">
-<h3>Create plots for read data:</h3>
+<div id="plots-to-explore-differences-in-data" class="section level2">
+<h2>Plots to explore differences in data</h2>
+<div id="create-pca-plots" class="section level3">
+<h3>Create PCA plots</h3>
 <pre class="r"><code>pca_commongenes &lt;- run_pca(reads_all_common_no0)
 
-#list_of_cells&lt;- colnames(reads_all_common_no0)
-#contains_bri&lt;- c()
-#for (i in colnames(reads_all_common_no0)) {
- #  if (&quot;bri&quot; %in i) 
-#     contains_bri[contains_bri, &quot;BRI&quot;]
-   
- # else
-#    contains_bri[contains_bri, &quot;GITHUB&quot;]
-#}  
+contains_bri&lt;- ifelse(grepl(&quot;bri&quot;, colnames(reads_all_common_no0)), &quot;Bri&quot;, &quot;git&quot;)
+list_of_cells&lt;- colnames(reads_all_common_no0)
 
-#grep(&quot;bri&quot;, colnames(reads_all_common_no0))
-  
-  
+analysis_rounds&lt;- cbind(list_of_cells, contains_bri) 
 
-pca_commongenes_plot &lt;- plot_pca(pca_commongenes$PCs, explained = pca_commongenes$explained ) + labs(title=&quot;Reads in github and Bri analysis&quot;) 
+pca_commongenes_plot &lt;- plot_pca(pca_commongenes$PCs, explained = pca_commongenes$explained, color=&quot;contains_bri&quot; ) + labs(title=&quot;Reads in github and Bri analysis&quot;) 
 
 
-#color=reads_all_common_no0[grep(&quot;bri&quot;, colnames(reads_all_common_no0)),])
 
 
 pca_commongenes_plot</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-127-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="create-correlation-matrix" class="section level3">
+<h3>Create correlation matrix</h3>
+<pre class="r"><code>reads_subset_mean&lt;- apply(reads_subset_common, 1, mean)
+reads_bri_mean&lt;-apply(reads_bri_common,1, mean)
+distribution_reads &lt;-data.frame(reads_subset_mean, reads_bri_mean)
+cor(distribution_reads)</code></pre>
+<pre><code>                  reads_subset_mean reads_bri_mean
+reads_subset_mean         1.0000000      0.8535153
+reads_bri_mean            0.8535153      1.0000000</code></pre>
+</div>
 </div>
 
 <hr>
