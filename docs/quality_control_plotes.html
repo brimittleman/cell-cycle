@@ -309,7 +309,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-08</p>
-<p><strong>Code version:</strong> eaded4f</p>
+<p><strong>Code version:</strong> 488eb05</p>
 <div id="input" class="section level3">
 <h3>Input</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -385,7 +385,208 @@ molecules_filter_mean         0.9408234             1.0000000</code></pre>
 <pre class="r"><code>##select ERCC
 #distribution has the mean read and molecule count for each gene
 distribution$type &lt;- ifelse(grepl(&quot;ERCC&quot;, rownames(distribution)), &quot;ERCC&quot;, &quot;gene&quot;)
-distribution_filter$type &lt;- ifelse(grepl(&quot;ERCC&quot;, rownames(distribution_filter)), &quot;ERCC&quot;, &quot;gene&quot;)</code></pre>
+distribution_filter$type &lt;- ifelse(grepl(&quot;ERCC&quot;, rownames(distribution_filter)), &quot;ERCC&quot;, &quot;gene&quot;)
+
+#color palete
+cbPalette &lt;- c(&quot;#0000FF&quot;, &quot;#999999&quot;, &quot;#990033&quot;, &quot;#F0E442&quot;, &quot;#0072B2&quot;, &quot;#D55E00&quot;, &quot;#CC79A7&quot;, &quot;#009E73&quot;)
+
+## plots
+plot_mean_log &lt;- ggplot(distribution, aes(x = molecules_mean, y = reads_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = &quot;Mean molecule-counts across samples&quot;, 
+       y = &quot;Mean read-counts across samples&quot;, 
+       title = &quot;Amplification bias is stronger \n in endogenous genes than in ERCC spike-ins&quot;) + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+plot_mean_log</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous x-axis</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /> Amplification bias is more reads per molecule. <strong>Why do we think the bias is stronger in endogenous gene?</strong></p>
+<pre class="r"><code>plot_mean_filter_log &lt;- ggplot(distribution_filter, aes(x = molecules_filter_mean, y = reads_filter_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = &quot;Mean molecule-counts across samples&quot;, 
+       y = &quot;Mean read-counts&quot;, 
+       title = &quot;Read-counts and molecule-counts of each gene (log scale)&quot;) + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+plot_mean_filter_log</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_mean &lt;- ggplot(distribution, aes(x = molecules_mean, y = reads_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = &quot;Mean molecule-counts across samples&quot;, 
+       y = &quot;Mean read-counts across samples&quot;, 
+       title = &quot;Amplification bias is stronger \n in endogenous genes than in ERCC spike-ins&quot;) +
+  geom_smooth(method = &quot;lm&quot;)
+
+plot_mean</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>I can see the bias in this plot because the read-moleculre count is higher in endogenous genes.</p>
+</div>
+<div id="distribution-of-fold-change-to-mean" class="section level3">
+<h3>Distribution of fold change to mean</h3>
+<p>Look at the distribution of fold change to mean. As being reported by others, the lowly expressed genes show divergent read and molecule counts</p>
+<pre class="r"><code>## calculate fold change to mean
+distribution$fold_change_read     &lt;- log2(reads_mean/mean(reads_mean))
+distribution$fold_change_molecule &lt;- log2(molecules_mean/mean(molecules_mean))
+
+plot_distribution &lt;- ggplot(distribution, aes(x = fold_change_molecule, y = fold_change_read, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) + 
+  scale_colour_manual(values=cbPalette) + 
+  stat_function(fun= function(x) {x}, col= &quot;#56B4E9&quot;) + 
+  labs(x = &quot;log2 fold change to mean (molecule)&quot;, y =  &quot;log2 fold change to mean (reads)&quot;)
+
+plot_distribution</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /> In all of these plots each dot represents one gene in the dataset.</p>
+</div>
+<div id="vizualising-capture-efficiency" class="section level3">
+<h3>Vizualising capture efficiency</h3>
+<p>Use only those 50 ERCC genes with at least 1 expected molecule per well.</p>
+<pre class="r"><code>ercc_list &lt;- list()
+for (spike in ercc$id[ercc$ercc_molecules_well &gt;= 1]) {
+  if (spike %in% rownames(molecules)) {
+    ercc_list$id &lt;- c(ercc_list$id, spike)
+    ercc_list$observed_mean &lt;- c(ercc_list$observed_mean,
+                                 mean(as.numeric(molecules[spike, ])))
+    ercc_list$observed_sem &lt;- c(ercc_list$observed_sem,
+                                 sd(as.numeric(molecules[spike, ])) /
+                                 sqrt(ncol(molecules)))
+    ercc_list$expected &lt;- c(ercc_list$expected,
+                            ercc$ercc_molecules_well[ercc$id == spike])
+  }
+}
+ercc_plot &lt;- as.data.frame(ercc_list, stringsAsFactors = FALSE)
+str(ercc_plot)</code></pre>
+<pre><code>&#39;data.frame&#39;:   50 obs. of  4 variables:
+ $ id           : chr  &quot;ERCC-00130&quot; &quot;ERCC-00004&quot; &quot;ERCC-00136&quot; &quot;ERCC-00108&quot; ...
+ $ observed_mean: num  298.1879 57.2784 20.1933 13.5833 0.0603 ...
+ $ observed_sem : num  2.8448 0.6346 0.2841 0.2141 0.0106 ...
+ $ expected     : num  4877.9 1219.5 304.9 152.4 76.2 ...</code></pre>
+<pre class="r"><code>cor(ercc_plot$observed_mean, ercc_plot$expected)</code></pre>
+<pre><code>[1] 0.9916157</code></pre>
+<pre class="r"><code>ercc_list_filter &lt;- list()
+for (spike in ercc$id[ercc$ercc_molecules_well &gt;= 0]) {
+  if (spike %in% rownames(molecules_filter)) {
+    ercc_list_filter$id &lt;- c(ercc_list_filter$id, spike)
+    ercc_list_filter$observed_mean &lt;- c(ercc_list_filter$observed_mean,
+                                 mean(as.numeric(molecules_filter[spike, ])))
+    ercc_list_filter$observed_sem &lt;- c(ercc_list_filter$observed_sem,
+                                 sd(as.numeric(molecules_filter[spike, ])) /
+                                 sqrt(ncol(molecules_filter)))
+    ercc_list_filter$expected &lt;- c(ercc_list_filter$expected,
+                            ercc$ercc_molecules_well[ercc$id == spike])
+  }
+}
+ercc_filter_plot &lt;- as.data.frame(ercc_list_filter, stringsAsFactors = FALSE)
+str(ercc_filter_plot)</code></pre>
+<pre><code>&#39;data.frame&#39;:   48 obs. of  4 variables:
+ $ id           : chr  &quot;ERCC-00130&quot; &quot;ERCC-00004&quot; &quot;ERCC-00136&quot; &quot;ERCC-00108&quot; ...
+ $ observed_mean: num  298.19 57.28 20.19 13.58 2.15 ...
+ $ observed_sem : num  2.8448 0.6346 0.2841 0.2141 0.0674 ...
+ $ expected     : num  4877.9 1219.5 304.9 152.4 38.1 ...</code></pre>
+<pre class="r"><code>cor(ercc_filter_plot$observed_mean, ercc_filter_plot$expected)</code></pre>
+<pre><code>[1] 0.9916498</code></pre>
+<pre class="r"><code>p_efficiency &lt;- ggplot(ercc_plot, aes(x = expected, y = observed_mean, label = id)) +
+  geom_point(col = &quot;red&quot;) +
+  geom_errorbar(aes(ymin = observed_mean - observed_sem,
+                    ymax = observed_mean + observed_sem), width = 0) +
+  labs(x = &quot;Expected ERCC molecules&quot;,
+       y = &quot;Observed ERCC molecules\n(mean +/- SEM)&quot;,
+       title = &quot;ERCC capture efficiency&quot;)
+
+p_efficiency_plot &lt;- p_efficiency + scale_x_log10() +
+  scale_y_log10() +
+  labs(x = &quot;Expected ERCC molecules&quot;,
+       y = &quot;Observed ERCC molecules\n(mean +/- SEM)&quot;,
+       title = &quot;ERCC capture efficiency \n (48 ERCC spike-in controls)&quot;)
+
+p_efficiency_plot + geom_text(hjust = 0, nudge_x = 0.05, size = 4)</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>p_efficiency_filter_plot &lt;- ggplot(ercc_filter_plot, aes(x = expected, y = observed_mean)) +
+  geom_point(col = &quot;red&quot;) +
+  geom_errorbar(aes(ymin = observed_mean - observed_sem,
+                    ymax = observed_mean + observed_sem), width = 0) +
+                    scale_x_log10() + scale_y_log10() +
+                    labs(x = &quot;Expected ERCC molecules&quot;,
+                    y = &quot;Observed ERCC molecules\n(mean +/- SEM)&quot;,
+                    title = &quot;ERCC capture efficiency&quot;)
+
+p_efficiency_filter_plot</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="calculate-capture-efficiency-per-cell" class="section level3">
+<h3>Calculate Capture efficiency per cell</h3>
+<pre class="r"><code>ercc_index &lt;- grep(&quot;ERCC&quot;, rownames(molecules_filter))
+length(ercc_index)</code></pre>
+<pre><code>[1] 48</code></pre>
+<p>48 of the ERCC genes pass the filtering.</p>
+<pre class="r"><code>efficiency &lt;- numeric(length = ncol(molecules_filter))
+total_ercc_molecules &lt;- sum(ercc_filter_plot$expected)
+for (i in 1:ncol(molecules_filter)) {
+  efficiency[i] &lt;- sum(molecules_filter[ercc_index, i]) / total_ercc_molecules
+}
+summary(efficiency)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+0.03978 0.05459 0.06140 0.06580 0.07621 0.12150 </code></pre>
+<p>Using ERCC expected values we calculate an efficienct and show a mean percentage as 6.5%. This seems pretty low!</p>
+</div>
+<div id="qc-plots-for-paper" class="section level3">
+<h3>QC plots for paper:</h3>
+<pre class="r"><code>plot_grid(plot_mean_log + theme(legend.position = c(.85,.25)) + labs (col = &quot;&quot;),
+          p_efficiency_plot + theme(legend.position = &quot;none&quot;),
+          labels = letters[6:7])</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous x-axis</code></pre>
+<pre><code>Warning: Transformation introduced infinite values in continuous y-axis</code></pre>
+<p><img src="figure/quality_control_plotes.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="session-information" class="section level3">
+<h3>Session Information:</h3>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] gridExtra_2.2.1      lme4_1.1-12          Matrix_1.2-7.1      
+ [4] scales_0.4.1         biomaRt_2.30.0       testit_0.6          
+ [7] MASS_7.3-45          cowplot_0.7.0        ggplot2_2.2.1       
+[10] edgeR_3.16.5         limma_3.30.9         BiocInstaller_1.24.0
+[13] VennDiagram_1.6.17   futile.logger_1.4.3  dplyr_0.5.0         
+[16] data.table_1.10.0    devtools_1.12.0      workflowr_0.3.0     
+[19] rmarkdown_1.3       
+
+loaded via a namespace (and not attached):
+ [1] locfit_1.5-9.1       splines_3.3.2        lattice_0.20-34     
+ [4] colorspace_1.3-2     htmltools_0.3.5      stats4_3.3.2        
+ [7] yaml_2.1.14          XML_3.98-1.5         nloptr_1.0.4        
+[10] withr_1.0.2          DBI_0.5-1            BiocGenerics_0.20.0 
+[13] lambda.r_1.1.9       plyr_1.8.4           stringr_1.1.0       
+[16] munsell_0.4.3        gtable_0.2.0         memoise_1.0.0       
+[19] evaluate_0.10        labeling_0.3         Biobase_2.34.0      
+[22] knitr_1.15.1         IRanges_2.8.1        parallel_3.3.2      
+[25] AnnotationDbi_1.36.1 Rcpp_0.12.9          backports_1.0.5     
+[28] S4Vectors_0.12.1     digest_0.6.12        stringi_1.1.2       
+[31] rprojroot_1.2        tools_3.3.2          bitops_1.0-6        
+[34] magrittr_1.5         lazyeval_0.2.0       RCurl_1.95-4.8      
+[37] tibble_1.2           RSQLite_1.1-2        futile.options_1.0.0
+[40] assertthat_0.1       minqa_1.2.4          rstudioapi_0.6      
+[43] R6_2.2.0             nlme_3.1-128         git2r_0.18.0        </code></pre>
 </div>
 
 <hr>
