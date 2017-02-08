@@ -30,7 +30,10 @@ Continue the Gilad single cell anaylsis:
 
 * [Create gene-x-sample count matrices and annotation file](gene_x_sample_count_matrix.html)
 
-
 * [QC single cell libraries](QC_single_cell_library.html)
 
 * [Filter genes and find low quality single cells](filter_genes_low_quality_genes.html)
+
+* [Quality control of UMIs and ERCC spike-ins](quality_control_plotes.html)
+
+* [Compare reads to molecules counts](batch_effect_conversion_efficency.html)

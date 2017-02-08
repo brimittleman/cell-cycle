@@ -106,13 +106,20 @@ abs_diff_matrix= abs(reads_bri_common_matrix- reads_subset_common_matrix)
 
 reads_dif_mean<- apply(diff_matrix, 1, mean)
 
+index_ERCC <- grep("ERCC", names(reads_bri_mean))
+ERCC_genes <- names(reads_bri_mean)[index_ERCC]
+which_ERCC <- as.numeric(names(reads_bri_mean) %in% ERCC_genes) + 1
+col_vec <- c("coral", "blue")[as.numeric(which_ERCC)]
 plot(reads_bri_mean~reads_dif_mean, main="Mean difference in reads compared to Bri mean reads", xlab="Bri mean reads", ylab = " Bri mean reads - git mean reads" )
 
 
 #plot abs value difference 
 reads_abs_dif_mean <- apply(abs_diff_matrix,1, mean)
 
-plot(reads_bri_mean ~ reads_abs_dif_mean, main= "Absolute value of mean read counts", xlab="Bri mean reads", ylab = "Absolute value of the difference between bri and git reads")
+
+library("scales")
+plot(log10(reads_bri_mean) ~ log10(reads_abs_dif_mean), main= "Absolute value of mean read counts", xlab="Bri mean reads", ylab = "Absolute value of the difference between bri and git reads", pch = 16, cex = .6, 
+     col = alpha(col_vec, .4))
 
 
 #which gene is so different?
@@ -218,7 +225,7 @@ For a baseline I will look at another ERCC gene
 
 "ERCC-00045" %in% common_genes_95
 
-ERCC_67 <- rbind(reads_subset["ERCC-00014",], reads_bri2["ERCC-00067",])
+ERCC_67 <- rbind(reads_subset["ERCC-00067",], reads_bri2["ERCC-00067",])
 row.names(ERCC_67) <- c("git", "bri")
 ERCC_67.T= ERCC_67 %>% t
 plot(ERCC_67.T[,"git"] ~ ERCC_67.T[,"bri"], main="Compare ERCC67 in 2 data sets", ylab="git", xlab="bri")

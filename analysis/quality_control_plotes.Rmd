@@ -102,5 +102,175 @@ There is a higher correlation between molecules and read counts in the filtered 
 #distribution has the mean read and molecule count for each gene
 distribution$type <- ifelse(grepl("ERCC", rownames(distribution)), "ERCC", "gene")
 distribution_filter$type <- ifelse(grepl("ERCC", rownames(distribution_filter)), "ERCC", "gene")
+
+#color palete
+cbPalette <- c("#0000FF", "#999999", "#990033", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#009E73")
+
+## plots
+plot_mean_log <- ggplot(distribution, aes(x = molecules_mean, y = reads_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = "Mean molecule-counts across samples", 
+       y = "Mean read-counts across samples", 
+       title = "Amplification bias is stronger \n in endogenous genes than in ERCC spike-ins") + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+plot_mean_log
 ```
+Amplification bias is more reads per molecule.  **Why do we think the bias is stronger in endogenous gene?**
+
+```{r}
+plot_mean_filter_log <- ggplot(distribution_filter, aes(x = molecules_filter_mean, y = reads_filter_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = "Mean molecule-counts across samples", 
+       y = "Mean read-counts", 
+       title = "Read-counts and molecule-counts of each gene (log scale)") + 
+  scale_x_log10() + 
+  scale_y_log10()
+
+plot_mean_filter_log
+```
+
+```{r}
+plot_mean <- ggplot(distribution, aes(x = molecules_mean, y = reads_mean, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) +  
+  scale_colour_manual(values=cbPalette) + 
+  labs(x = "Mean molecule-counts across samples", 
+       y = "Mean read-counts across samples", 
+       title = "Amplification bias is stronger \n in endogenous genes than in ERCC spike-ins") +
+  geom_smooth(method = "lm")
+
+plot_mean
+```
+
+I can see the bias in this plot because the read-moleculre count is higher in endogenous genes.  
+
+###Distribution of fold change to mean  
+
+Look at the distribution of fold change to mean. As being reported by others, the lowly expressed genes show divergent read and molecule counts  
+
+```{r}
+## calculate fold change to mean
+distribution$fold_change_read     <- log2(reads_mean/mean(reads_mean))
+distribution$fold_change_molecule <- log2(molecules_mean/mean(molecules_mean))
+
+plot_distribution <- ggplot(distribution, aes(x = fold_change_molecule, y = fold_change_read, col = type)) + 
+  geom_point(size = 3, alpha = 0.5) + 
+  scale_colour_manual(values=cbPalette) + 
+  stat_function(fun= function(x) {x}, col= "#56B4E9") + 
+  labs(x = "log2 fold change to mean (molecule)", y =  "log2 fold change to mean (reads)")
+
+plot_distribution
+```
+In all of these plots each dot represents one gene in the dataset.  
+
+
+###Vizualising capture efficiency  
+Use only those 50 ERCC genes with at least 1 expected molecule per well.  
+
+```{r}
+ercc_list <- list()
+for (spike in ercc$id[ercc$ercc_molecules_well >= 1]) {
+  if (spike %in% rownames(molecules)) {
+    ercc_list$id <- c(ercc_list$id, spike)
+    ercc_list$observed_mean <- c(ercc_list$observed_mean,
+                                 mean(as.numeric(molecules[spike, ])))
+    ercc_list$observed_sem <- c(ercc_list$observed_sem,
+                                 sd(as.numeric(molecules[spike, ])) /
+                                 sqrt(ncol(molecules)))
+    ercc_list$expected <- c(ercc_list$expected,
+                            ercc$ercc_molecules_well[ercc$id == spike])
+  }
+}
+ercc_plot <- as.data.frame(ercc_list, stringsAsFactors = FALSE)
+str(ercc_plot)
+
+
+cor(ercc_plot$observed_mean, ercc_plot$expected)
+
+
+ercc_list_filter <- list()
+for (spike in ercc$id[ercc$ercc_molecules_well >= 0]) {
+  if (spike %in% rownames(molecules_filter)) {
+    ercc_list_filter$id <- c(ercc_list_filter$id, spike)
+    ercc_list_filter$observed_mean <- c(ercc_list_filter$observed_mean,
+                                 mean(as.numeric(molecules_filter[spike, ])))
+    ercc_list_filter$observed_sem <- c(ercc_list_filter$observed_sem,
+                                 sd(as.numeric(molecules_filter[spike, ])) /
+                                 sqrt(ncol(molecules_filter)))
+    ercc_list_filter$expected <- c(ercc_list_filter$expected,
+                            ercc$ercc_molecules_well[ercc$id == spike])
+  }
+}
+ercc_filter_plot <- as.data.frame(ercc_list_filter, stringsAsFactors = FALSE)
+str(ercc_filter_plot)
+
+cor(ercc_filter_plot$observed_mean, ercc_filter_plot$expected)
+
+
+
+p_efficiency <- ggplot(ercc_plot, aes(x = expected, y = observed_mean, label = id)) +
+  geom_point(col = "red") +
+  geom_errorbar(aes(ymin = observed_mean - observed_sem,
+                    ymax = observed_mean + observed_sem), width = 0) +
+  labs(x = "Expected ERCC molecules",
+       y = "Observed ERCC molecules\n(mean +/- SEM)",
+       title = "ERCC capture efficiency")
+
+p_efficiency_plot <- p_efficiency + scale_x_log10() +
+  scale_y_log10() +
+  labs(x = "Expected ERCC molecules",
+       y = "Observed ERCC molecules\n(mean +/- SEM)",
+       title = "ERCC capture efficiency \n (48 ERCC spike-in controls)")
+
+p_efficiency_plot + geom_text(hjust = 0, nudge_x = 0.05, size = 4)
+
+
+p_efficiency_filter_plot <- ggplot(ercc_filter_plot, aes(x = expected, y = observed_mean)) +
+  geom_point(col = "red") +
+  geom_errorbar(aes(ymin = observed_mean - observed_sem,
+                    ymax = observed_mean + observed_sem), width = 0) +
+                    scale_x_log10() + scale_y_log10() +
+                    labs(x = "Expected ERCC molecules",
+                    y = "Observed ERCC molecules\n(mean +/- SEM)",
+                    title = "ERCC capture efficiency")
+
+p_efficiency_filter_plot
+```
+
+###Calculate Capture efficiency per cell  
+
+```{r}
+ercc_index <- grep("ERCC", rownames(molecules_filter))
+length(ercc_index)
+```
+48 of the ERCC genes pass the filtering. 
+
+```{r}
+efficiency <- numeric(length = ncol(molecules_filter))
+total_ercc_molecules <- sum(ercc_filter_plot$expected)
+for (i in 1:ncol(molecules_filter)) {
+  efficiency[i] <- sum(molecules_filter[ercc_index, i]) / total_ercc_molecules
+}
+summary(efficiency)
+```
+Using ERCC expected values we calculate an efficienct and show a mean percentage as 6.5%. This seems pretty low! 
+
+###QC plots for paper:  
+
+```{r}
+plot_grid(plot_mean_log + theme(legend.position = c(.85,.25)) + labs (col = ""),
+          p_efficiency_plot + theme(legend.position = "none"),
+          labels = letters[6:7])
+```
+
+
+###Session Information:  
+
+```{r}
+sessionInfo()
+```
+
 
