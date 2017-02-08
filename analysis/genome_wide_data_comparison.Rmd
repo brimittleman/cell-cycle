@@ -94,3 +94,144 @@ cor(distribution_reads)
 
 ```
 
+###Work with difference between matricies:
+```{r}
+reads_subset_common_matrix <- data.matrix(reads_subset_common)
+reads_bri_common_matrix <- data.matrix(reads_bri_common)
+
+#create matrix with difference of mine vs git data
+diff_matrix= reads_bri_common_matrix - reads_subset_common_matrix
+#create difference matrix with absolute difference between datasets
+abs_diff_matrix= abs(reads_bri_common_matrix- reads_subset_common_matrix)
+
+reads_dif_mean<- apply(diff_matrix, 1, mean)
+
+plot(reads_bri_mean~reads_dif_mean, main="Mean difference in reads compared to Bri mean reads", xlab="Bri mean reads", ylab = " Bri mean reads - git mean reads" )
+
+
+#plot abs value difference 
+reads_abs_dif_mean <- apply(abs_diff_matrix,1, mean)
+
+plot(reads_bri_mean ~ reads_abs_dif_mean, main= "Absolute value of mean read counts", xlab="Bri mean reads", ylab = "Absolute value of the difference between bri and git reads")
+
+
+#which gene is so different?
+reads_abs_dif_mean[which.max(reads_abs_dif_mean)]
+
+```
+
+This shows that the difference is in the direction of bri having larger read counts in most places. 
+
+```{r}
+cut_off_difference<- quantile(reads_abs_dif_mean, 0.95)
+cut_off_difference
+
+
+#reads_abs_95 <- reads_abs_dif_mean[cut_off_difference
+reads_abs_dif_mean_df <- data.frame(reads_abs_dif_mean)        
+
+reads_abs_dif_95 <- reads_abs_dif_mean_df[reads_abs_dif_mean_df$reads_abs_dif_mean < cut_off_difference, , drop = FALSE]
+
+reads_bri_mean_df<- data.frame(reads_bri_mean)
+common_genes_95 <- intersect(row.names(reads_abs_dif_95),row.names(reads_bri_mean_df))
+reads_bri_mean_95 <- reads_bri_mean_df[row.names(reads_bri_mean_df) %in% common_genes_95, , drop=FALSE]
+
+plot(reads_abs_dif_95$reads_abs_dif_mean ~ reads_bri_mean_95$reads_bri_mean, main="Difference plot for lower 95%", ylab="abs value of mean difference", xlab="Bri mean reads")
+
+```
+
+
+
+```{r}
+
+
+percent_change_m<- ((reads_bri_common_matrix- reads_subset_common_matrix)/2)
+mean_percent_change<- apply(percent_change_m,1, mean)
+plot(mean_percent_change~ reads_bri_mean, main="Average change as a function of bri mean reads", ylab = "(bri-git)/2")
+```
+```{r}
+reads_subset_common_matrix <- data.matrix(reads_subset_common)
+reads_bri_common_matrix <- data.matrix(reads_bri_common)
+
+percent_diff<- ((reads_subset_common_matrix - reads_bri_common_matrix)/(.5* (reads_subset_common_matrix + reads_bri_common_matrix)))
+
+percent_diff_mean= apply(percent_diff,1, mean)
+plot(percent_diff_mean~reads_bri_mean)
+
+
+
+
+percent_diff_mean[which.max(percent_diff_mean)]
+```
+
+###Look into the outlier: ERCC00074
+
+```{r}
+
+reads_bri2<-read.table("../data/reads_bri.txt", header=TRUE, stringsAsFactors= FALSE)
+ERCC_74 <- rbind(reads_subset["ERCC-00074",], reads_bri2["ERCC-00074",])
+row.names(ERCC_74) <- c("git", "bri")
+ERCC_74.T= ERCC_74 %>% t
+plot(ERCC_74.T[,"git"] ~ERCC_74.T[,"bri"], main="Compare ERCC74 in 2 data sets", ylab="git", xlab="bri")
+
+
+
+ERCC_74.T_df=data.frame(ERCC_74.T)
+
+
+
+ERCC74_diff= ERCC_74.T_df$bri- ERCC_74.T_df$git
+ERCC_74_dif<-cbind(ERCC_74.T_df,ERCC74_diff)
+
+plot(ERCC_74_dif$ERCC74_diff ~ERCC_74_dif$bri, main="read count difference in ERCC74", xlab="bri read count", ylab="difference in read count")
+
+
+
+
+
+
+labels_boxplot= c("git", "bri")
+boxplot(ERCC74_diff, main="Difference in ERCC00074 read counts")
+boxplot(ERCC_74.T_df$git, ERCC_74.T_df$bri, las=2, names=c("git", "bri"), ylab="Read count")
+
+
+ERCC_74_dif[which.max(ERCC_74_dif$ERCC74_diff),]
+
+
+
+
+```
+Check if this gene is in the quality single cells list. 
+```{r}
+quality_single_cells <- scan("../data/quality-single-cells.txt",
+                             what = "character")
+
+"NA19098.r1.E01" %in% quality_single_cells
+```
+
+This cell was included in the analysis.  
+
+
+For a baseline I will look at another ERCC gene  
+
+```{r}
+
+"ERCC-00045" %in% common_genes_95
+
+ERCC_67 <- rbind(reads_subset["ERCC-00014",], reads_bri2["ERCC-00067",])
+row.names(ERCC_67) <- c("git", "bri")
+ERCC_67.T= ERCC_67 %>% t
+plot(ERCC_67.T[,"git"] ~ ERCC_67.T[,"bri"], main="Compare ERCC67 in 2 data sets", ylab="git", xlab="bri")
+
+ERCC_67.T_df= data.frame(ERCC_67.T)
+
+boxplot(ERCC_67.T_df$git, ERCC_67.T_df$bri, las=2, names=c("git", "bri"), ylab="Read count")
+
+
+
+```
+
+```{r}
+boxplot(ERCC_67.T_df$git, ERCC_74.T_df$bri, las=2, names=c("git-67", "git-74"), ylab="Read count")
+```
+
