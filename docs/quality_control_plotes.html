@@ -308,8 +308,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-06</p>
-<p><strong>Code version:</strong> de16a6d</p>
+<p><strong>Last updated:</strong> 2017-02-08</p>
+<p><strong>Code version:</strong> eaded4f</p>
 <div id="input" class="section level3">
 <h3>Input</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -349,7 +349,43 @@ head(anno)</code></pre>
 5    NA19098        r1  A05 NA19098.r1 NA19098.r1.A05
 6    NA19098        r1  A06 NA19098.r1 NA19098.r1.A06</code></pre>
 <p>Input read counts and filter for quality cells.</p>
-<pre class="r"><code>reads&lt;- read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header=TRUE, stringsAsFactors = FALSE)</code></pre>
+<pre class="r"><code>reads&lt;- read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+quality_single_cells &lt;- scan(&quot;../data/quality-single-cells.txt&quot;, what = &quot;character&quot;)
+reads&lt;- reads[, colnames(reads) %in% quality_single_cells]</code></pre>
+<p>Input read counts in high quality cells for filtered genes.</p>
+<pre class="r"><code>reads_filter &lt;- read.table(&quot;../data/reads-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)</code></pre>
+<p>Input molecule counts and filter for quality cells.</p>
+<pre class="r"><code>molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+molecules &lt;- molecules[,colnames(molecules) %in% quality_single_cells]</code></pre>
+<p>Input molecule counts in high quality cells for filtered genes.</p>
+<pre class="r"><code>molecules_filter &lt;- read.table(&quot;../data/molecules-filter.txt&quot;, header = TRUE, stringsAsFactors = FALSE)</code></pre>
+</div>
+<div id="compare-reads-and-molecules" class="section level3">
+<h3>Compare reads and molecules</h3>
+<pre class="r"><code>## calculate mean accross all cells for each gene 
+#in apply- 1=rows, 2=columns
+reads_mean     &lt;- apply(reads, 1, mean)
+molecules_mean &lt;- apply(molecules, 1, mean)
+distribution &lt;- data.frame(reads_mean, molecules_mean)
+
+reads_filter_mean &lt;- apply(reads_filter, 1, mean)
+molecules_filter_mean &lt;- apply(molecules_filter, 1, mean)
+distribution_filter &lt;- data.frame(reads_filter_mean, molecules_filter_mean)
+
+## correlation between reads and molecules
+cor(distribution)</code></pre>
+<pre><code>               reads_mean molecules_mean
+reads_mean      1.0000000      0.9277703
+molecules_mean  0.9277703      1.0000000</code></pre>
+<pre class="r"><code>cor(distribution_filter)</code></pre>
+<pre><code>                      reads_filter_mean molecules_filter_mean
+reads_filter_mean             1.0000000             0.9408234
+molecules_filter_mean         0.9408234             1.0000000</code></pre>
+<p>There is a higher correlation between molecules and read counts in the filtered data. I would expect a lower correlation if the reads come from sequencing each molecule multiple times. This could be driven by the large numbers of zeros in the data set.</p>
+<pre class="r"><code>##select ERCC
+#distribution has the mean read and molecule count for each gene
+distribution$type &lt;- ifelse(grepl(&quot;ERCC&quot;, rownames(distribution)), &quot;ERCC&quot;, &quot;gene&quot;)
+distribution_filter$type &lt;- ifelse(grepl(&quot;ERCC&quot;, rownames(distribution_filter)), &quot;ERCC&quot;, &quot;gene&quot;)</code></pre>
 </div>
 
 <hr>

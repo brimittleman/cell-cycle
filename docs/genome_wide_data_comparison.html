@@ -308,8 +308,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-06</p>
-<p><strong>Code version:</strong> 80ea9c2</p>
+<p><strong>Last updated:</strong> 2017-02-08</p>
+<p><strong>Code version:</strong> eaded4f</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
@@ -356,7 +356,7 @@ pca_commongenes_plot &lt;- plot_pca(pca_commongenes$PCs, explained = pca_commong
 
 
 pca_commongenes_plot</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-209-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="create-correlation-matrix" class="section level3">
 <h3>Create correlation matrix</h3>
@@ -367,6 +367,108 @@ cor(distribution_reads)</code></pre>
 <pre><code>                  reads_subset_mean reads_bri_mean
 reads_subset_mean         1.0000000      0.8535153
 reads_bri_mean            0.8535153      1.0000000</code></pre>
+</div>
+<div id="work-with-difference-between-matricies" class="section level3">
+<h3>Work with difference between matricies:</h3>
+<pre class="r"><code>reads_subset_common_matrix &lt;- data.matrix(reads_subset_common)
+reads_bri_common_matrix &lt;- data.matrix(reads_bri_common)
+
+#create matrix with difference of mine vs git data
+diff_matrix= reads_bri_common_matrix - reads_subset_common_matrix
+#create difference matrix with absolute difference between datasets
+abs_diff_matrix= abs(reads_bri_common_matrix- reads_subset_common_matrix)
+
+reads_dif_mean&lt;- apply(diff_matrix, 1, mean)
+
+plot(reads_bri_mean~reads_dif_mean, main=&quot;Mean difference in reads compared to Bri mean reads&quot;, xlab=&quot;Bri mean reads&quot;, ylab = &quot; Bri mean reads - git mean reads&quot; )</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-211-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#plot abs value difference 
+reads_abs_dif_mean &lt;- apply(abs_diff_matrix,1, mean)
+
+plot(reads_bri_mean ~ reads_abs_dif_mean, main= &quot;Absolute value of mean read counts&quot;, xlab=&quot;Bri mean reads&quot;, ylab = &quot;Absolute value of the difference between bri and git reads&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-211-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#which gene is so different?
+reads_abs_dif_mean[which.max(reads_abs_dif_mean)]</code></pre>
+<pre><code>ERCC-00074 
+  60974.06 </code></pre>
+<p>This shows that the difference is in the direction of bri having larger read counts in most places.</p>
+<pre class="r"><code>cut_off_difference&lt;- quantile(reads_abs_dif_mean, 0.95)
+cut_off_difference</code></pre>
+<pre><code>     95% 
+117.1618 </code></pre>
+<pre class="r"><code>#reads_abs_95 &lt;- reads_abs_dif_mean[cut_off_difference
+reads_abs_dif_mean_df &lt;- data.frame(reads_abs_dif_mean)        
+
+reads_abs_dif_95 &lt;- reads_abs_dif_mean_df[reads_abs_dif_mean_df$reads_abs_dif_mean &lt; cut_off_difference, , drop = FALSE]
+
+reads_bri_mean_df&lt;- data.frame(reads_bri_mean)
+common_genes_95 &lt;- intersect(row.names(reads_abs_dif_95),row.names(reads_bri_mean_df))
+reads_bri_mean_95 &lt;- reads_bri_mean_df[row.names(reads_bri_mean_df) %in% common_genes_95, , drop=FALSE]
+
+plot(reads_abs_dif_95$reads_abs_dif_mean ~ reads_bri_mean_95$reads_bri_mean, main=&quot;Difference plot for lower 95%&quot;, ylab=&quot;abs value of mean difference&quot;, xlab=&quot;Bri mean reads&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-212-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>percent_change_m&lt;- ((reads_bri_common_matrix- reads_subset_common_matrix)/2)
+mean_percent_change&lt;- apply(percent_change_m,1, mean)
+plot(mean_percent_change~ reads_bri_mean, main=&quot;Average change as a function of bri mean reads&quot;, ylab = &quot;(bri-git)/2&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-213-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>reads_subset_common_matrix &lt;- data.matrix(reads_subset_common)
+reads_bri_common_matrix &lt;- data.matrix(reads_bri_common)
+
+percent_diff&lt;- ((reads_subset_common_matrix - reads_bri_common_matrix)/(.5* (reads_subset_common_matrix + reads_bri_common_matrix)))
+
+percent_diff_mean= apply(percent_diff,1, mean)
+plot(percent_diff_mean~reads_bri_mean)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-214-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>percent_diff_mean[which.max(percent_diff_mean)]</code></pre>
+<pre><code>ENSG00000183513 
+      0.5207729 </code></pre>
+</div>
+<div id="look-into-the-outlier-ercc00074" class="section level3">
+<h3>Look into the outlier: ERCC00074</h3>
+<pre class="r"><code>reads_bri2&lt;-read.table(&quot;../data/reads_bri.txt&quot;, header=TRUE, stringsAsFactors= FALSE)
+ERCC_74 &lt;- rbind(reads_subset[&quot;ERCC-00074&quot;,], reads_bri2[&quot;ERCC-00074&quot;,])
+row.names(ERCC_74) &lt;- c(&quot;git&quot;, &quot;bri&quot;)
+ERCC_74.T= ERCC_74 %&gt;% t
+plot(ERCC_74.T[,&quot;git&quot;] ~ERCC_74.T[,&quot;bri&quot;], main=&quot;Compare ERCC74 in 2 data sets&quot;, ylab=&quot;git&quot;, xlab=&quot;bri&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-215-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ERCC_74.T_df=data.frame(ERCC_74.T)
+
+
+
+ERCC74_diff= ERCC_74.T_df$bri- ERCC_74.T_df$git
+ERCC_74_dif&lt;-cbind(ERCC_74.T_df,ERCC74_diff)
+
+plot(ERCC_74_dif$ERCC74_diff ~ERCC_74_dif$bri, main=&quot;read count difference in ERCC74&quot;, xlab=&quot;bri read count&quot;, ylab=&quot;difference in read count&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-215-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>labels_boxplot= c(&quot;git&quot;, &quot;bri&quot;)
+boxplot(ERCC74_diff, main=&quot;Difference in ERCC00074 read counts&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-215-3.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>boxplot(ERCC_74.T_df$git, ERCC_74.T_df$bri, las=2, names=c(&quot;git&quot;, &quot;bri&quot;), ylab=&quot;Read count&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-215-4.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ERCC_74_dif[which.max(ERCC_74_dif$ERCC74_diff),]</code></pre>
+<pre><code>                 git    bri ERCC74_diff
+NA19098.r1.E01 16512 141174      124662</code></pre>
+<p>Check if this gene is in the quality single cells list.</p>
+<pre class="r"><code>quality_single_cells &lt;- scan(&quot;../data/quality-single-cells.txt&quot;,
+                             what = &quot;character&quot;)
+
+&quot;NA19098.r1.E01&quot; %in% quality_single_cells</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<p>This cell was included in the analysis.</p>
+<p>For a baseline I will look at another ERCC gene</p>
+<pre class="r"><code>&quot;ERCC-00045&quot; %in% common_genes_95</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<pre class="r"><code>ERCC_67 &lt;- rbind(reads_subset[&quot;ERCC-00014&quot;,], reads_bri2[&quot;ERCC-00067&quot;,])
+row.names(ERCC_67) &lt;- c(&quot;git&quot;, &quot;bri&quot;)
+ERCC_67.T= ERCC_67 %&gt;% t
+plot(ERCC_67.T[,&quot;git&quot;] ~ ERCC_67.T[,&quot;bri&quot;], main=&quot;Compare ERCC67 in 2 data sets&quot;, ylab=&quot;git&quot;, xlab=&quot;bri&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-217-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ERCC_67.T_df= data.frame(ERCC_67.T)
+
+boxplot(ERCC_67.T_df$git, ERCC_67.T_df$bri, las=2, names=c(&quot;git&quot;, &quot;bri&quot;), ylab=&quot;Read count&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-217-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>boxplot(ERCC_67.T_df$git, ERCC_74.T_df$bri, las=2, names=c(&quot;git-67&quot;, &quot;git-74&quot;), ylab=&quot;Read count&quot;)</code></pre>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-218-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 
