@@ -309,12 +309,11 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-08</p>
-<p><strong>Code version:</strong> e1541e9</p>
+<p><strong>Last updated:</strong> 2017-02-09</p>
+<p><strong>Code version:</strong> 6ea08f2</p>
 <p>A subsample of the full data, post mapping, was processed to create the count data used here.</p>
-<p><strong>A bit more information on the development of this sample data would be usefull It appears to be annotated beyond raw count data.</strong></p>
-<div id="input" class="section level3">
-<h3>Input</h3>
+<p>Extra information about the subsample was created using the subsample-pipeline.py pipeline.<br />
+###Input</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 library(&quot;tidyr&quot;)
 library(&quot;ggplot2&quot;)
@@ -373,7 +372,6 @@ d_filter$gene_subset &lt;- factor(d_filter$gene_subset,
                                levels = c(&quot;lower&quot;, &quot;upper&quot;),
                                labels = c(&quot;Lower 50% of expressed genes&quot;,
                                           &quot;Upper 50% of expressed genes&quot;))</code></pre>
-</div>
 <div id="figures" class="section level3">
 <h3>Figures</h3>
 <pre class="r"><code>plot_bulk_title &lt;- &quot;Correlation of gene expression levels \n between single cells and the corresponding bulk samples&quot;
@@ -393,7 +391,104 @@ plot_bulk &lt;- ggplot(d_filter,
        y = &quot;Pearson&#39;s r (+/- SEM)&quot;,
        title = paste(strwrap(plot_bulk_title, width = 80), collapse = &quot;\n&quot;))
 plot_bulk</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /> This is comparing a subset of the single cells to the bulk samples. We are looking at the the correlation as a function of how many of the sampled cells the gene was found in. This uses molecule counts from individual NA19239.</p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /> This is comparing a subset of the single cells to the bulk samples. We are looking at the the correlation as a function of how many of the sampled cells the gene was found in. This uses molecule counts from individual NA19239.</p>
+<pre class="r"><code>plot_detected &lt;- ggplot(d_filter,
+                 aes(x = subsampled_cells, y = mean_detected,
+                     color = as.factor(depth))) +
+  geom_line() +
+  geom_errorbar(aes(ymin = mean_detected - sem_detected,
+                    ymax = mean_detected + sem_detected),
+                width = 1) +
+  facet_wrap(~gene_subset) +
+  scale_color_grey(start = 0.8, end = 0.2, name = &quot;Sequencing depth&quot;,
+                   labels = format(unique(d$depth), big.mark = &quot;,&quot;,
+                                   scientifc = FALSE, trim = TRUE)) +
+  theme(legend.position = c(0.75, 0.35),
+        legend.key.size = grid::unit(0.2, &quot;in&quot;)) +
+  labs(x = &quot;Number of subsampled cells&quot;,
+       y = &quot;Number of genes detected&quot;,
+       title = &quot;Number of genes detected as expressed in single cell samples \n at different sequence coverage&quot;)
+plot_detected</code></pre>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /> This plot looks at the number of genes detected at diffent sequencing depths as a function of the number of subsampled cells used in this analysis.</p>
+<pre class="r"><code>plot_var &lt;- ggplot(d_filter,
+                 aes(x = subsampled_cells, y = mean_var,
+                     color = as.factor(depth))) +
+  geom_line() +
+  geom_errorbar(aes(ymin = mean_var - sem_var,
+                    ymax = mean_var + sem_var),
+                width = 1) +
+  facet_wrap(~gene_subset) +
+  scale_color_grey(start = 0.8, end = 0.2, name = &quot;Sequencing depth&quot;) +
+  theme(legend.position = &quot;none&quot;) +
+  labs(x = &quot;Number of subsampled cells&quot;,
+       y = &quot;Pearson&#39;s r (+/- SEM)&quot;,
+       title = &quot;Correlation of the variation in gene expression levels \n between subsets of single cells and the entire single cell dataset&quot;)
+plot_var</code></pre>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /> Correlation between subsample and all of the cell in terms of the variance gene expression levels. THe different colors are the sequencing depth.</p>
+<p>Plot these next to eachother in a grid.</p>
+<pre class="r"><code>plot_final &lt;- plot_grid(plot_bulk, plot_detected, plot_var,
+                        ncol = 1, labels = letters[1:3], label_size = 12)
+plot_final</code></pre>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># png(&quot;../paper/figure/fig-subsample.png&quot;, width = 8, height = 12, units = &quot;in&quot;, res = 300)
+tiff(&quot;../paper/figure/fig-subsample.tiff&quot;,
+     width = 8, height = 12, units = &quot;in&quot;, res = 300, compression = &quot;zip&quot;)
+plot_final
+dev.off()</code></pre>
+<pre><code>Warning in dev.off(): unable to open TIFF file &#39;../paper/figure/fig-
+subsample.tiff&#39;</code></pre>
+<pre><code>png 
+  2 </code></pre>
+</div>
+<div id="number-of-molecules-per-sequencing-depth" class="section level3">
+<h3>Number of molecules per sequencing depth</h3>
+<pre class="r"><code>molecules_per_depth &lt;- d %&gt;%
+  filter(gene_subset == &quot;all&quot;, type == &quot;molecules&quot;)
+#subset for only molecule rows  </code></pre>
+<pre class="r"><code>#molecule depth for endogenous genes 
+plot_mol_depth_ensg &lt;- ggplot(molecules_per_depth,
+                              aes(x = as.factor(depth),
+                                  y = mean_counts_ensg)) +
+  geom_boxplot() +
+  facet_wrap(~individual) +
+  scale_y_continuous(breaks = seq(0, 1e5, by = 1e4)) +
+  theme(axis.text.x = element_text(angle = 90))
+plot_mol_depth_ensg</code></pre>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#molecule depth for ERCC
+plot_mol_depth_ercc &lt;- plot_mol_depth_ensg %+% aes(y = mean_counts_ercc)
+plot_mol_depth_ercc</code></pre>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /> ###Session info</p>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] stats     graphics  grDevices utils     datasets  methods   base     
+
+other attached packages:
+ [1] tidyr_0.6.1     gridExtra_2.2.1 lme4_1.1-12     Matrix_1.2-7.1 
+ [5] edgeR_3.16.5    limma_3.30.9    cowplot_0.7.0   ggplot2_2.2.1  
+ [9] dplyr_0.5.0     workflowr_0.3.0 rmarkdown_1.3  
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.9      knitr_1.15.1     magrittr_1.5     MASS_7.3-45     
+ [5] splines_3.3.2    munsell_0.4.3    lattice_0.20-34  colorspace_1.3-2
+ [9] R6_2.2.0         minqa_1.2.4      stringr_1.1.0    plyr_1.8.4      
+[13] tools_3.3.2      grid_3.3.2       nlme_3.1-128     gtable_0.2.0    
+[17] DBI_0.5-1        git2r_0.18.0     htmltools_0.3.5  yaml_2.1.14     
+[21] lazyeval_0.2.0   assertthat_0.1   rprojroot_1.2    digest_0.6.12   
+[25] tibble_1.2       nloptr_1.0.4     evaluate_0.10    labeling_0.3    
+[29] stringi_1.1.2    scales_0.4.1     backports_1.0.5  locfit_1.5-9.1  </code></pre>
 </div>
 
 <hr>
