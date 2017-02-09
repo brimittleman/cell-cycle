@@ -199,6 +199,9 @@ for (i in 1:length(unique(anno$individual))) {
                      data = df_ENSG[select_individual, ]) ) )
 }
 ```
+Shows a batch effect between replicates of individuals NA19101 and NA19239.   
+
+
 ####ERCC
 ```{r}
 convertion_ercc <- ggplot(data.frame(total_counts_ERCC,
@@ -238,6 +241,8 @@ for (i in 1:length(unique(anno$individual))) {
                      data = df_ERCC[select_individual, ]) ) )
 }
 ```
+ERCC batch effect only shows up for NA19239.  
+
 ###Summary Plots  
 
 ```{r}
@@ -280,8 +285,9 @@ plot_grid(convertion_ensg + theme(legend.position = "none"),
           labels = letters[3:4])
 ```
 
-**need help with fitting the model and interpretting anova tables**  
+**need help with fitting the model and interpretting anova tables** 
 
+This analysis provides evidence for batch effects in individual and technical replicates for ERCC and for endogenous gene conversion rate.  
 
 ###Session Info  
 ```{r}
