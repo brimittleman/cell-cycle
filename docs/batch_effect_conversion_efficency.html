@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-08</p>
-<p><strong>Code version:</strong> 488eb05</p>
+<p><strong>Code version:</strong> 75e6602</p>
 <div id="objective" class="section level3">
 <h3>Objective</h3>
 <p>Capture efficiency: how many of the added ERCC spike-in molecules were successfully sequenced</p>
@@ -320,18 +320,32 @@ div.tocify {
 </div>
 <div id="input" class="section level3">
 <h3>Input</h3>
-<pre class="r"><code>library(&quot;dplyr&quot;)
-library(&quot;ggplot2&quot;)
-library(&quot;cowplot&quot;)
-theme_set(theme_bw(base_size = 16))
+<pre class="r"><code>library(&quot;dplyr&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    filter, lag</code></pre>
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, setdiff, setequal, union</code></pre>
+<pre class="r"><code>library(&quot;ggplot2&quot;)
+library(&quot;cowplot&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;cowplot&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:ggplot2&#39;:
+
+    ggsave</code></pre>
+<pre class="r"><code>theme_set(theme_bw(base_size = 16))
 theme_update(panel.grid.minor.x = element_blank(),
              panel.grid.minor.y = element_blank(),
              panel.grid.major.x = element_blank(),
              panel.grid.major.y = element_blank(),
              legend.key = element_blank(),
              plot.title = element_text(size = rel(1)))
-library(&quot;edgeR&quot;)
-source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+library(&quot;edgeR&quot;)</code></pre>
+<pre><code>Loading required package: limma</code></pre>
+<pre class="r"><code>source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
 <p>Input annotation file.</p>
 <pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
                    stringsAsFactors = FALSE)
@@ -396,7 +410,7 @@ summary(total_counts_ENSG)</code></pre>
  3rd Qu.:2727310   3rd Qu.: 78173   3rd Qu.:0.03318  
  Max.   :4143812   Max.   :113832   Max.   :0.07225  </code></pre>
 <pre class="r"><code>boxplot(total_counts_ERCC$conversion, total_counts_ENSG$conversion, names = c(&quot;ERCC&quot;, &quot;ENSG&quot;), main=&quot;Summary of conversion efficency&quot;)</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-138-1.png" width="672" style="display: block; margin: auto;" /> This shows the capture efficiency is about the same between ERCC and ENSG but the variability is higher in the ERCCs.</p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /> This shows the capture efficiency is about the same between ERCC and ENSG but the variability is higher in the ERCCs.</p>
 <pre class="r"><code>## create a color palette with one color per individual and different shades for repplicates
 great_color &lt;- c(&quot;#CC3300&quot;, &quot;#FF9966&quot;, &quot;#006633&quot;, &quot;#009900&quot;, &quot;#99FF99&quot;, &quot;#3366FF&quot;, &quot;#6699FF&quot;, &quot;#66CCFF&quot;)
 
@@ -410,7 +424,7 @@ depth_plot_ensg &lt;- ggplot(data.frame(total_counts_ENSG,
        title = &quot;Effect of read depth on single cells (genes)&quot;)
 #compare molecule to read counts 
 depth_plot_ensg</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-139-1.png" width="672" style="display: block; margin: auto;" /> This shows that as we get more reads he molecule number also goes up. Shows we are not at a saturdation.</p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /> This shows that as we get more reads he molecule number also goes up. Shows we are not at a saturdation.</p>
 <pre class="r"><code>depth_plot_ercc &lt;- ggplot(data.frame(total_counts_ERCC,
                   batch = anno$batch), 
        aes(x = total_reads/10^6, y = total_molecules/10^3, col = factor(batch))) +
@@ -421,7 +435,7 @@ depth_plot_ensg</code></pre>
        title = &quot;Effect of read depth on single cells (ERCC spike-in)&quot;)
 
 depth_plot_ercc</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-140-1.png" width="672" style="display: block; margin: auto;" /> This shows that for some ERCCs we did hit saturation because molecule counts are not increasing as the molecule count does.</p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /> This shows that for some ERCCs we did hit saturation because molecule counts are not increasing as the molecule count does.</p>
 </div>
 <div id="compare-variance-of-conversion-rates-between-batches" class="section level3">
 <h3>Compare variance of conversion rates between batches</h3>
@@ -438,7 +452,7 @@ labs(x = &quot;Batch&quot;, y = &quot;Read-to-molecule conversion efficiency&quo
 theme(axis.text.x = element_text(hjust=1, angle = 45))
 
 convertion_ensg</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-141-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>Between individual</strong></p>
 <p>For individual <span class="math inline">\(i\)</span>, sample <span class="math inline">\(j\)</span>, we have <span class="math inline">\(n_{ij}\)</span> cells. Here we compare the per cell conversion rate from molecule count to read count between the three individuals:</p>
 <p><span class="math display">\[ Y_{ijk} = \mu_i + b_{ij} + \epsilon_{ijk} \]</span></p>
@@ -449,8 +463,9 @@ convertion_ensg</code></pre>
                       batch = factor(anno$batch))
 #factor()- used to encode vector as a factor(category) - we added the annotation data to the ENSG count data frame in this step
 
-library(lme4)
-#this package is used to fit and analyzed mixed models (linear/generalized linear/nonlinear)
+library(lme4)</code></pre>
+<pre><code>Loading required package: Matrix</code></pre>
+<pre class="r"><code>#this package is used to fit and analyzed mixed models (linear/generalized linear/nonlinear)
 
 
 lmer_ENSG_full &lt;- lmer(conversion ~ individual + (1| individual:replicate), 
@@ -494,6 +509,7 @@ batch         2 0.000750 3.75e-04   32.11 5.99e-13 ***
 Residuals   218 0.002546 1.17e-05                     
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Shows a batch effect between replicates of individuals NA19101 and NA19239.</p>
 </div>
 <div id="ercc" class="section level4">
 <h4>ERCC</h4>
@@ -508,7 +524,7 @@ labs(x = &quot;Batch&quot;, y = &quot;Read-to-molecule conversion efficiency&quo
 theme(axis.text.x = element_text(hjust=1, angle = 45))
 
 convertion_ercc</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-144-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>Between individual</strong></p>
 <pre class="r"><code>df_ERCC &lt;- data.frame(total_counts_ERCC,
                       individual = factor(anno$individual),
@@ -555,12 +571,18 @@ batch         2 0.001112 5.56e-04   8.019 0.000436 ***
 Residuals   218 0.015114 6.93e-05                     
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>ERCC batch effect only shows up for NA19239.</p>
 </div>
 </div>
 <div id="summary-plots" class="section level3">
 <h3>Summary Plots</h3>
-<pre class="r"><code>library(gridExtra)
-grid.arrange(
+<pre class="r"><code>library(gridExtra)</code></pre>
+<pre><code>
+Attaching package: &#39;gridExtra&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:dplyr&#39;:
+
+    combine</code></pre>
+<pre class="r"><code>grid.arrange(
   ggplot(data.frame(total_counts_ERCC,
                     batch = anno$batch),
          aes(x = factor(batch), y = conversion,
@@ -582,18 +604,19 @@ grid.arrange(
   theme(axis.text.x = element_text(hjust=1, angle = 45)),
   ncol = 2
 )</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-147-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot_grid(depth_plot_ensg + theme(legend.position = &quot;none&quot;), 
           convertion_ensg + theme(legend.position = &quot;none&quot;),
           depth_plot_ercc + theme(legend.position = &quot;none&quot;),
           convertion_ercc + theme(legend.position = &quot;none&quot;),
           labels = LETTERS[1:4])</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-148-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot_grid(convertion_ensg + theme(legend.position = &quot;none&quot;),
           convertion_ercc + theme(legend.position = &quot;none&quot;),
           labels = letters[3:4])</code></pre>
-<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-149-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/batch_effect_conversion_efficency.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><strong>need help with fitting the model and interpretting anova tables</strong></p>
+<p>This analysis provides evidence for batch effects in individual and technical replicates for ERCC and for endogenous gene conversion rate.</p>
 </div>
 <div id="session-info" class="section level3">
 <h3>Session Info</h3>
@@ -611,34 +634,22 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] grid      stats     graphics  grDevices utils     datasets  methods  
-[8] base     
+[1] stats     graphics  grDevices utils     datasets  methods   base     
 
 other attached packages:
- [1] gridExtra_2.2.1      lme4_1.1-12          Matrix_1.2-7.1      
- [4] scales_0.4.1         biomaRt_2.30.0       testit_0.6          
- [7] MASS_7.3-45          cowplot_0.7.0        ggplot2_2.2.1       
-[10] edgeR_3.16.5         limma_3.30.9         BiocInstaller_1.24.0
-[13] VennDiagram_1.6.17   futile.logger_1.4.3  dplyr_0.5.0         
-[16] data.table_1.10.0    devtools_1.12.0      workflowr_0.3.0     
-[19] rmarkdown_1.3       
+ [1] gridExtra_2.2.1 lme4_1.1-12     Matrix_1.2-7.1  edgeR_3.16.5   
+ [5] limma_3.30.9    cowplot_0.7.0   ggplot2_2.2.1   dplyr_0.5.0    
+ [9] workflowr_0.3.0 rmarkdown_1.3  
 
 loaded via a namespace (and not attached):
- [1] locfit_1.5-9.1       splines_3.3.2        lattice_0.20-34     
- [4] colorspace_1.3-2     htmltools_0.3.5      stats4_3.3.2        
- [7] yaml_2.1.14          XML_3.98-1.5         nloptr_1.0.4        
-[10] withr_1.0.2          DBI_0.5-1            BiocGenerics_0.20.0 
-[13] lambda.r_1.1.9       plyr_1.8.4           stringr_1.1.0       
-[16] munsell_0.4.3        gtable_0.2.0         memoise_1.0.0       
-[19] evaluate_0.10        labeling_0.3         Biobase_2.34.0      
-[22] knitr_1.15.1         IRanges_2.8.1        parallel_3.3.2      
-[25] AnnotationDbi_1.36.1 Rcpp_0.12.9          backports_1.0.5     
-[28] S4Vectors_0.12.1     digest_0.6.12        stringi_1.1.2       
-[31] rprojroot_1.2        tools_3.3.2          bitops_1.0-6        
-[34] magrittr_1.5         lazyeval_0.2.0       RCurl_1.95-4.8      
-[37] tibble_1.2           RSQLite_1.1-2        futile.options_1.0.0
-[40] assertthat_0.1       minqa_1.2.4          rstudioapi_0.6      
-[43] R6_2.2.0             nlme_3.1-128         git2r_0.18.0        </code></pre>
+ [1] Rcpp_0.12.9      knitr_1.15.1     magrittr_1.5     MASS_7.3-45     
+ [5] splines_3.3.2    munsell_0.4.3    lattice_0.20-34  colorspace_1.3-2
+ [9] R6_2.2.0         minqa_1.2.4      stringr_1.1.0    plyr_1.8.4      
+[13] tools_3.3.2      grid_3.3.2       nlme_3.1-128     gtable_0.2.0    
+[17] DBI_0.5-1        git2r_0.18.0     htmltools_0.3.5  yaml_2.1.14     
+[21] lazyeval_0.2.0   assertthat_0.1   rprojroot_1.2    digest_0.6.12   
+[25] tibble_1.2       nloptr_1.0.4     evaluate_0.10    labeling_0.3    
+[29] stringi_1.1.2    scales_0.4.1     backports_1.0.5  locfit_1.5-9.1  </code></pre>
 </div>
 
 <hr>
