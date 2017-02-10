@@ -69,7 +69,7 @@ gene_onlysinglecell <- setdiff(single_cell_observed,genes_observed_reads_bulk)
 
 There are 301 genes only seen in the bulk samples and 971 only seen in the single cells.
 
-####Rank genes 
+###Only in Single cell
 
 Subset molecule count matrix for genes in genes only single cell
 
@@ -115,5 +115,20 @@ molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR))
 IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=46, cex=10, col=col_vec_onlySC, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "genes (blue are only single cell)")
 ```
 
+###Only in Bulk
+```{r}
+bulk_mean <- apply(reads_bulk, 1, mean)
+bulk_and_mean <- cbind(reads_bulk, bulk_mean)
+#sort genes and mean by expression
+bulk_and_order <- arrange(bulk_and_mean, desc(bulk_mean))
 
+                               
+                               
+which_onlyBULK <- as.numeric(rownames(bulk_and_mean) %in% gene_onlybulk) + 1
+col_vec_onlyBULK <- c("lightpink", "blue")[as.numeric(which_onlyBULK)]
+
+
+plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = "Mean expression of reads in bulk samples", ylab=" read count", xlab = "genes (blue are only bulk genes)")
+
+```
 
