@@ -16,6 +16,9 @@ knitr::read_chunk("chunks.R")
 
 **Code version:** `r workflowr::extract_commit(".", 1)$sha1`
 
+This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many's intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.  
+
+
 ###Pull in genes lists  
 
 ```{r}
@@ -115,6 +118,25 @@ molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR))
 IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=46, cex=10, col=col_vec_onlySC, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "genes (blue are only single cell)")
 ```
 
+
+####Proportion of cells showing these genes
+```{r}
+#molecules_only_SC has the 971 genes we care about
+#create a vector containing number of !0 counts in the table and divide by 864 cell
+
+non_zero_cells <- apply(molecules_only_SC, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero <- cbind(molecules_only_SC, non_zero_cells)
+#order by number non zero
+molecules_non_zero_order <- arrange(molecules_with_nonzero, desc(non_zero_cells))
+
+plot((molecules_non_zero_order$non_zero_cells)/864, main="Most genes are seen in low proportion of cells", ylab="Proportion cells- non-zero molecule count", xlab="gene index")
+
+```
+
+This plot is made with the genes we only detected in the single cell analysis. Of these genes, most of them are seen in a low proportion of cells (<2%). This could be a reason the bulk samples could not capture these cells. These cells are unique and could be interesting but only genes that were seen in the union of single cell and bulk were used in the paper. If genes are differncially expressed in a bulk sample we may not have the power to see this when only bulk RNA seq is done.  
+
+
 ###Only in Bulk
 ```{r}
 bulk_mean <- apply(reads_bulk, 1, mean)
@@ -131,4 +153,3 @@ col_vec_onlyBULK <- c("lightpink", "blue")[as.numeric(which_onlyBULK)]
 plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = "Mean expression of reads in bulk samples", ylab=" read count", xlab = "genes (blue are only bulk genes)")
 
 ```
-
