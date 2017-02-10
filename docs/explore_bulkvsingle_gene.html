@@ -310,7 +310,8 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-10</p>
-<p><strong>Code version:</strong> 493f288</p>
+<p><strong>Code version:</strong> 40623a7</p>
+<p>This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many’s intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -343,7 +344,7 @@ genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]</c
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(genes_venn)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>single_cell_observed &lt;- union(genes_observed_molecules, genes_observed_molecules)
 gene_onlybulk &lt;- setdiff(genes_observed_reads_bulk, single_cell_observed)
 gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk)</code></pre>
@@ -372,7 +373,7 @@ library(&quot;scales&quot;)
 
 
 mean_expression &lt;- plot((molecules_and_mean_order$molecules_mean) , pch=46, cex=10, col=col_vec_onlySC, main = &quot;Mean expression of molecules per gene&quot;, ylab=&quot; Molecule count&quot;, xlab = &quot;genes (blue are only single cell)&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#deal with IQR 
 
 molecule_IQR &lt;- apply(molecules, 1, IQR)
@@ -382,7 +383,22 @@ molecules_and_IQR_order &lt;- arrange(molecule_w.IQR, desc(molecule_IQR))
 
 
 IQR_plot &lt;- plot((molecules_and_IQR_order$molecule_IQR) , pch=46, cex=10, col=col_vec_onlySC, main = &quot;IQR of expression of molecules per gene&quot;, ylab=&quot; IQR in Molecule count&quot;, xlab = &quot;genes (blue are only single cell)&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="proportion-of-cells-showing-these-genes" class="section level4">
+<h4>Proportion of cells showing these genes</h4>
+<pre class="r"><code>#molecules_only_SC has the 971 genes we care about
+#create a vector containing number of !0 counts in the table and divide by 864 cell
+
+non_zero_cells &lt;- apply(molecules_only_SC, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero &lt;- cbind(molecules_only_SC, non_zero_cells)
+#order by number non zero
+molecules_non_zero_order &lt;- arrange(molecules_with_nonzero, desc(non_zero_cells))
+
+plot((molecules_non_zero_order$non_zero_cells)/864, main=&quot;Most genes are seen in low proportion of cells&quot;, ylab=&quot;Proportion cells- non-zero molecule count&quot;, xlab=&quot;gene index&quot;)</code></pre>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>This plot is made with the genes we only detected in the single cell analysis. Of these genes, most of them are seen in a low proportion of cells (&lt;2%). This could be a reason the bulk samples could not capture these cells. These cells are unique and could be interesting but only genes that were seen in the union of single cell and bulk were used in the paper. If genes are differncially expressed in a bulk sample we may not have the power to see this when only bulk RNA seq is done.</p>
+</div>
 </div>
 <div id="only-in-bulk" class="section level3">
 <h3>Only in Bulk</h3>
@@ -398,7 +414,7 @@ col_vec_onlyBULK &lt;- c(&quot;lightpink&quot;, &quot;blue&quot;)[as.numeric(whi
 
 
 plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = &quot;Mean expression of reads in bulk samples&quot;, ylab=&quot; read count&quot;, xlab = &quot;genes (blue are only bulk genes)&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
