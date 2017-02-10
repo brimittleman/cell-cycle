@@ -1,0 +1,117 @@
+---
+title: "Explore genes only found in bulk or single cells"
+author: "Briana Mittleman"
+date: 2016-02-10
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Pull in genes lists  
+
+```{r}
+library("biomaRt")
+library("data.table")
+library("testit")
+library("dplyr")
+library("edgeR")
+library("VennDiagram")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+```
+Create vectors with the list of genes in each set.   
+```{r}
+genes_observed_reads_bulk <- rownames(reads_bulk)[rowSums(reads_bulk) > 0]
+genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
+genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
+```
+
+recreate ven diagram  
+
+```{r}
+genes_venn <- venn.diagram(x = list("reads" = genes_observed_reads,
+                                    "molecules" = genes_observed_molecules,
+                                    "reads bulk" = genes_observed_reads_bulk),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(genes_venn)
+```
+```{r}
+
+single_cell_observed <- union(genes_observed_molecules, genes_observed_molecules)
+gene_onlybulk <- setdiff(genes_observed_reads_bulk, single_cell_observed)
+gene_onlysinglecell <- setdiff(single_cell_observed,genes_observed_reads_bulk)
+```
+
+There are 301 genes only seen in the bulk samples and 971 only seen in the single cells.
+
+####Rank genes 
+
+Subset molecule count matrix for genes in genes only single cell
+
+```{r}
+molecules_df= data.frame(molecules)
+molecules_only_SC <- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell,]
+
+```
+
+Get mean expression for molecule counts.  
+
+```{r}
+molecules_mean <- apply(molecules, 1, mean)
+molecules_and_mean <- cbind(molecules, molecules_mean)
+dim(molecules_and_mean )
+#sort molecules and mean by expression
+molecules_and_mean_order <- arrange(molecules_and_mean, desc(molecules_mean))
+
+                               
+                               
+which_onlySC <- as.numeric(rownames(molecules_and_mean) %in% gene_onlysinglecell) + 1
+col_vec_onlySC <- c("lightpink", "blue")[as.numeric(which_onlySC)]
+
+library("scales")
+
+
+
+plot((molecules_and_mean_order$molecules_mean) , pch=46, cex=10, col=col_vec_onlySC, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "genes (blue are only single cell)")
+
+
+
+```
+
+```{r}
+#deal with IQR 
+
+molecule_IQR <- apply(molecules, 1, IQR)
+molecule_w.IQR <- cbind(molecules_and_mean, molecule_IQR)
+#sort by IQR
+molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR))
+
+
+plot((molecules_and_IQR_order$molecule_IQR) , pch=46, cex=10, col=col_vec_onlySC, main = "IQR ofexpression of molecules per gene", ylab=" IQR in Molecule count", xlab = "genes (blue are only single cell)")
+```
+

@@ -26,6 +26,8 @@ These are the projects I am working on during the my rotation in the Stephens la
 
 * [Genome wide read count comparison between analysis](genome_wide_data_comparison.html)
 
+* [Explore genes only found in bulk or single cells](explore_bulkvsingle_gene.html)
+
 Continue the Gilad single cell anaylsis:
 
 * [Create gene-x-sample count matrices and annotation file](gene_x_sample_count_matrix.html)
@@ -37,3 +39,5 @@ Continue the Gilad single cell anaylsis:
 * [Quality control of UMIs and ERCC spike-ins](quality_control_plotes.html)
 
 * [Compare reads to molecules counts](batch_effect_conversion_efficency.html)
+
+* [Subsample Plots](subsample_plots.html)
