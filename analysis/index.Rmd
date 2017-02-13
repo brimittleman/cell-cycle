@@ -42,4 +42,6 @@ Continue the Gilad single cell anaylsis:
 
 * [Subsample Plots](subsample_plots.html)
 
-*[Standardize with counts per million](standardize_CPM.html)
+* [Standardize with counts per million](standardize_CPM.html)  
+
+* [Account for technical noise measured with ERCC controls using a Poisson GLM transformation](technical_noise_control.html)  

@@ -1,0 +1,176 @@
+---
+title: "Account for technical noise measured with ERCC controls using Poisson GLM transformation"
+author: "Briana Mittl,ena"
+date: 2017-02-13
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+```{r}
+library("dplyr")
+library("doMC")
+registerDoMC(7)
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+This file transforms the standardizes molecule counts by modeling the ERCC counts using a Poisson generalized linear model (glm).  
+
+Creates the following file and writes it to data directory in this github repo:    
+
+* molecules-cpm-trans.txt - Molecules in high quality single cells after linear transfmoration with ERCC  
+
+
+###Input  
+Input filtered annotation.  
+```{r}
+anno_filter <- read.table("../data/annotation-filter.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+head(anno_filter)
+```
+Input filtered molecule counts.  
+
+```{r}
+molecules_filter <- read.table("../data/molecules-filter.txt", header = TRUE,
+                               stringsAsFactors = FALSE)
+stopifnot(ncol(molecules_filter) == nrow(anno_filter),
+          colnames(molecules_filter) == anno_filter$sample_id)
+```
+
+Input standardized molecule counts.  
+
+```{r}
+molecules_cpm <- read.table("../data/molecules-cpm.txt", header = TRUE,
+                            stringsAsFactors = FALSE)
+stopifnot(ncol(molecules_cpm) == nrow(anno_filter),
+          colnames(molecules_cpm) == anno_filter$sample_id)
+```
+
+Input exprected ERCC molecule counts (found in capture efficiency analysis). Filter to only include those ERCC controls that passed the expression filter from the filter low quality genes and cells analysis.  
+
+```{r}
+spike <- read.table("../../singleCellSeq/data/expected-ercc-molecules.txt", header = TRUE,
+                    sep = "\t", stringsAsFactors = FALSE)
+spike_input <- spike$ercc_molecules_well[spike$id %in% rownames(molecules_filter)]
+names(spike_input) <- spike$id[spike$id %in% rownames(molecules_filter)]
+spike_input <- spike_input[order(names(spike_input))]
+stopifnot(names(spike_input) == grep("ERCC", rownames(molecules_filter), value = TRUE))
+#names() gets or sets names of an object 
+```
+###Poisson spike-in only model  
+
+```{r}
+#use lapply when you want a list back 
+pois_glm_params <- lapply(1:3,function(g) numeric(ncol(molecules_cpm)))
+names(pois_glm_params) = c("intercept","nu","theta")
+for (i in 1:ncol(molecules_cpm)) {
+  #run glm model on a cell (564)
+  fit <- glm(molecules_filter[names(spike_input), i] ~ log(spike_input), family="poisson")
+  pois_glm_params$intercept[i] <- fit$coefficients[1]
+  pois_glm_params$nu[i] <- fit$coefficients[2]
+}
+#subtract intercepy divide by nu 
+molecules_cpm_trans <- sweep( sweep( molecules_cpm, 2, pois_glm_params$intercept, "-"), 2,pois_glm_params$nu, "/" )
+#sweep- return an array obtained from input arrray by sweeping out a summary stat
+```
+
+Write to file:  
+```{r}
+write.table(round(molecules_cpm_trans, digits = 6), "../data/molecules-cpm-trans.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+
+```
+###PCA  
+
+```{r}
+pca_molecules_cpm_trans <- run_pca(molecules_cpm_trans)
+pca_molecules_cpm_trans_plot <- plot_pca(pca_molecules_cpm_trans$PCs, explained = pca_molecules_cpm_trans$explained,
+         metadata = anno_filter, color = "individual",
+         shape = "replicate") +
+  labs(title = "Molecules (Poisson transformation with ERCC) for single cells")
+pca_molecules_cpm_trans_plot
+```
+This did a linear transformation for all of the genes in one cell according to the nu and intercept from the glm model. 92 total ERCC genes.  
+
+
+###Analysis of variance  
+
+Collect together all the normalized expression matrices for analysis  
+
+```{r}
+cpm_mats <- list(raw=molecules_cpm, molecules_cpm_trans=molecules_cpm_trans)
+```
+We need a nested ANOVA since the replicates are not common across all individuals.  
+
+```{r}
+my_nested_anova=function(temp) {
+  global_mean=mean(temp$y)
+  
+  ind_means=temp %>% group_by(individual) %>% summarize(m=mean(y)) %>% as.data.frame
+  rownames(ind_means) = ind_means$individual
+  temp$ind_means=ind_means[ temp$individual, "m" ]
+  
+  batch_means=temp %>% group_by(batch) %>% summarise(m=mean(y)) %>% as.data.frame
+  rownames(batch_means) = batch_means$batch 
+  temp$batch_means=batch_means[ temp$batch, "m" ]
+  
+  c(ssa=sum( (temp$ind_means - global_mean)^2 ),
+  ssb=sum( (temp$batch_means - temp$ind_means)^2 ),
+  sse=sum( (temp$y - temp$batch_means)^2 ),
+  sst=sum( (temp$y - global_mean)^2  ))
+}
+```
+Run ANOVAs per gene for each matrix and calculate variance components.  
+
+```{r}
+anovas <- lapply(cpm_mats, function(x) {
+  foreach(i=1:nrow(x)) %dopar% my_nested_anova(data.frame(y=as.numeric(x[i,]), batch=anno_filter$batch, individual=anno_filter$individual))
+})
+
+variance_components <- lapply( as.list(names(anovas)), function(name) {
+  ss=do.call(rbind,anovas[[name]])[,1:3]
+  colnames(ss)=c("individual","batch","residual")
+  data.frame(sweep(ss,1,rowSums(ss),"/"), method=name)
+} )
+names(variance_components)=names(cpm_mats)
+
+batch_over_explained <- lapply( as.list(names(anovas)), function(name) {
+  ss=do.call(rbind,anovas[[name]])[,1:2]
+  colnames(ss)=c("individual","batch")
+  data.frame( prop_batch=ss[,"batch"] / rowSums(ss), method=name)
+} )
+names(batch_over_explained) = names(cpm_mats)
+```
+
+Plot proportions explained by batch vs. individual  
+
+```{r}
+
+cbPalette <- c("#999999", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+ggplot( do.call(rbind,batch_over_explained), aes(prop_batch,col=method)) + geom_density(alpha=0.2, position="identity") + xlab("variance_batch / (variance_batch + variance_individual)") + theme(legend.position=c(.8,.8)) + scale_colour_manual(values=cbPalette)+ scale_fill_manual(values=cbPalette)
+
+```
+
+Shows that the transformation has normalized the variance. The plot is less squed toward batch vairance.   
+
+```{r}
+ggplot( do.call(rbind,variance_components), aes(1-residual,col=method)) + geom_density() + xlab("proportion variance explained") + xlim(0,.5)+ scale_colour_manual(values=cbPalette) + theme(legend.position=c(.8,.8))
+```
+**What does this plot tell me?**   
+
+###Session Information  
+
+```{r}
+sessionInfo()
+```
+
