@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Briana Mittleman" />
+
+<meta name="date" content="2017-02-13" />
+
+<title>Standardize with counts per million</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Cell cycle</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Standardize with counts per million</h1>
+<h4 class="author"><em>Briana Mittleman</em></h4>
+<h4 class="date"><em>2017-02-13</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2017-02-13</p>
+<p><strong>Code version:</strong> cef3700</p>
+<pre class="r"><code>library(&quot;dplyr&quot;)
+library(&quot;limma&quot;)
+library(&quot;edgeR&quot;)
+library(&quot;ggplot2&quot;)
+theme_set(theme_bw(base_size = 12))
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+<p>This file standardizes the counts to log2 counts per million (cpm). THe endogenous genes and ERCC controls are standardized seperatly because the same number of ERCC controlls are spiked in each sample.</p>
+<p>The reads for the bulk samples are processed as in traditional RNA-seq. On the other hand, the single cell samples are processed differently. First, only thier molecules counts are standardized. Second, the molecule counts are adjusted to account for collision probability before standarization.</p>
+<p>Collision probability was used in Grun et al. 2014. It accounts for the random use of identical UMI sequences in molecules from highly expressed genes.</p>
+<p>Create the following files. I will store these in the data for this github repo.</p>
+<ul>
+<li><p>reads-bulk-cpm.txt- Reads(log2 cmp) in bulk samples for endogenous genes</p></li>
+<li><p>reads-bulk-cpm-ercc.txt - Reads (log2 cpm) in bulk samples for ERCC genes</p></li>
+<li><p>molecules-cpm.txt - Molecules (log2 cpm) in high quality single cells for endogenous genes</p></li>
+<li><p>molecules-cpm-ercc.txt - Molecules (log2 cpm) in high quality single cells for ERCC genes</p></li>
+</ul>
+<div id="input" class="section level3">
+<h3>Input</h3>
+<p>Input filtered annotation.</p>
+<pre class="r"><code>anno_filter &lt;- read.table(&quot;../data/annotation-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+head(anno_filter)</code></pre>
+<pre><code>  individual replicate well      batch      sample_id
+1    NA19098        r1  A01 NA19098.r1 NA19098.r1.A01
+2    NA19098        r1  A02 NA19098.r1 NA19098.r1.A02
+3    NA19098        r1  A04 NA19098.r1 NA19098.r1.A04
+4    NA19098        r1  A05 NA19098.r1 NA19098.r1.A05
+5    NA19098        r1  A06 NA19098.r1 NA19098.r1.A06
+6    NA19098        r1  A07 NA19098.r1 NA19098.r1.A07</code></pre>
+<p>Input filtered read counts.</p>
+<pre class="r"><code>reads_filter &lt;- read.table(&quot;../data/reads-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+stopifnot(ncol(reads_filter)==nrow(anno_filter), colnames(reads_filter)==anno_filter$sample_id)</code></pre>
+<p>Input filtered molecule counts.</p>
+<pre class="r"><code>molecules_filter &lt;- read.table(&quot;../data/molecules-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+
+stopifnot(ncol(molecules_filter) == nrow(anno_filter),
+          colnames(molecules_filter) == anno_filter$sample_id)</code></pre>
+<p>Input filtered read counts for bulk samples.</p>
+<pre class="r"><code>reads_bulk_filter &lt;- read.table(&quot;../data/reads-bulk-filter.txt&quot;, header = TRUE, stringsAsFactors = TRUE)
+stopifnot(ncol(reads_bulk_filter)==9)</code></pre>
+<p>Input annotation for bulk samples.</p>
+<pre class="r"><code>anno_bulk &lt;- read.table(&quot;../../singleCellSeq/data/annotation-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
+head(anno_bulk)</code></pre>
+<pre><code>  individual replicate well      batch       sample_id
+1    NA19098        r1 bulk NA19098.r1 NA19098.r1.bulk
+2    NA19098        r2 bulk NA19098.r2 NA19098.r2.bulk
+3    NA19098        r3 bulk NA19098.r3 NA19098.r3.bulk
+4    NA19101        r1 bulk NA19101.r1 NA19101.r1.bulk
+5    NA19101        r2 bulk NA19101.r2 NA19101.r2.bulk
+6    NA19101        r3 bulk NA19101.r3 NA19101.r3.bulk</code></pre>
+</div>
+<div id="correct-for-collision-probability" class="section level3">
+<h3>Correct for collision probability</h3>
+<p>Due to stochasticity of the sampling process, not all molecules will be tagged with a UMI and sequenced. We correct for this “collision probability” following the method applited in Grun et al. 2014.</p>
+<pre class="r"><code>molecules_collision &lt;- -1024 * log(1- molecules_filter/1024)</code></pre>
+<p>From the paper: solve for number of sequenced trascripts using the probability of not observing a UMI: [-K*ln(1-koi/K)]</p>
+<pre class="r"><code>pca_molecules_collision &lt;- run_pca(molecules_collision)
+pca_molecules_collision_plot &lt;- plot_pca(pca_molecules_collision$PCs, explained = pca_molecules_collision$explained, metadata = anno_filter, color = &quot;individual&quot;, shape=&quot;replicate&quot;) + labs(title=&quot;Collision probability corrected molecules for single cells&quot;)
+pca_molecules_collision_plot</code></pre>
+<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /> <strong>This runs a PCA for collision probability but I’m not sure when a correction is made for this.</strong></p>
+</div>
+<div id="calculating-counts-per-million" class="section level3">
+<h3>Calculating counts per million</h3>
+<p>We calculated the log2 counts per million (cpm) seperatly for the endogenous and ERCC genes.</p>
+<pre class="r"><code>ercc_rows &lt;- grepl(&quot;ERCC&quot;, rownames(reads_bulk_filter))
+#gives true/false vector </code></pre>
+<div id="reads-bulk-endogenous" class="section level4">
+<h4>Reads bulk endogenous</h4>
+<pre class="r"><code>#cpm in an edgeR function 
+reads_bulk_cpm &lt;- cpm(reads_bulk_filter[!ercc_rows, ], log =TRUE)
+#write to file
+write.table(round(reads_bulk_cpm, digits = 6), &quot;../data/reads-bulk-cpm.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)</code></pre>
+<pre class="r"><code>pca_reads_bulk_cpm &lt;- run_pca(reads_bulk_cpm)
+pca_reads_bulk_cpm_plot &lt;- plot_pca(pca_reads_bulk_cpm$PCs, explained = pca_reads_bulk_cpm$explained,
+         metadata = anno_bulk, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;) +
+  labs(title = &quot;Reads (log2 cpm) for bulk samples&quot;)
+pca_reads_bulk_cpm_plot</code></pre>
+<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="reads-bulk-ercc" class="section level4">
+<h4>Reads bulk ERCC</h4>
+<pre class="r"><code>reads_bulk_cpm_ercc &lt;- cpm(reads_bulk_filter[ercc_rows, ], log = TRUE)
+write.table(round(reads_bulk_cpm_ercc, digits = 6), &quot;../data/reads-bulk-cpm-ercc.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)</code></pre>
+</div>
+<div id="molecules-single-cell-endogenous" class="section level4">
+<h4>Molecules single cell endogenous</h4>
+<pre class="r"><code>molecules_cpm &lt;- cpm(molecules_collision[!ercc_rows, ], log = TRUE)
+write.table(round(molecules_cpm, digits = 6), &quot;../data/molecules-cpm.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)</code></pre>
+<pre class="r"><code>pca_molecules_cpm &lt;- run_pca(molecules_cpm)
+pca_molecules_cpm_plot &lt;- plot_pca(pca_molecules_cpm$PCs, explained = pca_molecules_cpm$explained,
+         metadata = anno_filter, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;) +
+  labs(title = &quot;Molecules (log2 cpm) for single cells&quot;)
+pca_molecules_cpm_plot</code></pre>
+<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Replicate 3 from 19098 clusters with 19101.</p>
+</div>
+<div id="molecules-single-cell-ercc" class="section level4">
+<h4>Molecules single cell ERCC</h4>
+<pre class="r"><code>molecules_cpm_ercc &lt;- cpm(molecules_collision[ercc_rows, ], log = TRUE)
+write.table(round(molecules_cpm_ercc, digits = 6), &quot;../data/molecules-cpm-ercc.txt&quot;, quote = FALSE,
+            sep = &quot;\t&quot;, col.names = NA)</code></pre>
+</div>
+</div>
+<div id="session-information" class="section level3">
+<h3>Session Information</h3>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] scales_0.4.1        VennDiagram_1.6.17  futile.logger_1.4.3
+ [4] testit_0.6          data.table_1.10.0   biomaRt_2.30.0     
+ [7] tidyr_0.6.1         gridExtra_2.2.1     lme4_1.1-12        
+[10] Matrix_1.2-7.1      edgeR_3.16.5        limma_3.30.9       
+[13] cowplot_0.7.0       ggplot2_2.2.1       dplyr_0.5.0        
+[16] workflowr_0.3.0     rmarkdown_1.3      
+
+loaded via a namespace (and not attached):
+ [1] Rcpp_0.12.9          git2r_0.18.0         nloptr_1.0.4        
+ [4] plyr_1.8.4           bitops_1.0-6         futile.options_1.0.0
+ [7] tools_3.3.2          digest_0.6.12        memoise_1.0.0       
+[10] RSQLite_1.1-2        evaluate_0.10        tibble_1.2          
+[13] gtable_0.2.0         nlme_3.1-128         lattice_0.20-34     
+[16] rstudioapi_0.6       DBI_0.5-1            yaml_2.1.14         
+[19] parallel_3.3.2       stringr_1.1.0        knitr_1.15.1        
+[22] IRanges_2.8.1        S4Vectors_0.12.1     stats4_3.3.2        
+[25] locfit_1.5-9.1       rprojroot_1.2        Biobase_2.34.0      
+[28] R6_2.2.0             AnnotationDbi_1.36.1 XML_3.98-1.5        
+[31] minqa_1.2.4          lambda.r_1.1.9       magrittr_1.5        
+[34] BiocGenerics_0.20.0  backports_1.0.5      htmltools_0.3.5     
+[37] splines_3.3.2        MASS_7.3-45          assertthat_0.1      
+[40] colorspace_1.3-2     labeling_0.3         stringi_1.1.2       
+[43] RCurl_1.95-4.8       lazyeval_0.2.0       munsell_0.4.3       </code></pre>
+</div>
+
+<hr>
+<p>
+    This site was created with <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
