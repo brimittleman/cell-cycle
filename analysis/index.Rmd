@@ -41,3 +41,5 @@ Continue the Gilad single cell anaylsis:
 * [Compare reads to molecules counts](batch_effect_conversion_efficency.html)
 
 * [Subsample Plots](subsample_plots.html)
+
+*[Standardize with counts per million](standardize_CPM.html)

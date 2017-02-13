@@ -1,0 +1,168 @@
+---
+title: "Standardize with counts per million"
+author: "Briana Mittleman"
+date: 2017-02-13
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+
+```{r}
+library("dplyr")
+library("limma")
+library("edgeR")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+This file standardizes the counts to log2 counts per million (cpm). THe endogenous genes and ERCC controls are standardized seperatly because the same number of ERCC controlls are spiked in each sample.  
+
+The reads for the bulk samples are processed as in traditional RNA-seq. On the other hand, the single cell samples are processed differently. First, only thier molecules counts are standardized. Second, the molecule counts are adjusted to account for collision probability before standarization.  
+
+Collision probability was used in Grun et al. 2014. It accounts for the random use of identical UMI sequences in molecules from highly expressed genes. 
+
+Create the following files. I will store these in the data for this github repo.  
+
+* reads-bulk-cpm.txt- Reads(log2 cmp) in bulk samples for endogenous genes  
+
+* reads-bulk-cpm-ercc.txt - Reads (log2 cpm) in bulk samples for ERCC genes  
+
+* molecules-cpm.txt - Molecules (log2 cpm) in high quality single cells for endogenous genes   
+
+* molecules-cpm-ercc.txt - Molecules (log2 cpm) in high quality single cells for ERCC genes  
+
+###Input  
+Input filtered annotation.  
+
+```{r}
+anno_filter <- read.table("../data/annotation-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+head(anno_filter)
+
+```
+Input filtered read counts.  
+
+```{r}
+reads_filter <- read.table("../data/reads-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+stopifnot(ncol(reads_filter)==nrow(anno_filter), colnames(reads_filter)==anno_filter$sample_id)
+```
+
+Input filtered molecule counts.  
+
+```{r}
+molecules_filter <- read.table("../data/molecules-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+
+stopifnot(ncol(molecules_filter) == nrow(anno_filter),
+          colnames(molecules_filter) == anno_filter$sample_id)
+```
+
+Input filtered read counts for bulk samples.  
+```{r}
+reads_bulk_filter <- read.table("../data/reads-bulk-filter.txt", header = TRUE, stringsAsFactors = TRUE)
+stopifnot(ncol(reads_bulk_filter)==9)
+
+```
+
+Input annotation for bulk samples.  
+
+```{r}
+anno_bulk <- read.table("../../singleCellSeq/data/annotation-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+head(anno_bulk)
+```
+
+###Correct for collision probability  
+
+Due to stochasticity of the sampling process, not all molecules will be tagged with a UMI and sequenced. We correct for this "collision probability" following the method applited in Grun et al. 2014.  
+
+```{r}
+
+molecules_collision <- -1024 * log(1- molecules_filter/1024)
+```
+From the paper: solve for number of sequenced trascripts using the probability of not observing a UMI: [-K*ln(1-koi/K)]  
+
+
+
+```{r}
+pca_molecules_collision <- run_pca(molecules_collision)
+pca_molecules_collision_plot <- plot_pca(pca_molecules_collision$PCs, explained = pca_molecules_collision$explained, metadata = anno_filter, color = "individual", shape="replicate") + labs(title="Collision probability corrected molecules for single cells")
+pca_molecules_collision_plot
+
+```
+**This runs a PCA for collision probability but I'm not sure when a correction is made for this.**  
+
+
+###Calculating counts per million
+We calculated the log2 counts per million (cpm) seperatly for the endogenous and ERCC genes.  
+
+```{r}
+ercc_rows <- grepl("ERCC", rownames(reads_bulk_filter))
+#gives true/false vector 
+```
+
+####Reads bulk endogenous
+```{r}
+#cpm in an edgeR function 
+reads_bulk_cpm <- cpm(reads_bulk_filter[!ercc_rows, ], log =TRUE)
+#write to file
+write.table(round(reads_bulk_cpm, digits = 6), "../data/reads-bulk-cpm.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+```
+
+```{r}
+pca_reads_bulk_cpm <- run_pca(reads_bulk_cpm)
+pca_reads_bulk_cpm_plot <- plot_pca(pca_reads_bulk_cpm$PCs, explained = pca_reads_bulk_cpm$explained,
+         metadata = anno_bulk, color = "individual",
+         shape = "replicate") +
+  labs(title = "Reads (log2 cpm) for bulk samples")
+pca_reads_bulk_cpm_plot
+```
+
+####Reads bulk ERCC  
+```{r}
+reads_bulk_cpm_ercc <- cpm(reads_bulk_filter[ercc_rows, ], log = TRUE)
+write.table(round(reads_bulk_cpm_ercc, digits = 6), "../data/reads-bulk-cpm-ercc.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+
+```
+
+####Molecules single cell endogenous
+```{r}
+molecules_cpm <- cpm(molecules_collision[!ercc_rows, ], log = TRUE)
+write.table(round(molecules_cpm, digits = 6), "../data/molecules-cpm.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+```
+
+```{r}
+pca_molecules_cpm <- run_pca(molecules_cpm)
+pca_molecules_cpm_plot <- plot_pca(pca_molecules_cpm$PCs, explained = pca_molecules_cpm$explained,
+         metadata = anno_filter, color = "individual",
+         shape = "replicate") +
+  labs(title = "Molecules (log2 cpm) for single cells")
+pca_molecules_cpm_plot
+```
+
+Replicate 3 from 19098 clusters with 19101.  
+
+####Molecules single cell ERCC  
+```{r}
+molecules_cpm_ercc <- cpm(molecules_collision[ercc_rows, ], log = TRUE)
+write.table(round(molecules_cpm_ercc, digits = 6), "../data/molecules-cpm-ercc.txt", quote = FALSE,
+            sep = "\t", col.names = NA)
+
+```
+
+###Session Information
+```{r}
+sessionInfo()
+```
+
