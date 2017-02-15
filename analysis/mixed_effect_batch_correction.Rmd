@@ -90,6 +90,7 @@ gls_fit <- Humanzee::ruv_mixed_model(molecules_cpm_trans,
 Compute expression levels after removing variation due to random effects. 
 
 ```{r}
+# %*% multiply the matricies 
 molecules_final <- t(design %*% t(gls_fit$coef) ) + gls_fit$resid
 ```
 

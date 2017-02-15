@@ -47,3 +47,5 @@ Continue the Gilad single cell anaylsis:
 * [Account for technical noise measured with ERCC controls using a Poisson GLM transformation](technical_noise_control.html)  
 
 * [Mixed effect model for batch correction](mixed_effect_batch_correction.html)
+
+* [Visualization of data transformations](data_transformation.html)
