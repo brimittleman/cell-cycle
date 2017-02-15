@@ -11,9 +11,9 @@
 
 <meta name="author" content="Briana Mittleman" />
 
-<meta name="date" content="2017-02-13" />
+<meta name="date" content="2016-02-15" />
 
-<title>Standardize with counts per million</title>
+<title>Mixed effect model for batch correction</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -302,35 +302,28 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Standardize with counts per million</h1>
+<h1 class="title toc-ignore">Mixed effect model for batch correction</h1>
 <h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>2017-02-13</em></h4>
+<h4 class="date"><em>2016-02-15</em></h4>
 
 </div>
 
 
 <p><strong>Last updated:</strong> 2017-02-15</p>
 <p><strong>Code version:</strong> cd1bcd6</p>
-<pre class="r"><code>library(&quot;dplyr&quot;)
-library(&quot;limma&quot;)
+<pre class="r"><code>library(&quot;limma&quot;)
 library(&quot;edgeR&quot;)
 library(&quot;ggplot2&quot;)
 theme_set(theme_bw(base_size = 12))
-source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
-<p>This file standardizes the counts to log2 counts per million (cpm). THe endogenous genes and ERCC controls are standardized seperatly because the same number of ERCC controlls are spiked in each sample.</p>
-<p>The reads for the bulk samples are processed as in traditional RNA-seq. On the other hand, the single cell samples are processed differently. First, only thier molecules counts are standardized. Second, the molecule counts are adjusted to account for collision probability before standarization.</p>
-<p>Collision probability was used in Grun et al. 2014. It accounts for the random use of identical UMI sequences in molecules from highly expressed genes.</p>
-<p>Create the following files. I will store these in the data for this github repo.</p>
-<ul>
-<li><p>reads-bulk-cpm.txt- Reads(log2 cmp) in bulk samples for endogenous genes</p></li>
-<li><p>reads-bulk-cpm-ercc.txt - Reads (log2 cpm) in bulk samples for ERCC genes</p></li>
-<li><p>molecules-cpm.txt - Molecules (log2 cpm) in high quality single cells for endogenous genes</p></li>
-<li><p>molecules-cpm-ercc.txt - Molecules (log2 cpm) in high quality single cells for ERCC genes</p></li>
-</ul>
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)
+library(&quot;Humanzee&quot;)</code></pre>
+<p>This files uses a mixed effect model to remove technical batch effects. The modeling function is adapted from the package limma and is implemented in the package Humanzee.</p>
+<p>Model between-sample correlations in gene expression within C1 replicates. Fixed effect for individual and random effect for batch.</p>
+<p>Create the following file and write it to the data repo of this github.</p>
+<p>molecules-final.txt - molecules in high quality cells after removing unwanted variation with mixed model</p>
 <div id="input" class="section level3">
 <h3>Input</h3>
-<p>Input filtered annotation.</p>
-<pre class="r"><code>anno_filter &lt;- read.table(&quot;../data/annotation-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
+<pre class="r"><code>anno_filter &lt;- read.table(&quot;../data/annotation-filter.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
 head(anno_filter)</code></pre>
 <pre><code>  individual replicate well      batch      sample_id
 1    NA19098        r1  A01 NA19098.r1 NA19098.r1.A01
@@ -339,84 +332,47 @@ head(anno_filter)</code></pre>
 4    NA19098        r1  A05 NA19098.r1 NA19098.r1.A05
 5    NA19098        r1  A06 NA19098.r1 NA19098.r1.A06
 6    NA19098        r1  A07 NA19098.r1 NA19098.r1.A07</code></pre>
-<p>Input filtered read counts.</p>
-<pre class="r"><code>reads_filter &lt;- read.table(&quot;../data/reads-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
-stopifnot(ncol(reads_filter)==nrow(anno_filter), colnames(reads_filter)==anno_filter$sample_id)</code></pre>
-<p>Input filtered molecule counts.</p>
-<pre class="r"><code>molecules_filter &lt;- read.table(&quot;../data/molecules-filter.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
-
-stopifnot(ncol(molecules_filter) == nrow(anno_filter),
-          colnames(molecules_filter) == anno_filter$sample_id)</code></pre>
-<p>Input filtered read counts for bulk samples.</p>
-<pre class="r"><code>reads_bulk_filter &lt;- read.table(&quot;../data/reads-bulk-filter.txt&quot;, header = TRUE, stringsAsFactors = TRUE)
-stopifnot(ncol(reads_bulk_filter)==9)</code></pre>
-<p>Input annotation for bulk samples.</p>
-<pre class="r"><code>anno_bulk &lt;- read.table(&quot;../../singleCellSeq/data/annotation-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
-head(anno_bulk)</code></pre>
-<pre><code>  individual replicate well      batch       sample_id
-1    NA19098        r1 bulk NA19098.r1 NA19098.r1.bulk
-2    NA19098        r2 bulk NA19098.r2 NA19098.r2.bulk
-3    NA19098        r3 bulk NA19098.r3 NA19098.r3.bulk
-4    NA19101        r1 bulk NA19101.r1 NA19101.r1.bulk
-5    NA19101        r2 bulk NA19101.r2 NA19101.r2.bulk
-6    NA19101        r3 bulk NA19101.r3 NA19101.r3.bulk</code></pre>
+<p>Input Poisson GLM transformed molecule counts per million.</p>
+<pre class="r"><code>molecules_cpm_trans &lt;- read.table(&quot;../data/molecules-cpm-trans.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
+stopifnot(ncol(molecules_cpm_trans)==nrow(anno_filter), colnames(molecules_cpm_trans)==anno_filter$sample_id)</code></pre>
 </div>
-<div id="correct-for-collision-probability" class="section level3">
-<h3>Correct for collision probability</h3>
-<p>Due to stochasticity of the sampling process, not all molecules will be tagged with a UMI and sequenced. We correct for this “collision probability” following the method applited in Grun et al. 2014.</p>
-<pre class="r"><code>molecules_collision &lt;- -1024 * log(1- molecules_filter/1024)</code></pre>
-<p>From the paper: solve for number of sequenced trascripts using the probability of not observing a UMI: [-K*ln(1-koi/K)]</p>
-<pre class="r"><code>pca_molecules_collision &lt;- run_pca(molecules_collision)
-pca_molecules_collision_plot &lt;- plot_pca(pca_molecules_collision$PCs, explained = pca_molecules_collision$explained, metadata = anno_filter, color = &quot;individual&quot;, shape=&quot;replicate&quot;) + labs(title=&quot;Collision probability corrected molecules for single cells&quot;)
-pca_molecules_collision_plot</code></pre>
-<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /> <strong>This runs a PCA for collision probability but I’m not sure when a correction is made for this.</strong></p>
+<div id="mixed-model-for-batch-effect-correction" class="section level3">
+<h3>Mixed model for batch-effect correction</h3>
+<p>Because the “Poisson transformation with ERCC controls” was not sufficient to remove all unwanted technical variation, we used a mixed model to correct for batch effects.</p>
+<p>We adapted limma’s algorithm for estimating variance components due to random effects (origonally for array data). This analysis operates under the assumption that biological replicates (or batched within the individuals in this case) share similar correlation across genes. Moreover, the anaylsis permits negative corelation between replicates.</p>
+<div id="crossed-model" class="section level4">
+<h4>Crossed Model</h4>
+<p>For every single gene, we will fit a mized model assuming differences between batches are not individual-specific as follows</p>
+<p><span class="math display">\[ y_{ijk} = \mu + \alpha_i + b_j + \epsilon_{ijk} \]</span>,</p>
+<p>where <span class="math inline">\(y_{ijk}\)</span> is the log2 counts-per-million (cpm) for any gene in individual <span class="math inline">\(i\)</span>, batch <span class="math inline">\(j\)</span>, and cell <span class="math inline">\(k\)</span>, <span class="math inline">\(\mu\)</span> is the gene-specific expression level across all cells, <span class="math inline">\(\alpha_i\)</span> is the expression level specific to individual <span class="math inline">\(i\)</span>, <span class="math inline">\(b_j\)</span> is batch <span class="math inline">\(j\)</span>’s deviation of expression level from gene-specific expression levels, and <span class="math inline">\(\epsilon_{ijk}\)</span> is the models’ residual error.</p>
+<p>We assume that <span class="math inline">\(b_j\)</span> follows a normal distribution with <span class="math inline">\(b_j \sim N(0, \sigma^2_b)\)</span> for <span class="math inline">\(j = 1, \dots, 9\)</span>, and <span class="math inline">\(\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)\)</span> for <span class="math inline">\(i = 1, 2, 3; j = 1, \dots, 9; and k = 1, \dots, n_{ij}\)</span>, where <span class="math inline">\(n_ij\)</span> denotes the number of cells in individual <span class="math inline">\(i\)</span>, batch <span class="math inline">\(j\)</span>.</p>
 </div>
-<div id="calculating-counts-per-million" class="section level3">
-<h3>Calculating counts per million</h3>
-<p>We calculated the log2 counts per million (cpm) seperatly for the endogenous and ERCC genes.</p>
-<pre class="r"><code>ercc_rows &lt;- grepl(&quot;ERCC&quot;, rownames(reads_bulk_filter))
-#gives true/false vector </code></pre>
-<div id="reads-bulk-endogenous" class="section level4">
-<h4>Reads bulk endogenous</h4>
-<pre class="r"><code>#cpm in an edgeR function 
-reads_bulk_cpm &lt;- cpm(reads_bulk_filter[!ercc_rows, ], log =TRUE)
-#write to file
-write.table(round(reads_bulk_cpm, digits = 6), &quot;../data/reads-bulk-cpm.txt&quot;, quote = FALSE,
-            sep = &quot;\t&quot;, col.names = NA)</code></pre>
-<pre class="r"><code>pca_reads_bulk_cpm &lt;- run_pca(reads_bulk_cpm)
-pca_reads_bulk_cpm_plot &lt;- plot_pca(pca_reads_bulk_cpm$PCs, explained = pca_reads_bulk_cpm$explained,
-         metadata = anno_bulk, color = &quot;individual&quot;,
-         shape = &quot;replicate&quot;) +
-  labs(title = &quot;Reads (log2 cpm) for bulk samples&quot;)
-pca_reads_bulk_cpm_plot</code></pre>
-<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="remove-unwanted-variation" class="section level4">
+<h4>Remove unwanted variation</h4>
+<p>Create design matrix and compute a consensus correlation using limma’s duplicateCorrelation function.</p>
+<pre class="r"><code>block &lt;- anno_filter$batch
+#model.matrix= creates design matrix, expanding variables and interactions
+design &lt;- model.matrix(~ 1 + individual, data=anno_filter)</code></pre>
+<pre class="r"><code>dup_corrs &lt;- duplicateCorrelation(molecules_cpm_trans, design = design, block = block)</code></pre>
+<p>Fit a mixed model with the 9 batches being the random effect.</p>
+<pre class="r"><code>gls_fit &lt;- Humanzee::ruv_mixed_model(molecules_cpm_trans,
+                                     ndups = 1,
+                                     design = design,
+                                     block = block,
+                                     correlation = dup_corrs$cons)</code></pre>
+<p>Compute expression levels after removing variation due to random effects.</p>
+<pre class="r"><code>molecules_final &lt;- t(design %*% t(gls_fit$coef) ) + gls_fit$resid</code></pre>
+<p>Output clean data.</p>
+<pre class="r"><code>colnames(molecules_final) &lt;- colnames(molecules_cpm_trans)
+write.table(round(molecules_final, digits = 6), &quot;../data/molecules-final.txt&quot;, quote = FALSE,sep = &quot;\t&quot;, col.names = NA)</code></pre>
 </div>
-<div id="reads-bulk-ercc" class="section level4">
-<h4>Reads bulk ERCC</h4>
-<pre class="r"><code>reads_bulk_cpm_ercc &lt;- cpm(reads_bulk_filter[ercc_rows, ], log = TRUE)
-write.table(round(reads_bulk_cpm_ercc, digits = 6), &quot;../data/reads-bulk-cpm-ercc.txt&quot;, quote = FALSE,
-            sep = &quot;\t&quot;, col.names = NA)</code></pre>
 </div>
-<div id="molecules-single-cell-endogenous" class="section level4">
-<h4>Molecules single cell endogenous</h4>
-<pre class="r"><code>molecules_cpm &lt;- cpm(molecules_collision[!ercc_rows, ], log = TRUE)
-write.table(round(molecules_cpm, digits = 6), &quot;../data/molecules-cpm.txt&quot;, quote = FALSE,
-            sep = &quot;\t&quot;, col.names = NA)</code></pre>
-<pre class="r"><code>pca_molecules_cpm &lt;- run_pca(molecules_cpm)
-pca_molecules_cpm_plot &lt;- plot_pca(pca_molecules_cpm$PCs, explained = pca_molecules_cpm$explained,
-         metadata = anno_filter, color = &quot;individual&quot;,
-         shape = &quot;replicate&quot;) +
-  labs(title = &quot;Molecules (log2 cpm) for single cells&quot;)
-pca_molecules_cpm_plot</code></pre>
-<p><img src="figure/standardize_CPM.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Replicate 3 from 19098 clusters with 19101.</p>
-</div>
-<div id="molecules-single-cell-ercc" class="section level4">
-<h4>Molecules single cell ERCC</h4>
-<pre class="r"><code>molecules_cpm_ercc &lt;- cpm(molecules_collision[ercc_rows, ], log = TRUE)
-write.table(round(molecules_cpm_ercc, digits = 6), &quot;../data/molecules-cpm-ercc.txt&quot;, quote = FALSE,
-            sep = &quot;\t&quot;, col.names = NA)</code></pre>
-</div>
+<div id="pca" class="section level3">
+<h3>PCA</h3>
+<pre class="r"><code>pca_final &lt;- run_pca(molecules_final)
+pca_final_plot &lt;- plot_pca(pca_final$PCs, explained=pca_final$explained, metadata=anno_filter, color=&quot;individual&quot;, shape=&quot;replicate&quot;) + labs(title=&quot;Batch corrected&quot;)
+pca_final_plot</code></pre>
+<p><img src="figure/mixed_effect_batch_correction.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="session-information" class="section level3">
 <h3>Session Information</h3>

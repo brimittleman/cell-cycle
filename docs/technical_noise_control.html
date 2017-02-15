@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-13</p>
-<p><strong>Code version:</strong> 0a35ad2</p>
+<p><strong>Last updated:</strong> 2017-02-15</p>
+<p><strong>Code version:</strong> cd1bcd6</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
 library(&quot;doMC&quot;)
 registerDoMC(7)
@@ -450,31 +450,41 @@ attached base packages:
 [8] methods   base     
 
 other attached packages:
- [1] doMC_1.3.4          iterators_1.0.8     foreach_1.4.3      
- [4] scales_0.4.1        VennDiagram_1.6.17  futile.logger_1.4.3
- [7] testit_0.6          data.table_1.10.0   biomaRt_2.30.0     
-[10] tidyr_0.6.1         gridExtra_2.2.1     lme4_1.1-12        
-[13] Matrix_1.2-7.1      edgeR_3.16.5        limma_3.30.9       
-[16] cowplot_0.7.0       ggplot2_2.2.1       dplyr_0.5.0        
-[19] workflowr_0.3.0     rmarkdown_1.3      
+ [1] Humanzee_0.1.0      devtools_1.12.0     doMC_1.3.4         
+ [4] iterators_1.0.8     foreach_1.4.3       scales_0.4.1       
+ [7] VennDiagram_1.6.17  futile.logger_1.4.3 testit_0.6         
+[10] data.table_1.10.0   biomaRt_2.30.0      tidyr_0.6.1        
+[13] gridExtra_2.2.1     lme4_1.1-12         Matrix_1.2-7.1     
+[16] edgeR_3.16.5        limma_3.30.9        cowplot_0.7.0      
+[19] ggplot2_2.2.1       dplyr_0.5.0         workflowr_0.3.0    
+[22] rmarkdown_1.3      
 
 loaded via a namespace (and not attached):
- [1] locfit_1.5-9.1       splines_3.3.2        lattice_0.20-34     
- [4] colorspace_1.3-2     htmltools_0.3.5      stats4_3.3.2        
- [7] yaml_2.1.14          XML_3.98-1.5         nloptr_1.0.4        
-[10] DBI_0.5-1            BiocGenerics_0.20.0  lambda.r_1.1.9      
-[13] plyr_1.8.4           stringr_1.1.0        munsell_0.4.3       
-[16] gtable_0.2.0         codetools_0.2-15     evaluate_0.10       
-[19] memoise_1.0.0        labeling_0.3         Biobase_2.34.0      
-[22] knitr_1.15.1         IRanges_2.8.1        AnnotationDbi_1.36.1
-[25] Rcpp_0.12.9          backports_1.0.5      S4Vectors_0.12.1    
-[28] digest_0.6.12        stringi_1.1.2        rprojroot_1.2       
-[31] tools_3.3.2          bitops_1.0-6         magrittr_1.5        
-[34] lazyeval_0.2.0       RCurl_1.95-4.8       tibble_1.2          
-[37] RSQLite_1.1-2        futile.options_1.0.0 MASS_7.3-45         
-[40] assertthat_0.1       minqa_1.2.4          rstudioapi_0.6      
-[43] R6_2.2.0             compiler_3.3.2       nlme_3.1-128        
-[46] git2r_0.18.0        </code></pre>
+ [1] Rcpp_0.12.9          locfit_1.5-9.1       lattice_0.20-34     
+ [4] assertthat_0.1       rprojroot_1.2        digest_0.6.12       
+ [7] R6_2.2.0             plyr_1.8.4           futile.options_1.0.0
+[10] backports_1.0.5      stats4_3.3.2         RSQLite_1.1-2       
+[13] evaluate_0.10        httr_1.2.1           lazyeval_0.2.0      
+[16] curl_2.3             minqa_1.2.4          rstudioapi_0.6      
+[19] nloptr_1.0.4         S4Vectors_0.12.1     labeling_0.3        
+[22] splines_3.3.2        statmod_1.4.27       stringr_1.1.0       
+[25] RCurl_1.95-4.8       munsell_0.4.3        compiler_3.3.2      
+[28] BiocGenerics_0.20.0  htmltools_0.3.5      tibble_1.2          
+[31] IRanges_2.8.1        codetools_0.2-15     XML_3.98-1.5        
+[34] withr_1.0.2          MASS_7.3-45          bitops_1.0-6        
+[37] nlme_3.1-128         gtable_0.2.0         DBI_0.5-1           
+[40] git2r_0.18.0         magrittr_1.5         stringi_1.1.2       
+[43] lambda.r_1.1.9       tools_3.3.2          Biobase_2.34.0      
+[46] yaml_2.1.14          AnnotationDbi_1.36.1 colorspace_1.3-2    
+[49] memoise_1.0.0        knitr_1.15.1        </code></pre>
+<div id="notes-on-anova" class="section level4">
+<h4>Notes on anova</h4>
+<ul>
+<li><p>difference among group means</p></li>
+<li><p>partition observed variance into components of attributed to difference sources of variation</p></li>
+<li><p>Calculate mean of means and SST ((each point - grand mean)^2)</p></li>
+</ul>
+</div>
 </div>
 
 <hr>
