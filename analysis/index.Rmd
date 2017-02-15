@@ -45,3 +45,5 @@ Continue the Gilad single cell anaylsis:
 * [Standardize with counts per million](standardize_CPM.html)  
 
 * [Account for technical noise measured with ERCC controls using a Poisson GLM transformation](technical_noise_control.html)  
+
+* [Mixed effect model for batch correction](mixed_effect_batch_correction.html)

@@ -1,0 +1,116 @@
+---
+title: "Mixed effect model for batch correction"
+author: "Briana Mittleman"
+date: 2016-02-15
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+```{r}
+library("limma")
+library("edgeR")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+library("Humanzee")
+```
+
+This files uses a mixed effect model to remove technical batch effects. The modeling function is adapted from the package limma and is implemented in the package Humanzee.  
+
+Model between-sample correlations in gene expression within C1 replicates. Fixed effect for individual and random effect for batch. 
+
+Create the following file and write it to the data repo of this github.  
+
+molecules-final.txt - molecules in high quality cells after removing unwanted variation with mixed model  
+
+###Input  
+
+```{r}
+anno_filter <- read.table("../data/annotation-filter.txt", header = TRUE, stringsAsFactors = FALSE)
+head(anno_filter)
+```
+Input Poisson GLM transformed molecule counts per million.  
+
+```{r}
+molecules_cpm_trans <- read.table("../data/molecules-cpm-trans.txt", header = TRUE, stringsAsFactors = FALSE)
+stopifnot(ncol(molecules_cpm_trans)==nrow(anno_filter), colnames(molecules_cpm_trans)==anno_filter$sample_id)
+```
+
+###Mixed model for batch-effect correction  
+
+Because the "Poisson transformation with ERCC controls" was not sufficient to remove all unwanted technical variation, we used a mixed model to correct for batch effects.  
+
+We adapted limma's algorithm for estimating variance components due to random effects (origonally for array data). This analysis operates under the assumption that biological replicates (or batched within the individuals in this case) share similar correlation across genes. Moreover, the anaylsis permits negative corelation between replicates.  
+
+####Crossed Model  
+
+For every single gene, we will fit a mized model assuming differences between batches are not individual-specific as follows  
+
+$$ y_{ijk} = \mu + \alpha_i + b_j + \epsilon_{ijk} $$, 
+
+where $y_{ijk}$ is the log2 counts-per-million (cpm) for any gene in individual $i$, batch $j$, and cell $k$, $\mu$ is the gene-specific expression level across all cells, $\alpha_i$ is the expression level specific to individual $i$, $b_j$ is batch $j$'s deviation of expression level from gene-specific expression levels, and $\epsilon_{ijk}$ is the models' residual error.  
+
+We assume that $b_j$ follows a normal distribution with $b_j \sim N(0, \sigma^2_b)$ for $j = 1, \dots, 9$, and $\epsilon_{ijk} \sim N(0, \sigma^2_\epsilon)$ for $i = 1, 2, 3; j = 1, \dots, 9; and k = 1, \dots, n_{ij}$, where $n_ij$ denotes the number of cells in individual $i$, batch $j$.  
+
+####Remove unwanted variation  
+
+Create design matrix and compute a consensus correlation using limma's duplicateCorrelation function.  
+
+```{r}
+block <- anno_filter$batch
+#model.matrix= creates design matrix, expanding variables and interactions
+design <- model.matrix(~ 1 + individual, data=anno_filter)
+```
+
+```{r}
+dup_corrs <- duplicateCorrelation(molecules_cpm_trans, design = design, block = block)
+```
+
+
+Fit a mixed model with the 9 batches being the random effect.  
+
+```{r}
+gls_fit <- Humanzee::ruv_mixed_model(molecules_cpm_trans,
+                                     ndups = 1,
+                                     design = design,
+                                     block = block,
+                                     correlation = dup_corrs$cons)
+```
+
+Compute expression levels after removing variation due to random effects. 
+
+```{r}
+molecules_final <- t(design %*% t(gls_fit$coef) ) + gls_fit$resid
+```
+
+Output clean data.  
+
+```{r}
+colnames(molecules_final) <- colnames(molecules_cpm_trans)
+write.table(round(molecules_final, digits = 6), "../data/molecules-final.txt", quote = FALSE,sep = "\t", col.names = NA)
+
+```
+
+###PCA  
+
+```{r}
+pca_final <- run_pca(molecules_final)
+pca_final_plot <- plot_pca(pca_final$PCs, explained=pca_final$explained, metadata=anno_filter, color="individual", shape="replicate") + labs(title="Batch corrected")
+pca_final_plot
+```
+
+###Session Information
+```{r}
+sessionInfo()
+```
+

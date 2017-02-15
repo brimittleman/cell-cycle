@@ -174,3 +174,12 @@ ggplot( do.call(rbind,variance_components), aes(1-residual,col=method)) + geom_d
 sessionInfo()
 ```
 
+
+####Notes on anova  
+
+* difference among group means 
+
+* partition observed variance into components of attributed to difference sources of variation  
+
+* Calculate mean of means and SST ((each point - grand mean)^2)
+

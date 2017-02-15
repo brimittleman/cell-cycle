@@ -165,4 +165,3 @@ write.table(round(molecules_cpm_ercc, digits = 6), "../data/molecules-cpm-ercc.t
 ```{r}
 sessionInfo()
 ```
-
