@@ -49,3 +49,5 @@ Continue the Gilad single cell anaylsis:
 * [Mixed effect model for batch correction](mixed_effect_batch_correction.html)
 
 * [Visualization of data transformations](data_transformation.html)
+
+* [Simulate bulk samples from Single cell gene list](simulate_bulk_genes.html)
