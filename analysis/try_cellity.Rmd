@@ -1,0 +1,36 @@
+---
+title: "Try Cellity for single cell quality"
+author: "First Last"
+date: YYYY-MM-DD
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+Package available at: https://github.com/Teichlab/cellity.  
+```{r}
+library(cellity)
+library(ggplot2)
+theme_set(theme_bw(12))
+```
+
+
+```{r}
+data("sample_counts")
+data("sample_stats")
+head(sample_stats)
+names(sample_stats)
+```
+
+Mapping and gene count pipeline: https://github.com/Teichlab/celloline  
+
+Talk to Joyce about this. Should we move all of the data over to project 2 and try to get this up and running?  

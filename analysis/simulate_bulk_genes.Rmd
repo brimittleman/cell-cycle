@@ -1,7 +1,7 @@
 ---
 title: "Simulate bulk samples from Single cell gene list"
-author: "First Last"
-date: YYYY-MM-DD
+author: "Briana Mittleman"
+date: 2017-2-16
 output: html_document
 ---
 
@@ -50,6 +50,10 @@ molecules_pool <- data.frame(apply(molecules_1ind, 1 , sum))
 colnames(molecules_pool) <- c("pool_count")
 #i need a vector containing each of the genes the number of times they appear in the sum for sampling (pooled_molecules)
 
+molecules_1ind_3r <- molecules[,1:288]
+molecules1ind3r_pool <- data.frame(apply(molecules_1ind_3r, 1 , sum))
+colnames(molecules1ind3r_pool) <- c("pool_count")
+
 ```
 
 ```{r}
@@ -63,7 +67,17 @@ for (row in rownames(molecules_pool)){
 }
 
 ```
+3 replicates  
+```{r}
 
+pooled_molecules_3rep <- c()
+for (row in rownames(molecules1ind3r_pool)){
+  which_row3 <- rownames(molecules1ind3r_pool) == row
+  num = rep(row, times = molecules1ind3r_pool[which_row3,])
+  pooled_molecules_3rep <- c(pooled_molecules_3rep, num)
+}
+
+```
 
 
 ###Sampling function  
@@ -80,6 +94,22 @@ subsample_func <- function(N){
 }
   
 ```
+
+
+```{r}
+subsample_func_3 <- function(N){
+  #subsample with replacement
+  subsample_pool <- sample(pooled_molecules_3rep, N, replace=TRUE)
+  #make list of unique genes in sample
+  unique_subsample_pool <- unique(subsample_pool)
+  #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+  only_sc <- setdiff(genes_observed_molecules, unique_subsample_pool)
+  return(length(only_sc))
+}
+```
+
+
+
 using a multinomial approach  
 ```{r}
 # not_in_simbulk<- sapply(N_samples, function(x) {
@@ -98,12 +128,8 @@ I will run my function at a bunch of different N values and plot the returned va
 ```{r}
 N_samples <-seq(100000, 100000000, by = 1000000)
 not_in_simbulk<- sapply(N_samples, function(x) subsample_func(x))
-plot(not_in_simbulk ~ N_samples, main="Simulated bulk from 1 single cell individuale replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
+plot(not_in_simbulk ~ N_samples, main="Simulated bulk from 1 single cell individual 1 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
+
+not_in_simbulk3r<- sapply(N_samples, function(x) subsample_func_3(x))
+plot(not_in_simbulk3r ~ N_samples, main="Simulated bulk from 1 single cell individual 3 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
 ```
-
-###Apply multinomial function  
-
-```{r}
-
-```
-

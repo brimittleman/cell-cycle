@@ -1,0 +1,127 @@
+---
+title: "Cell to cell variation analaysis: paper figures"
+author: "Briana Mittleman"
+date: 2017-2-17
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Objective  
+
+This page contains code for reproducing figures reported in the paper that are related to the analysis of cell-to-cell variaiton in transcriptional gene expression.   
+
+Coefficient of variation: standardized measure of dispersion of a probability distribution, ratio of $\sigma$ to $\mu$.     
+
+
+###Setup
+```{r}
+library("data.table")
+library("dplyr")
+library("limma")
+library("edgeR")
+library("ggplot2")
+library("grid")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+library("Humanzee")
+library("cowplot")
+library("MASS")
+library("matrixStats")
+source("../../singleCellSeq/code/plotting-functions.R")
+```
+
+Import molecule counts before standardization and transformation and also log2-transformed counts after batch correction. Biologial variation analtsis of the individuals is performed on the batch-corrected and log2-transformed counts.  
+
+```{r}
+#filtered annotation
+anno_filter <- read.table("../data/annotation-filter.txt", header = TRUE, stringsAsFactors = FALSE)
+#filtered molecule counts  
+molecules_filter <- read.table("../data/molecules-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+stopifnot(NROW(anno_filter) == NCOL(molecules_filter))
+#final processed molecule counts for endogenous genes   
+molecules_final<- read.table("../data/molecules-final.txt", header=TRUE, stringsAsFactors = FALSE)
+stopifnot(NROW(anno_filter) == NCOL(molecules_final))
+#import gene symbols
+gene_symbols <- read.table(file = "../../singleCellSeq//data/gene-info.txt", sep = "\t",
+                           header = TRUE, stringsAsFactors = FALSE, quote = "")
+#import cell-cycle gene list  
+cell_cycle_genes <- read.table("../../singleCellSeq/data/cellcyclegenes.txt",
+                               header = TRUE, sep = "\t",
+                               stringsAsFactors = FALSE)
+#import pluripotency gene list (IPSC check)
+pluripotency_genes <- read.table("../../singleCellSeq/data/pluripotency-genes.txt",
+                               header = TRUE, sep = "\t",
+                               stringsAsFactors = FALSE)$To
+```
+
+Load gene CVs computed over all cells and CV computed over the expressed cells (should go back and create this files on my own)  
+
+```{r}
+load("../../singleCellSeq/data/cv-all-cells.rda")
+load("../../singleCellSeq/data/cv-expressed-cells.rda")
+##permutation results inclusing the detected/expressed cells
+load("../../singleCellSeq/data/permuted-pval-expressed-set1.rda")
+##load observed statistics (MAD)
+load("../../singleCellSeq/data/mad-expressed.rda")
+```
+
+Compute a matrix of 0's and 1's labeling non-detected and detected cells, respctively.  
+```{r}
+molecules_expressed<- molecules_filter 
+molecules_expressed[which(molecules_filter >0, arr.ind=TRUE)] <-1
+molecules_expressed <- as.matrix((molecules_expressed))
+```
+
+Take the genes subset inclded in final data.   
+```{r}
+genes_included <- Reduce(intersect, 
+                         list(rownames(molecules_final), 
+                              rownames(expressed_cv$NA19098), 
+                              names(perm_pval_set1)) )
+
+molecules_filter_subset <- molecules_filter[
+  which(rownames(molecules_filter) %in% genes_included), ]
+
+molecules_final_subset <- molecules_final[
+  which(rownames(molecules_final) %in% genes_included), ]
+
+molecules_expressed_subset <- molecules_expressed[
+  which(rownames(molecules_expressed) %in% genes_included), ]
+
+molecules_final_expressed_subset <- molecules_final_subset*molecules_expressed_subset
+molecules_final_expressed_subset[which(molecules_expressed_subset == 0, 
+                                       arr.ind = TRUE)] <- NA
+
+permuted_pval_subset <- perm_pval_set1[which(names(perm_pval_set1) %in% genes_included)]
+
+expressed_cv_subset <- lapply(expressed_cv, function(x)
+  x[which(rownames(x) %in% genes_included), ] )
+names(expressed_cv_subset) <- names(expressed_cv)
+
+expressed_dm_subset <- expressed_dm[which(rownames(expressed_dm) %in% genes_included), , ] 
+
+dim(molecules_final_subset)
+
+dim(molecules_expressed_subset)
+
+all.equal(rownames(expressed_cv_subset$NA19098), 
+          rownames(molecules_final_expressed_subset) )
+
+all.equal(names(permuted_pval_subset), 
+          rownames(molecules_expressed_subset) )
+```
+
+Compute drop-out rates  
+
+
+

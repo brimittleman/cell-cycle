@@ -1,0 +1,96 @@
+---
+title: "Cell-to-cell variation analysis: noisy genes among all cells"
+author: "Briana Mittleman"
+date: 2017-02-17
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Background and some observations  
+
+Prliminary investigation into expresssion noise at the transcriptional level. We looked at expression noise across all cells, including the cell that were not detected in the experiment. The investigation begins with coefficeint of variation- a popular measure for quantifying variation of the data.  
+
+* Coputation of CV: We were interested in the variation in our batch corrected data. But since these data are log-2 transformed counts we take 2 to the power of log transformed counts and then compute a CV based on these corrected counts.  
+
+* Corrected CV: Because in seqeuncing data, CVs are confounded with abundance levels, we performed a calculations that transformed each CV into a measure of deviation from the median of the CVs from the gene of similar abundance.  
+
+###Setup  
+
+```{r}
+library("data.table")
+library("dplyr")
+library("limma")
+library("edgeR")
+library("ggplot2")
+library("grid")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+library("Humanzee")
+library("cowplot")
+library("MASS")
+library("matrixStats")
+library("mygene")
+
+```
+###Prepare data  
+Input annotation of only QC-filtered singel cells, with NA19098.r2 removed.  
+```{r}
+anno_filter<- read.table("../data/annotation-filter.txt", header=TRUE, stringsAsFactors = FALSE)
+dim(anno_filter)
+head(anno_filter)
+
+```
+
+Import molecule counts after filtering and before any correction.  
+
+```{r}
+molecules_filter<- read.table("../data/molecules-filter.txt", header = TRUE, stringsAsFactors = FALSE)
+stopifnot(NROW(anno_filter) == NCOL(molecules_filter))
+```
+
+Import final processed molecule counts of endogenous genes.  
+```{r}
+molecules_final <- read.table("../data/molecules-final.txt", 
+                             header = TRUE, stringsAsFactors = FALSE)
+dim(molecules_final)
+stopifnot(NROW(anno_filter) == NCOL(molecules_final))
+```
+
+Import gene symbols  
+
+```{r}
+gene_symbols <- read.table(file = "../../singleCellSeq/data/gene-info.txt", sep = "\t",
+                           header = TRUE, stringsAsFactors = FALSE, quote = "")
+```
+
+Import cell cycle and pluripotency genes.  
+
+```{r}
+cell_cycle_genes <- read.table("../../singleCellSeq/data/cellcyclegenes.txt",
+                               header = TRUE, sep = "\t",
+                               stringsAsFactors = FALSE)
+
+pluripotency_genes <- read.table("../../singleCellSeq/data/pluripotency-genes.txt",
+                               header = TRUE, sep = "\t",
+                               stringsAsFactors = FALSE)$To
+
+```
+
+###Compute CV and adjusted CV values  
+
+* Compute Squared Coefficients of Variation across cells for each individual;  
+* Adjust Squared CVs for confounding effect with the mean:  
+    - Compute rolling medians of gene expression levels,  
+    - Squared CVs corresponding to rolling medians of gene expression levels, deviation of adjusted CVs.  
+    
+####Sanity-check Plots  
