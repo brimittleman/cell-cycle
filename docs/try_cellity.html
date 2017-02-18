@@ -9,10 +9,10 @@
 <meta name="generator" content="pandoc" />
 
 
-<meta name="author" content="Briana Mittleman" />
+<meta name="author" content="First Last" />
 
 
-<title>Simulate bulk samples from Single cell gene list</title>
+<title>Try Cellity for single cell quality</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -301,102 +301,79 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Simulate bulk samples from Single cell gene list</h1>
-<h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>2017-2-16</em></h4>
+<h1 class="title toc-ignore">Try Cellity for single cell quality</h1>
+<h4 class="author"><em>First Last</em></h4>
+<h4 class="date"><em>YYYY-MM-DD</em></h4>
 
 </div>
 
 
 <p><strong>Last updated:</strong> 2017-02-17</p>
 <p><strong>Code version:</strong> ec446d3</p>
-<pre class="r"><code>library(&quot;biomaRt&quot;)
-library(&quot;data.table&quot;)
-library(&quot;testit&quot;)
-library(&quot;dplyr&quot;)
-library(&quot;edgeR&quot;)
-library(&quot;VennDiagram&quot;)
-library(&quot;ggplot2&quot;)
-theme_set(theme_bw(base_size = 12))
-source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
-<div id="input" class="section level3">
-<h3>Input</h3>
-<pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
-                   stringsAsFactors = FALSE)
-#input molecule (pre-filter)
-molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE,
-                    stringsAsFactors = FALSE)
-reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)</code></pre>
-<p>Create gene lists:</p>
-<pre class="r"><code>genes_observed_reads_bulk &lt;- rownames(reads_bulk)[rowSums(reads_bulk) &gt; 0]
-genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]</code></pre>
-</div>
-<div id="pool-molecule-counts" class="section level3">
-<h3>Pool molecule counts</h3>
-<pre class="r"><code>molecules_1ind&lt;- molecules[,1:96]
-molecules_pool &lt;- data.frame(apply(molecules_1ind, 1 , sum))
-colnames(molecules_pool) &lt;- c(&quot;pool_count&quot;)
-#i need a vector containing each of the genes the number of times they appear in the sum for sampling (pooled_molecules)
-
-molecules_1ind_3r &lt;- molecules[,1:288]
-molecules1ind3r_pool &lt;- data.frame(apply(molecules_1ind_3r, 1 , sum))
-colnames(molecules1ind3r_pool) &lt;- c(&quot;pool_count&quot;)</code></pre>
-<pre class="r"><code>pooled_molecules &lt;- c()
-for (row in rownames(molecules_pool)){
-  which_row &lt;- rownames(molecules_pool) == row
-  num = rep(row, times= molecules_pool[which_row,])
-  pooled_molecules &lt;- c(pooled_molecules, num)
-}</code></pre>
-<p>3 replicates</p>
-<pre class="r"><code>pooled_molecules_3rep &lt;- c()
-for (row in rownames(molecules1ind3r_pool)){
-  which_row3 &lt;- rownames(molecules1ind3r_pool) == row
-  num = rep(row, times = molecules1ind3r_pool[which_row3,])
-  pooled_molecules_3rep &lt;- c(pooled_molecules_3rep, num)
-}</code></pre>
-</div>
-<div id="sampling-function" class="section level3">
-<h3>Sampling function</h3>
-<p>I will make a function that samples the gene vector N times and creates a list of the unique gene names in the sample. It will then see how many genes are in the genes_observed_molecules but not in this “simulated” bulk. (sample no replacement)</p>
-<pre class="r"><code>subsample_func &lt;- function(N){
-  #subsample with replacement
-  subsample_pool &lt;- sample(pooled_molecules, N, replace=TRUE)
-  #make list of unique genes in sample
-  unique_subsample_pool &lt;- unique(subsample_pool)
-  #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
-  only_sc &lt;- setdiff(genes_observed_molecules, unique_subsample_pool)
-  return(length(only_sc))
-}</code></pre>
-<pre class="r"><code>subsample_func_3 &lt;- function(N){
-  #subsample with replacement
-  subsample_pool &lt;- sample(pooled_molecules_3rep, N, replace=TRUE)
-  #make list of unique genes in sample
-  unique_subsample_pool &lt;- unique(subsample_pool)
-  #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
-  only_sc &lt;- setdiff(genes_observed_molecules, unique_subsample_pool)
-  return(length(only_sc))
-}</code></pre>
-<p>using a multinomial approach</p>
-<pre class="r"><code># not_in_simbulk&lt;- sapply(N_samples, function(x) {
-#   subsample_genes &lt;- rmultinom(n = x, size = length(molecules_pool$pool_count),
-#             prob = molecules_pool$pool_count)
-#   unique_subsample_pool &lt;- rownames(molecules_pool)[rowSums(subsample_genes)&gt;0]
-#   #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
-#   only_sc &lt;- length(setdiff(genes_observed_molecules, unique_subsample_pool))
-#   return(only_sc)
-# })</code></pre>
-</div>
-<div id="apply-function" class="section level3">
-<h3>Apply function</h3>
-<p>I will run my function at a bunch of different N values and plot the returned value against the sample size N.</p>
-<pre class="r"><code>N_samples &lt;-seq(100000, 100000000, by = 1000000)
-not_in_simbulk&lt;- sapply(N_samples, function(x) subsample_func(x))
-plot(not_in_simbulk ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 1 replicate&quot;, xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) </code></pre>
-<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>not_in_simbulk3r&lt;- sapply(N_samples, function(x) subsample_func_3(x))
-plot(not_in_simbulk3r ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 3 replicate&quot;, xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) </code></pre>
-<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
+<p>Package available at: <a href="https://github.com/Teichlab/cellity" class="uri">https://github.com/Teichlab/cellity</a>.</p>
+<pre class="r"><code>library(cellity)
+library(ggplot2)
+theme_set(theme_bw(12))</code></pre>
+<pre class="r"><code>data(&quot;sample_counts&quot;)
+data(&quot;sample_stats&quot;)
+head(sample_stats)</code></pre>
+<pre><code>                       cell    total   mapped unmapped unique multi
+688 ola_mES_lif_1_17.counts  8590414  6907697  1682717    100     0
+167  ola_mES_2i_2_72.counts 19091056 15139851  3951205    100     0
+710 ola_mES_lif_1_37.counts 16286506 13266685  3019821    100     0
+60   ola_mES_2i_1_63.counts 21247692 17420807  3826885    100     0
+64   ola_mES_2i_1_67.counts 13250828 11032819  2218009    100     0
+676 ola_mES_a2i_3_94.counts  7189806  5635576  1554230    100     0
+    intergenic intragenic exonic intronic ambigious exonicM alignments
+688     100.00       0.00   0.00     0.00      0.00       0    6907697
+167      10.10      80.21  56.05    24.15      9.69       0   15139851
+710     100.00       0.00   0.00     0.00      0.00       0   13266685
+60       11.67      81.22  33.98    47.25      7.10       0   17420807
+64       10.05      81.34  51.28    30.06      8.61       0   11032819
+676      28.24      63.87  53.28    10.59      7.88       0    5635576
+    multi.intergenic multi.intragenic multi.exonic multi.intronic
+688                0                0            0              0
+167                0                0            0              0
+710                0                0            0              0
+60                 0                0            0              0
+64                 0                0            0              0
+676                0                0            0              0
+    multi.ambigious  perfect partly_perfect mapped_no_correct      S_0
+688               0  3940816        2966881                 0  4080656
+167               0  9170872        5968979                 0  9463813
+710               0  7475789        5790896                 0  7718481
+60                0 11259672        6161135                 0 11627976
+64                0  6324302        4708517                 0  6537438
+676               0  2134023        3501553                 0  2201804
+       S_1    S_2    S_3    S_4    S_5    S_6    S_7    S_8    S_9   S_10.
+688 100572  96611  92092  51648  55652  55384  57126  52220  72013 2193723
+167 242220 227580 225318 121555 142397 140321 144653 131113 207985 4092896
+710 189778 181234 174493  94670  97539  97985 104384  97494 126801 4383826
+60  253026 233955 217581 119767 119233 119844 126409 129666 201632 4271718
+64  175626 158864 152961  86861  87396  87277  90788  89180 121017 3445411
+676  84632  77381  76296  54056  53278  54325  56135  52752  60737 2864180
+         I      D  INDEL
+688  90137 103740 191614
+167 193124 221082 409212
+710 156290 182547 334600
+60  205673 312753 511500
+64  134538 167409 298044
+676  48462  59668 107061</code></pre>
+<pre class="r"><code>names(sample_stats)</code></pre>
+<pre><code> [1] &quot;cell&quot;              &quot;total&quot;             &quot;mapped&quot;           
+ [4] &quot;unmapped&quot;          &quot;unique&quot;            &quot;multi&quot;            
+ [7] &quot;intergenic&quot;        &quot;intragenic&quot;        &quot;exonic&quot;           
+[10] &quot;intronic&quot;          &quot;ambigious&quot;         &quot;exonicM&quot;          
+[13] &quot;alignments&quot;        &quot;multi.intergenic&quot;  &quot;multi.intragenic&quot; 
+[16] &quot;multi.exonic&quot;      &quot;multi.intronic&quot;    &quot;multi.ambigious&quot;  
+[19] &quot;perfect&quot;           &quot;partly_perfect&quot;    &quot;mapped_no_correct&quot;
+[22] &quot;S_0&quot;               &quot;S_1&quot;               &quot;S_2&quot;              
+[25] &quot;S_3&quot;               &quot;S_4&quot;               &quot;S_5&quot;              
+[28] &quot;S_6&quot;               &quot;S_7&quot;               &quot;S_8&quot;              
+[31] &quot;S_9&quot;               &quot;S_10.&quot;             &quot;I&quot;                
+[34] &quot;D&quot;                 &quot;INDEL&quot;            </code></pre>
+<p>Mapping and gene count pipeline: <a href="https://github.com/Teichlab/celloline" class="uri">https://github.com/Teichlab/celloline</a></p>
+<p>Talk to Joyce about this. Should we move all of the data over to project 2 and try to get this up and running?</p>
 
 <hr>
 <p>
