@@ -100,10 +100,17 @@ write.table(pca_molecules_filter_out,
             quote = FALSE, sep = "\t", row.names = FALSE)
 ```
 
-```{r}
-#pca-distances -i ../data/pca-molecules-filter.txt
-#pca-dendrogram -i ../data/pca-molecules-filter.txt
+
+```{bash}
+
+
+pca-distances -i ../data/pca-molecules-filter.txt
 ```
+
+```{bash}
+pca-dendrogram -i ../data/pca-molecules-filter.txt
+```
+
 
 ####PCA of standardized data  
 ```{r}
@@ -126,9 +133,10 @@ write.table(pca_molecules_cpm_out,
             quote = FALSE, sep = "\t", row.names = FALSE)
 ```
 
-```{r}
-#pca-distances -i ../data/pca-molecules-cpm.txt 
-#pca-dendrogram -i ../data/pca-molecules-cpm.txt 
+```{bash}
+
+pca-distances -i ../data/pca-molecules-cpm.txt 
+pca-dendrogram -i ../data/pca-molecules-cpm.txt 
 ```
 
 ####PCA of Poisson GLM transformed molecule counts per million  
@@ -153,9 +161,9 @@ write.table(pca_molecules_cpm_trans_out,
             quote = FALSE, sep = "\t", row.names = FALSE)
 ```
 
-```{r}
-#pca-distances -i ../data/pca-molecules-cpm-trans.txt
-#pca-dendrogram -i ../data/pca-molecules-cpm-trans.txt
+```{bash}
+pca-distances -i ../data/pca-molecules-cpm-trans.txt
+pca-dendrogram -i ../data/pca-molecules-cpm-trans.txt
 ```
 
 ####PCA of final batch-corrected data  
@@ -180,9 +188,9 @@ write.table(pca_final_out,
             quote = FALSE, sep = "\t", row.names = FALSE)
 ```
 
-```{r}
-#pca-distances -i ../data/pca-final.txt
-#pca-dendrogram -i ../data/pca-final.txt
+```{bash}
+pca-distances -i ../data/pca-final.txt
+pca-dendrogram -i ../data/pca-final.txt
 ```
 
 ###Data transformation figure  

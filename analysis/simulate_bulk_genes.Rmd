@@ -129,7 +129,11 @@ I will run my function at a bunch of different N values and plot the returned va
 N_samples <-seq(100000, 100000000, by = 1000000)
 not_in_simbulk<- sapply(N_samples, function(x) subsample_func(x))
 plot(not_in_simbulk ~ N_samples, main="Simulated bulk from 1 single cell individual 1 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
+abline(971,0)
 
 not_in_simbulk3r<- sapply(N_samples, function(x) subsample_func_3(x))
 plot(not_in_simbulk3r ~ N_samples, main="Simulated bulk from 1 single cell individual 3 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
+abline(971, 0)
+points(31279090, 971, cex=1,  col="blue", pch=16)
+
 ```
