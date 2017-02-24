@@ -1,0 +1,57 @@
+---
+title: "Look for genes only in single cell for 1 individual"
+author: "First Last"
+date: YYYY-MM-DD
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+```{r}
+library("data.table")
+library("dplyr")
+library("VennDiagram")
+```
+
+###Input
+```{r}
+#subset bulk for 19098
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+reads_bulk_19098 <- reads_bulk[,1:3]
+head(reads_bulk_19098)
+
+```
+
+```{r}
+#input molecule 
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+molecules_19098 <- molecules[,1:288]
+head(molecules_19098)
+```
+###Create gene lists for 19098  
+
+```{r}
+genes_observed_reads_bulk_19098 <- rownames(reads_bulk_19098)[rowSums(reads_bulk_19098) > 0]
+genes_observed_molecules_19098 <- rownames(molecules_19098)[rowSums(molecules_19098) > 0]
+```
+
+
+###Ven diagram for single cell vs bulk  
+
+```{r}
+genes_venn_19098 <- venn.diagram(x = list("molecules" = genes_observed_molecules_19098,
+                                    "reads bulk" = genes_observed_reads_bulk_19098),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(genes_venn_19098)
+```
+

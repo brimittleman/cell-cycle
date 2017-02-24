@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-15</p>
-<p><strong>Code version:</strong> 7b71f1a</p>
+<p><strong>Last updated:</strong> 2017-02-20</p>
+<p><strong>Code version:</strong> 899d212</p>
 <div id="data-transformation" class="section level3">
 <h3>Data transformation</h3>
 <pre class="r"><code>library(&quot;ggplot2&quot;)
@@ -379,8 +379,35 @@ pca_molecules_filter_out &lt;- data.frame(Obs.id = 1:nrow(anno_filter),
 write.table(pca_molecules_filter_out,
             file = &quot;../data/pca-molecules-filter.txt&quot;,
             quote = FALSE, sep = &quot;\t&quot;, row.names = FALSE)</code></pre>
-<pre class="r"><code>#pca-distances -i ../data/pca-molecules-filter.txt
-#pca-dendrogram -i ../data/pca-molecules-filter.txt</code></pre>
+<pre class="bash"><code>
+
+pca-distances -i ../data/pca-molecules-filter.txt</code></pre>
+<pre><code>            NA19098.r3    NA19101.r1    NA19101.r2    NA19101.r3    NA19239.r1    NA19239.r2    NA19239.r3    
+NA19098.r1  3.533561e+01  2.795329e+01  3.108176e+01  3.685457e+01  3.662411e+01  3.119577e+01  4.383286e+01
+NA19098.r3                6.325114e+01  6.619283e+01  7.215802e+01  6.176294e+01  6.277506e+01  6.288494e+01
+NA19101.r1                              7.570174e+00  8.906888e+00  3.210637e+01  1.794815e+01  4.380363e+01
+NA19101.r2                                            9.531213e+00  3.967157e+01  2.543646e+01  5.137277e+01
+NA19101.r3                                                          3.581286e+01  2.135155e+01  4.770952e+01
+NA19239.r1                                                                        1.452473e+01  1.189914e+01
+NA19239.r2                                                                                      2.641617e+01</code></pre>
+<pre class="bash"><code>pca-dendrogram -i ../data/pca-molecules-filter.txt</code></pre>
+<pre><code>                                                                                                                
+                                                               +-----NA19101.r1                                 
+                                        +----------------------|3.5e-03                                         
+                                        |                      +-------NA19101.r3                               
+ +--------------------------------------|0                                                                      
+ |                                      |              +--------------------NA19098.r3                          
+ |                                      |              |0                                                       
+ |                                      +--------------|         +-------NA19098.r1                             
+ |0                                                    +---------|6.9e-07                                       
+ |                                                               +--------NA19101.r2                            
+ |                                                                                                              
+ |                                                           +--------------------------------------NA19239.r2  
+ |                                                           |0                                                 
+ +-----------------------------------------------------------|                 +-------------------NA19239.r1   
+                                                             +-----------------|0                               
+                                                                               +------------------NA19239.r3    
+                                                                                                                </code></pre>
 </div>
 <div id="pca-of-standardized-data" class="section level4">
 <h4>PCA of standardized data</h4>
@@ -398,8 +425,34 @@ pca_molecules_cpm_plot &lt;- plot_pca(pca_molecules_cpm$PCs,
 write.table(pca_molecules_cpm_out,
             file = &quot;../data/pca-molecules-cpm.txt&quot;,
             quote = FALSE, sep = &quot;\t&quot;, row.names = FALSE)</code></pre>
-<pre class="r"><code>#pca-distances -i ../data/pca-molecules-cpm.txt 
-#pca-dendrogram -i ../data/pca-molecules-cpm.txt </code></pre>
+<pre class="bash"><code>
+pca-distances -i ../data/pca-molecules-cpm.txt 
+pca-dendrogram -i ../data/pca-molecules-cpm.txt </code></pre>
+<pre><code>            NA19098.r3    NA19101.r1    NA19101.r2    NA19101.r3    NA19239.r1    NA19239.r2    NA19239.r3    
+NA19098.r1  2.283127e+01  1.934100e+01  5.296175e+01  2.764144e+01  4.969837e+01  3.699837e+01  4.594807e+01
+NA19098.r3                5.978405e+00  3.026961e+01  8.082123e+00  3.866189e+01  2.588141e+01  4.246380e+01
+NA19101.r1                              3.508682e+01  8.325224e+00  3.575672e+01  2.257645e+01  3.777460e+01
+NA19101.r2                                            2.848375e+01  4.631674e+01  3.973253e+01  5.806423e+01
+NA19101.r3                                                          3.087511e+01  1.850056e+01  3.614705e+01
+NA19239.r1                                                                        1.323738e+01  1.539228e+01
+NA19239.r2                                                                                      1.869540e+01
+                                                                                                               
+                                                             +-------------------------------NA19239.r1        
+ +-----------------------------------------------------------|0                                                
+ |                                                           |                +-------------------NA19239.r2   
+ |                                                           +----------------|0                               
+ |0                                                                           +-----------------NA19239.r3     
+ |                                                                                                             
+ |                                      +--------------------------------------------------NA19098.r1          
+ |                                      |0                                                                     
+ +--------------------------------------|                 +----------------------------------------NA19101.r2  
+                                        +-----------------|0                                                   
+                                                          |                +-------------------NA19101.r3      
+                                                          +----------------|0                                  
+                                                                           |        +------NA19098.r3          
+                                                                           +--------|7.2e-10                   
+                                                                                    +-----NA19101.r1           
+                                                                                                               </code></pre>
 </div>
 <div id="pca-of-poisson-glm-transformed-molecule-counts-per-million" class="section level4">
 <h4>PCA of Poisson GLM transformed molecule counts per million</h4>
@@ -417,8 +470,33 @@ pca_molecules_cpm_trans_plot &lt;- plot_pca(pca_molecules_cpm_trans$PCs,
 write.table(pca_molecules_cpm_trans_out,
             file = &quot;../data/pca-molecules-cpm-trans.txt&quot;,
             quote = FALSE, sep = &quot;\t&quot;, row.names = FALSE)</code></pre>
-<pre class="r"><code>#pca-distances -i ../data/pca-molecules-cpm-trans.txt
-#pca-dendrogram -i ../data/pca-molecules-cpm-trans.txt</code></pre>
+<pre class="bash"><code>pca-distances -i ../data/pca-molecules-cpm-trans.txt
+pca-dendrogram -i ../data/pca-molecules-cpm-trans.txt</code></pre>
+<pre><code>            NA19098.r3    NA19101.r1    NA19101.r2    NA19101.r3    NA19239.r1    NA19239.r2    NA19239.r3    
+NA19098.r1  1.656283e+01  6.146432e+01  1.321773e+01  4.332598e+01  4.827787e+01  4.750276e+01  4.949364e+01
+NA19098.r3                7.802604e+01  2.497308e+01  5.987233e+01  6.155863e+01  6.265747e+01  6.149072e+01
+NA19101.r1                              5.731654e+01  1.845042e+01  4.202117e+01  2.987954e+01  4.863510e+01
+NA19101.r2                                            4.062958e+01  5.399017e+01  5.019805e+01  5.661237e+01
+NA19101.r3                                                          3.109027e+01  1.973393e+01  3.732732e+01
+NA19239.r1                                                                        1.225009e+01  6.618308e+00
+NA19239.r2                                                                                      1.885694e+01
+                                                                                                          
+                                                             +--------------------------------NA19239.r2  
+                                                             |0                                           
+ +-----------------------------------------------------------|            +--------NA19239.r1             
+ |                                                           +------------|0                              
+ |                                                                        +-------NA19239.r3              
+ |0                                                                                                       
+ |                                                                         +------NA19101.r1              
+ |                                    +------------------------------------|0                             
+ |                                    |                                    +-----------NA19101.r3         
+ +------------------------------------|0                                                                  
+                                      |                     +------------------NA19101.r2                 
+                                      |                     |0                                            
+                                      +---------------------|       +-----NA19098.r1                      
+                                                            +-------|0                                    
+                                                                    +---------NA19098.r3                  
+                                                                                                          </code></pre>
 </div>
 <div id="pca-of-final-batch-corrected-data" class="section level4">
 <h4>PCA of final batch-corrected data</h4>
@@ -435,8 +513,33 @@ pca_final_plot &lt;- plot_pca(pca_final$PCs, explained = pca_final$explained,
 write.table(pca_final_out,
             file = &quot;../data/pca-final.txt&quot;,
             quote = FALSE, sep = &quot;\t&quot;, row.names = FALSE)</code></pre>
-<pre class="r"><code>#pca-distances -i ../data/pca-final.txt
-#pca-dendrogram -i ../data/pca-final.txt</code></pre>
+<pre class="bash"><code>pca-distances -i ../data/pca-final.txt
+pca-dendrogram -i ../data/pca-final.txt</code></pre>
+<pre><code>            NA19098.r3    NA19101.r1    NA19101.r2    NA19101.r3    NA19239.r1    NA19239.r2    NA19239.r3    
+NA19098.r1  5.080952e+00  5.435574e+01  3.835040e+01  4.975047e+01  5.613992e+01  5.478609e+01  5.546367e+01
+NA19098.r3                5.926557e+01  4.294858e+01  5.468422e+01  6.085990e+01  5.961170e+01  6.014592e+01
+NA19101.r1                              1.830388e+01  4.708103e+00  3.624496e+01  3.249704e+01  3.706498e+01
+NA19101.r2                                            1.472089e+01  4.267492e+01  3.927972e+01  4.297114e+01
+NA19101.r3                                                          3.429283e+01  3.056554e+01  3.498175e+01
+NA19239.r1                                                                        3.748794e+00  1.333070e+00
+NA19239.r2                                                                                      4.658342e+00
+                                                                                                    
+                                                             +------------NA19239.r2                
+                                                             |2.4e-08                               
+ +-----------------------------------------------------------|       +-----NA19239.r1               
+ |                                                           +-------|0.32                          
+ |                                                                   +-----NA19239.r3               
+ |0                                                                                                 
+ |                                                                             +------NA19098.r1    
+ |                                       +-------------------------------------|0.02                
+ |                                       |                                     +-------NA19098.r3   
+ +---------------------------------------|0                                                         
+                                         |                           +--------------NA19101.r2      
+                                         |                           |4.3e-11                       
+                                         +---------------------------|         +------NA19101.r1    
+                                                                     +---------|7.7e-03             
+                                                                               +--------NA19101.r3  
+                                                                                                    </code></pre>
 </div>
 </div>
 <div id="data-transformation-figure" class="section level3">
@@ -457,7 +560,7 @@ write.table(pca_final_out,
     guides(color = FALSE) + theme(legend.position = &quot;bottom&quot;),
   labels = letters[1:4])
 plot_final</code></pre>
-<p><img src="figure/data_transformation.Rmd/unnamed-chunk-39-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/data_transformation.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Skip writting this figure as a tiff file</p>
 </div>
 <div id="session-information" class="section level3">
@@ -476,37 +579,23 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] parallel  grid      stats     graphics  grDevices utils     datasets 
-[8] methods   base     
+[1] grid      stats     graphics  grDevices utils     datasets  methods  
+[8] base     
 
 other attached packages:
- [1] Humanzee_0.1.0      devtools_1.12.0     doMC_1.3.4         
- [4] iterators_1.0.8     foreach_1.4.3       scales_0.4.1       
- [7] VennDiagram_1.6.17  futile.logger_1.4.3 testit_0.6         
-[10] data.table_1.10.0   biomaRt_2.30.0      tidyr_0.6.1        
-[13] gridExtra_2.2.1     lme4_1.1-12         Matrix_1.2-7.1     
-[16] edgeR_3.16.5        limma_3.30.9        cowplot_0.7.0      
-[19] ggplot2_2.2.1       dplyr_0.5.0         workflowr_0.3.0    
-[22] rmarkdown_1.3      
+ [1] matrixStats_0.51.0 MASS_7.3-45        Humanzee_0.1.0    
+ [4] edgeR_3.16.5       limma_3.30.9       dplyr_0.5.0       
+ [7] data.table_1.10.0  workflowr_0.3.0    rmarkdown_1.3     
+[10] testit_0.6         cowplot_0.7.0      ggplot2_2.2.1     
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9          locfit_1.5-9.1       lattice_0.20-34     
- [4] assertthat_0.1       rprojroot_1.2        digest_0.6.12       
- [7] R6_2.2.0             plyr_1.8.4           futile.options_1.0.0
-[10] backports_1.0.5      stats4_3.3.2         RSQLite_1.1-2       
-[13] evaluate_0.10        httr_1.2.1           lazyeval_0.2.0      
-[16] curl_2.3             minqa_1.2.4          rstudioapi_0.6      
-[19] nloptr_1.0.4         S4Vectors_0.12.1     labeling_0.3        
-[22] splines_3.3.2        statmod_1.4.27       stringr_1.1.0       
-[25] RCurl_1.95-4.8       munsell_0.4.3        compiler_3.3.2      
-[28] BiocGenerics_0.20.0  htmltools_0.3.5      tibble_1.2          
-[31] IRanges_2.8.1        codetools_0.2-15     XML_3.98-1.5        
-[34] withr_1.0.2          MASS_7.3-45          bitops_1.0-6        
-[37] nlme_3.1-128         gtable_0.2.0         DBI_0.5-1           
-[40] git2r_0.18.0         magrittr_1.5         stringi_1.1.2       
-[43] lambda.r_1.1.9       tools_3.3.2          Biobase_2.34.0      
-[46] yaml_2.1.14          AnnotationDbi_1.36.1 colorspace_1.3-2    
-[49] memoise_1.0.0        knitr_1.15.1        </code></pre>
+ [1] Rcpp_0.12.9      knitr_1.15.1     magrittr_1.5     munsell_0.4.3   
+ [5] lattice_0.20-34  colorspace_1.3-2 R6_2.2.0         stringr_1.1.0   
+ [9] plyr_1.8.4       tools_3.3.2      gtable_0.2.0     DBI_0.5-1       
+[13] git2r_0.18.0     htmltools_0.3.5  yaml_2.1.14      lazyeval_0.2.0  
+[17] assertthat_0.1   digest_0.6.12    rprojroot_1.2    tibble_1.2      
+[21] evaluate_0.10    labeling_0.3     stringi_1.1.2    scales_0.4.1    
+[25] backports_1.0.5  locfit_1.5-9.1  </code></pre>
 </div>
 
 <hr>

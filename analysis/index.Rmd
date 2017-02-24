@@ -28,6 +28,8 @@ These are the projects I am working on during the my rotation in the Stephens la
 
 * [Explore genes only found in bulk or single cells](explore_bulkvsingle_gene.html)  
 
+* [Simulate bulk samples from Single cell gene list](simulate_bulk_genes.html)  
+
 Continue the Gilad single cell anaylsis:  
 
 * [Create gene-x-sample count matrices and annotation file](gene_x_sample_count_matrix.html)  
@@ -50,4 +52,6 @@ Continue the Gilad single cell anaylsis:
 
 * [Visualization of data transformations](data_transformation.html)
 
-* [Simulate bulk samples from Single cell gene list](simulate_bulk_genes.html)
+* [Explore cell to cell variation (paper figures)](cell_to_cell_variation.html)
+
+

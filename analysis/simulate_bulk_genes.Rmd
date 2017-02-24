@@ -56,7 +56,12 @@ colnames(molecules1ind3r_pool) <- c("pool_count")
 
 ```
 
+
 ```{r}
+load("../output/pooled_molecules.rda")
+```
+
+```{r, eval=FALSE}
 
 
 pooled_molecules <- c()
@@ -68,7 +73,12 @@ for (row in rownames(molecules_pool)){
 
 ```
 3 replicates  
+
 ```{r}
+load("../output/pooled_molecules_3rep.rda")
+```
+
+```{r, eval=FALSE}
 
 pooled_molecules_3rep <- c()
 for (row in rownames(molecules1ind3r_pool)){
@@ -122,18 +132,105 @@ using a multinomial approach
 # })
 ```
 
+
 ###Apply function  
 I will run my function at a bunch of different N values and plot the returned value against the sample size N.  
+```{r, eval=FALSE}
+not_in_simbulk<- sapply(N_samples, function(x) subsample_func(x))
+not_in_simbulk3r<- sapply(N_samples, function(x) subsample_func_3(x))
+```
+
+
+
 
 ```{r}
 N_samples <-seq(100000, 100000000, by = 1000000)
-not_in_simbulk<- sapply(N_samples, function(x) subsample_func(x))
+load("../output/not_in_simbulk.rda")
 plot(not_in_simbulk ~ N_samples, main="Simulated bulk from 1 single cell individual 1 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
 abline(971,0)
 
-not_in_simbulk3r<- sapply(N_samples, function(x) subsample_func_3(x))
-plot(not_in_simbulk3r ~ N_samples, main="Simulated bulk from 1 single cell individual 3 replicate", xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
+load("../output/not_in_simbulk3r.rda")
+plot(not_in_simbulk3r ~ N_samples, main="Simulated bulk from 1 single cell individual 3 replicate", ylim =c(0,9000),
+     xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
 abline(971, 0)
 points(31279090, 971, cex=1,  col="blue", pch=16)
 
 ```
+
+
+
+### Compare runtime of multinomial function and uniform random sampling
+
+```{r}
+load("../output/runtime.rda")
+
+# runtime for multinomial appraoch
+print(t1)
+
+# runtime for multinomial appraoch
+print(t2)
+```
+
+
+```{r, eval = FALSE}
+# N_samples: a vector of sample coverage
+# rmultinom parameters
+# n: coverage
+# prob: a vector of the number of molecules seen in each gene (length = # genes)
+# size: number of genes
+
+genes_observed_molecules <- rownames(molecules_1ind)[rowSums(molecules_1ind) > 0]
+
+N_samples = 1000
+t1 <- system.time({
+  not_in_simbulk<- sapply(N_samples, function(x) {
+     subsample_genes <- rmultinom(n = x, size = length(molecules_pool$pool_count),
+               prob = molecules_pool$pool_count)
+     unique_subsample_pool <- rownames(molecules_pool)[rowSums(subsample_genes)>0]
+     #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+     only_sc <- length(setdiff(genes_observed_molecules, unique_subsample_pool))
+     return(only_sc)
+   })
+})
+
+t2 <- system.time({
+  pooled_molecules <- c()
+  for (row in rownames(molecules_pool)){
+    which_row <- rownames(molecules_pool) == row
+    num = rep(row, times= molecules_pool[which_row,])
+    pooled_molecules <- c(pooled_molecules, num)
+  }
+  subsample_func <- function(N){
+    #subsample with replacement
+    subsample_pool <- sample(pooled_molecules, N, replace=TRUE)
+    #make list of unique genes in sample
+    unique_subsample_pool <- unique(subsample_pool)
+    #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+    only_sc <- setdiff(genes_observed_molecules, unique_subsample_pool)
+    return(length(only_sc))
+  }
+  not_in_simbulk<- sapply(N_samples, function(x) subsample_func(x))
+})
+```
+
+
+###Try multinomial for all samples 
+
+```{r}
+
+molecules_pool_total <- data.frame(apply(molecules, 1 , sum))
+colnames(molecules_pool_total) <- c("pool_count")
+
+genes_observed_molecules <- rownames(molecules_1ind)[rowSums(molecules_1ind) > 0]
+
+# N_samples <-seq(100000, 100000000, by = 1000000)
+#   not_in_simbulk_multi<- sapply(N_samples, function(x) {
+#      subsample_genes <- rmultinom(n = x, size = length(molecules_pool$pool_count),
+#                prob = molecules_pool$pool_count)
+#      unique_subsample_pool <- rownames(molecules)[rowSums(subsample_genes)>0]
+#      #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+#      only_sc <- length(setdiff(genes_observed_molecules, unique_subsample_pool))
+#      return(only_sc)
+#    })
+```
+
