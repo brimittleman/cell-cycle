@@ -309,8 +309,9 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-17</p>
-<p><strong>Code version:</strong> ec446d3</p>
+<p><strong>Last updated:</strong> 2017-02-24</p>
+<p><strong>Code version:</strong> 0506d1c</p>
+<p>Work through some of this to get a better understanding of the data used for cell-cell variation.</p>
 <div id="background-and-some-observations" class="section level3">
 <h3>Background and some observations</h3>
 <p>Prliminary investigation into expresssion noise at the transcriptional level. We looked at expression noise across all cells, including the cell that were not detected in the experiment. The investigation begins with coefficeint of variation- a popular measure for quantifying variation of the data.</p>
@@ -381,10 +382,362 @@ pluripotency_genes &lt;- read.table(&quot;../../singleCellSeq/data/pluripotency-
 </li>
 <li>Squared CVs corresponding to rolling medians of gene expression levels, deviation of adjusted CVs.</li>
 </ul></li>
+<li>DM values are coefficient of variance corrected for dependence on gene mean expression</li>
 </ul>
 <div id="sanity-check-plots" class="section level4">
 <h4>Sanity-check Plots</h4>
+<pre class="r"><code>theme_set(theme_bw(base_size = 8))
+plot_grid(
+  ggplot(data.frame(log10cv_1 = log10(ENSG_cv_adj$NA19098$cv^2),
+                    log10cv_2 = log10(ENSG_cv_adj$NA19101$cv^2)),
+       aes(x = log10cv_1, y = log10cv_2)) +
+    geom_point(cex = .4) +
+    xlab(&quot;NA19098 log10 squared-CV values&quot;) +
+    ylab(&quot;NA19101 log10 squared-CV values&quot;) +
+    ggtitle(&quot;Relationship between individual DM values&quot;) +
+    theme(legend.position = &quot;none&quot;),
+  ggplot(data.frame(dm1 = ENSG_cv_adj$NA19098$log10cv2_adj,
+                    dm2 = ENSG_cv_adj$NA19101$log10cv2_adj),
+       aes(x = dm1, y = dm2)) +
+    geom_point(cex = .4) +
+    xlab(&quot;NA19098 DM values&quot;) +
+    ylab(&quot;NA19101 DM values&quot;) +
+    ggtitle(&quot;Relationship between individual DM values&quot;) +
+    theme(legend.position = &quot;none&quot;),
+  ggplot(data.frame(dm = ENSG_cv_adj$NA19098$log10cv2_adj,
+                    log10_mean = log10(ENSG_cv_adj$NA19098$mean)),
+         aes(x = log10_mean, y = dm)) +
+      geom_point(cex = .4) +
+      xlab(&quot;log10 average molecule count&quot;) +
+      ylab(&quot;DM values&quot;) +
+      ggtitle(&quot;NA19098&quot;) +
+      theme(legend.position = &quot;none&quot;),
+    ggplot(data.frame(dm = ENSG_cv_adj$NA19101$log10cv2_adj,
+                    log10_mean = log10(ENSG_cv_adj$NA19101$mean)),
+         aes(x = log10_mean, y = dm)) +
+      geom_point(cex = .4) +
+      xlab(&quot;log10 average molecule count&quot;) +
+      ylab(&quot;DM values&quot;) +
+      ggtitle(&quot;NA19101&quot;) +
+      theme(legend.position = &quot;none&quot;),
+  ggplot(data.frame(dm = ENSG_cv_adj$NA19239$log10cv2_adj,
+                    log10_mean = log10(ENSG_cv_adj$NA19239$mean)),
+         aes(x = log10_mean, y = dm)) +
+      geom_point(cex = .4) +
+      xlab(&quot;log10 average molecule count&quot;) +
+      ylab(&quot;DM values&quot;) +
+      ggtitle(&quot;NA19239&quot;) +
+      theme(legend.position = &quot;none&quot;),
+  ncol = 2,
+  labels = LETTERS[1:5] )</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
+</div>
+<div id="check-pluripotency-and-cell-cycle" class="section level3">
+<h3>Check pluripotency and cell-cycle</h3>
+<p>Mark cell-cycle genes</p>
+<pre class="r"><code>genes &lt;- rownames(ENSG_cv[[1]])
+ii_cellcycle_genes &lt;- lapply(1:3, function(per_individual) {
+  genes %in% unlist(cell_cycle_genes)
+})
+names(ii_cellcycle_genes) &lt;- names(ENSG_cv)[1:3]
+ii_cellcycle_genes &lt;- do.call(c, ii_cellcycle_genes)
+
+ggplot(data.frame(do.call(rbind, ENSG_cv_adj[1:3]),
+                  dm = c(ENSG_cv_adj$NA19098$log10cv2_adj, 
+                         ENSG_cv_adj$NA19101$log10cv2_adj, 
+                         ENSG_cv_adj$NA19239$log10cv2_adj) ),
+       aes(x = log10(mean), y = dm )) +
+  geom_point(aes(col = group), cex = 1.2) + facet_wrap( ~ group) +
+  ggtitle(&quot;Cell-cycle genes&quot;) + 
+  geom_point(
+      data = subset(data.frame(do.call(rbind, ENSG_cv_adj[1:3]),
+                              dm = c(ENSG_cv_adj$NA19098$log10cv2_adj, 
+                                     ENSG_cv_adj$NA19101$log10cv2_adj, 
+                                     ENSG_cv_adj$NA19239$log10cv2_adj) ), 
+                 ii_cellcycle_genes), 
+       colour = &quot;grey20&quot;, cex = 1.2) +
+  labs(x = &quot;log10 average gene expression level&quot;,
+       y = &quot;DM values&quot;)</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Mark pluripotent genes</p>
+<pre class="r"><code>ii_pluripotent_genes &lt;- lapply(1:3, function(per_individual) {
+  genes %in% unlist(pluripotency_genes)
+})
+names(ii_pluripotent_genes) &lt;- names(ENSG_cv)[1:3]
+ii_pluripotent_genes &lt;- do.call(c, ii_pluripotent_genes)
+
+ggplot(data.frame(do.call(rbind, ENSG_cv_adj[1:3]),
+                  dm = c(ENSG_cv_adj$NA19098$log10cv2_adj, 
+                         ENSG_cv_adj$NA19101$log10cv2_adj, 
+                         ENSG_cv_adj$NA19239$log10cv2_adj) ),
+       aes(x = log10(mean), y = dm )) +
+  geom_point(aes(col = group), cex = 1.2) + facet_wrap( ~ group) +
+  ggtitle(&quot;Pluripotent genes&quot;) + 
+  geom_point(
+      data = subset(data.frame(do.call(rbind, ENSG_cv_adj[1:3]),
+                              dm = c(ENSG_cv_adj$NA19098$log10cv2_adj, 
+                                     ENSG_cv_adj$NA19101$log10cv2_adj, 
+                                     ENSG_cv_adj$NA19239$log10cv2_adj) ), 
+                 ii_pluripotent_genes), 
+       colour = &quot;grey20&quot;, cex = 1.2) +
+  labs(x = &quot;log10 average gene expression level&quot;,
+       y = &quot;DM values&quot;)</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="top-ranked-dm-genes" class="section level3">
+<h3>Top ranked DM genes</h3>
+<div id="ven-diagram-1000-genes" class="section level4">
+<h4>Ven diagram 1000 genes</h4>
+<p>Top 1000 genes based on DM (coeficient of variance corrected for dependence on expression)</p>
+<pre class="r"><code>genes&lt;- rownames(ENSG_cv[1])
+library(gplots)
+# venn_cv_rank &lt;- gplots::venn(
+#   list(NA19098 = genes[ which( rank(ENSG_cv_adj$NA19098$log10cv2_adj) 
+#                                &gt; length(genes) - 1000 ) ],
+#        NA19101 = genes[ which( rank(ENSG_cv_adj$NA19101$log10cv2_adj) 
+#                                &gt; length(genes) - 1000 ) ],
+#        NA19239 = genes[ which( rank(ENSG_cv_adj$NA19239$log10cv2_adj) 
+#                                &gt; length(genes) - 1000 ) ] ))</code></pre>
+<p>Bottom 1000 genes based on DM.</p>
+<pre class="r"><code>genes &lt;- rownames(ENSG_cv[[1]])
+library(gplots)
+gplots::venn(
+  list(NA19098 = genes[ which( rank(ENSG_cv_adj$NA19098$log10cv2_adj) 
+                               &lt;= 1000 ) ],
+       NA19101 = genes[ which( rank(ENSG_cv_adj$NA19101$log10cv2_adj) 
+                               &lt;= 1000 ) ],
+       NA19239 = genes[ which( rank(ENSG_cv_adj$NA19239$log10cv2_adj) 
+                               &lt;= 1000 ) ] ))</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Top 1000 genes based on means.</p>
+<pre class="r"><code>genes &lt;- rownames(ENSG_cv[[1]])
+library(gplots)
+gplots::venn( 
+  list(NA19098 = genes[ which(rank(ENSG_cv[[1]]$mean) &gt; length(genes) - 1000 ) ],
+       NA19101 = genes[ which(rank(ENSG_cv[[2]]$mean) &gt; length(genes) - 1000 ) ],
+       NA19239 = genes[ which(rank(ENSG_cv[[3]]$mean) &gt; length(genes) - 1000 ) ] ) )</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Mark top ranked genes based on individual DM values.</p>
+<pre class="r"><code>df_plot &lt;- data.frame(
+  cvs = c(ENSG_cv_adj[[1]]$log10cv2_adj, ENSG_cv_adj[[2]]$log10cv2_adj,
+          ENSG_cv_adj[[3]]$log10cv2_adj),
+  means = c(ENSG_cv[[1]]$mean, ENSG_cv[[2]]$mean, ENSG_cv[[3]]$mean),
+  individual = as.factor(rep(names(ENSG_cv)[1:3], each = NROW(ENSG_cv[[1]])) ) ) 
+
+cowplot::plot_grid(
+  ggplot( df_plot,
+        aes(x = log10(means), y = cvs ) ) +
+        geom_point( aes(col = as.factor(individual)), cex = 1.2 ) + 
+        facet_wrap( ~ individual) +
+        labs(x = &quot;log10 average gene expression level&quot;, 
+             y = &quot;DM values&quot;) +
+        geom_point(
+          data = df_plot[ rep( rank(ENSG_cv_adj$NA19098$log10cv2_adj) 
+                               &gt; length(genes) - 1000, 3), ],
+          colour = &quot;grey20&quot;, cex = 1.2 ) +
+        ggtitle(&quot;Top 1,000 genes in NA19098 based on DM values&quot;) +
+        theme(legend.position = &quot;none&quot;),
+  ggplot( df_plot,
+        aes(x = log10(means), y = cvs ) ) +
+        geom_point( aes(col = as.factor(individual)), cex = 1.2 ) + 
+        facet_wrap( ~ individual) +
+        labs(x = &quot;log10 average gene expression level&quot;, 
+             y = &quot;DM values&quot;) +
+        geom_point(
+          data = df_plot[ rep( rank(ENSG_cv_adj$NA19101$log10cv2_adj) 
+                               &gt; length(genes) - 1000, 3), ],
+          colour = &quot;grey20&quot;, cex = 1.2 ) +
+        ggtitle(&quot;Top 1,000 genes in NA19101 based on DM values&quot;) +
+        theme(legend.position = &quot;none&quot;),
+  ggplot( df_plot,
+        aes(x = log10(means), y = cvs ) ) +
+        geom_point( aes(col = as.factor(individual)), cex = 1.2 ) + 
+        facet_wrap( ~ individual) +
+        labs(x = &quot;log10 average gene expression level&quot;, 
+             y = &quot;DM values&quot;) +
+        geom_point(
+          data = df_plot[ rep( rank(ENSG_cv_adj$NA19239$log10cv2_adj) 
+                               &gt; length(genes) - 1000, 3), ],
+          colour = &quot;grey20&quot;, cex = 1.2 ) +
+        ggtitle(&quot;Top 1,000 genes in NA19239 based on DM values&quot;) +
+        theme(legend.position = &quot;none&quot;),
+  labels = LETTERS[1:4] )  </code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><strong>SKIP SAME ANALYSIS BUT WITH 100 GENES</strong></p>
+</div>
+</div>
+<div id="go-analtsis---individual-top-genes" class="section level3">
+<h3>GO analtsis - individual top genes</h3>
+<p>Analyze top 1000 gene in DM values.</p>
+<pre class="r"><code># output top 1000 genes in DM values
+top1000DM_genes &lt;-
+  data.frame(NA19098 = genes[ which( rank(ENSG_cv_adj$NA19098$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ],
+       NA19101 = genes[ which( rank(ENSG_cv_adj$NA19101$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ],
+       NA19239 = genes[ which( rank(ENSG_cv_adj$NA19239$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ],
+       stringsAsFactors = FALSE)
+
+# write the gene names out to a text file,
+# then copy and paste to GO Consortium interface
+
+for (ind in c(&quot;NA19098&quot;, &quot;NA19101&quot;, &quot;NA19239&quot;)) {
+  write.table(top1000DM_genes[[ind]],
+              file = paste0(&quot;../data/top-1000-dm-&quot;,ind,&quot;.txt&quot;),
+              sep = &quot;/t&quot;, quote = FALSE,
+              col.names = FALSE, row.names = FALSE)
+}
+write.table(rownames(molecules_final),
+            file = &quot;../data/gene-names.txt&quot;,
+            sep = &quot;/t&quot;, quote = FALSE,
+            col.names = FALSE, row.names = FALSE)</code></pre>
+<div id="go-consortium" class="section level4">
+<h4>GO consortium</h4>
+<p>We found no significant GO terms in PANTHER database.</p>
+</div>
+<div id="cpdb" class="section level4">
+<h4>CPDB</h4>
+<p>ConsensusPATHDB-Human was used to perform GO over-representation analysis.<br />
+show example for 1 individaul here</p>
+<p><strong>NA19098</strong></p>
+<pre class="r"><code># go_NA19098 &lt;- 
+#   read.table(&quot;figure/cv-adjusted-summary-pois.Rmd/go-cpdb-top-1000-dm-NA19098.tab&quot;,
+#                sep = &quot;\t&quot;,
+#                header = TRUE)
+# go_NA19098_sig &lt;- go_NA19098[go_NA19098$q.value &lt; .1, ]
+# go_NA19098_sig$term_name</code></pre>
+</div>
+</div>
+<div id="go-analysis--shared-noisy-genes" class="section level3">
+<h3>GO analysis- shared noisy genes</h3>
+<pre class="r"><code>shared_venn &lt;- gplots::venn(
+  list(NA19098 = genes[ which( rank(ENSG_cv_adj$NA19098$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ],
+       NA19101 = genes[ which( rank(ENSG_cv_adj$NA19101$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ],
+       NA19239 = genes[ which( rank(ENSG_cv_adj$NA19239$log10cv2_adj) 
+                               &gt; length(genes) - 1000 ) ] ) )</code></pre>
+<p><img src="figure/noisy_genes.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>shared_genes &lt;- attr(shared_venn, &quot;intersections&quot;)[[&#39;111&#39;]]
+
+# write.table(shared_genes,
+#             file = (&quot;../data/top-1000-dm-shared.txt&quot;),
+#             sep = &quot;/t&quot;, quote = FALSE,
+#            col.names = FALSE, row.names = FALSE)</code></pre>
+<p>ConsensusPATHDB-Human was used to perform GO over-representation analysis.</p>
+<p>Of the 120 noisy genes that are common to all three individual cell lines, 38 of the genes are over-represented in the following functions:</p>
+<pre class="r"><code># go_top_shared &lt;- read.table(&quot;figure/cv-adjusted-summary-pois.Rmd/go-cpdb-top-1000-shared.tab&quot;,
+#                          sep = &quot;\t&quot;,
+#                          header = TRUE)
+# go_top_shared &lt;- go_top_shared[go_top_shared$q.value &lt; .1, ]
+# go_top_shared$term_name</code></pre>
+<pre class="r"><code># go_top_shared_genes &lt;- getGenes(gsub(&quot;;&quot;, &quot;,&quot;,
+#                     as.character(go_top_shared$members_input_overlap_geneids)))
+# go_top_shared_genes &lt;- go_top_shared_genes[!duplicated(go_top_shared_genes[ , &quot;symbol&quot;]), ]
+# kable(data.frame(symbol = go_top_shared_genes[ ,&quot;symbol&quot;],
+#                   name = go_top_shared_genes[,&quot;name&quot;]) )</code></pre>
+</div>
+<div id="differential-dms" class="section level3">
+<h3>Differential DMs</h3>
+<p>Compute <strong>median of absolute deviations (MAD)</strong> to quantify dissimilarity of the individual DM meausres.</p>
+<pre class="r"><code>library(matrixStats)
+dm_matrix &lt;- as.matrix(
+                data.frame(NA19098 = ENSG_cv_adj$NA19098$log10cv2_adj,
+                           NA19101 = ENSG_cv_adj$NA19101$log10cv2_adj,
+                           NA19239 = ENSG_cv_adj$NA19239$log10cv2_adj) )
+mad &lt;- rowMedians( abs( dm_matrix - rowMedians(dm_matrix) ) )</code></pre>
+<div id="top-100-ranked-genes-by-mad" class="section level4">
+<h4>Top 100 ranked genes by MAD</h4>
+<p>ConsensusPATHDB-Human was used to perform GO over-representation analysis.</p>
+<p>Look up top 100 genes in MAD values</p>
+<pre class="r"><code>mad_genes &lt;- rownames(molecules_final)[rank(mad) &gt; 
+                                             (length(mad) - 100) ]
+#write.table(mad_genes,
+#            file = &quot;../data/mad-genes.txt&quot;,
+#            sep = &quot;\t&quot;, quote = FALSE,
+#            col.names = FALSE, row.names = FALSE)</code></pre>
+<pre class="r"><code># library(mygene)
+# go_top &lt;- read.table(&quot;figure/cv-adjusted-summary-pois.Rmd/go-cpdb-all-top.tab&quot;,
+#                          sep = &quot;\t&quot;,
+#                          header = TRUE)
+# go_top &lt;- go_top[go_top$q.value &lt; .1, ]
+# as.character(go_top$term_name)</code></pre>
+<pre class="r"><code># go_top_genes &lt;- getGenes(gsub(&quot;;&quot;, &quot;,&quot;,
+#                     as.character(go_top$members_input_overlap_geneids)))
+# go_top_genes &lt;- go_top_genes[!duplicated(go_top_genes[ , &quot;symbol&quot;]), ]
+# kable(data.frame(symbol =go_top_genes[ ,&quot;symbol&quot;],
+#                  name = go_top_genes[,&quot;name&quot;]) )</code></pre>
+</div>
+</div>
+<div id="session-information" class="section level3">
+<h3>Session Information</h3>
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+ [1] stats4    parallel  grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] broman_0.65-1          scales_0.4.1           gplots_3.0.1          
+ [4] lmtest_0.9-35          zoo_1.7-14             VennDiagram_1.6.17    
+ [7] futile.logger_1.4.3    mygene_1.10.0          GenomicFeatures_1.26.2
+[10] AnnotationDbi_1.36.1   Biobase_2.34.0         GenomicRanges_1.26.2  
+[13] GenomeInfoDb_1.10.3    IRanges_2.8.1          S4Vectors_0.12.1      
+[16] BiocGenerics_0.20.0    matrixStats_0.51.0     MASS_7.3-45           
+[19] Humanzee_0.1.0         edgeR_3.16.5           limma_3.30.9          
+[22] dplyr_0.5.0            data.table_1.10.0      workflowr_0.3.0       
+[25] rmarkdown_1.3          testit_0.6             cowplot_0.7.0         
+[28] ggplot2_2.2.1         
+
+loaded via a namespace (and not attached):
+ [1] nlme_3.1-128               bitops_1.0-6              
+ [3] RColorBrewer_1.1-2         httr_1.2.1                
+ [5] rprojroot_1.2              tools_3.3.2               
+ [7] backports_1.0.5            R6_2.2.0                  
+ [9] rpart_4.1-10               KernSmooth_2.23-15        
+[11] Hmisc_4.0-2                DBI_0.5-1                 
+[13] lazyeval_0.2.0             mgcv_1.8-15               
+[15] colorspace_1.3-2           nnet_7.3-12               
+[17] gridExtra_2.2.1            git2r_0.18.0              
+[19] chron_2.3-49               htmlTable_1.9             
+[21] rtracklayer_1.34.1         labeling_0.3              
+[23] caTools_1.17.1             checkmate_1.8.2           
+[25] stringr_1.1.0              digest_0.6.12             
+[27] Rsamtools_1.26.1           foreign_0.8-67            
+[29] XVector_0.14.0             base64enc_0.1-3           
+[31] htmltools_0.3.5            htmlwidgets_0.8           
+[33] RSQLite_1.1-2              jsonlite_1.2              
+[35] BiocParallel_1.8.1         gtools_3.5.0              
+[37] acepack_1.4.1              RCurl_1.95-4.8            
+[39] magrittr_1.5               Formula_1.2-1             
+[41] Matrix_1.2-7.1             Rcpp_0.12.9               
+[43] munsell_0.4.3              proto_1.0.0               
+[45] sqldf_0.4-10               yaml_2.1.14               
+[47] stringi_1.1.2              SummarizedExperiment_1.4.0
+[49] zlibbioc_1.20.0            plyr_1.8.4                
+[51] gdata_2.17.0               lattice_0.20-34           
+[53] Biostrings_2.42.1          splines_3.3.2             
+[55] locfit_1.5-9.1             knitr_1.15.1              
+[57] biomaRt_2.30.0             futile.options_1.0.0      
+[59] XML_3.98-1.5               evaluate_0.10             
+[61] latticeExtra_0.6-28        lambda.r_1.1.9            
+[63] gtable_0.2.0               assertthat_0.1            
+[65] gsubfn_0.6-6               survival_2.40-1           
+[67] tibble_1.2                 GenomicAlignments_1.10.0  
+[69] memoise_1.0.0              cluster_2.0.5             </code></pre>
 </div>
 
 <hr>

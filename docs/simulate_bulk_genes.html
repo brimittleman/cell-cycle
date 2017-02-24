@@ -308,10 +308,15 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-17</p>
-<p><strong>Code version:</strong> ec446d3</p>
-<pre class="r"><code>library(&quot;biomaRt&quot;)
-library(&quot;data.table&quot;)
+<p><strong>Last updated:</strong> 2017-02-24</p>
+<p><strong>Code version:</strong> 0506d1c</p>
+<pre class="r"><code>library(&quot;biomaRt&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;biomaRt&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:mygene&#39;:
+
+    getGene</code></pre>
+<pre class="r"><code>library(&quot;data.table&quot;)
 library(&quot;testit&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
@@ -341,6 +346,7 @@ colnames(molecules_pool) &lt;- c(&quot;pool_count&quot;)
 molecules_1ind_3r &lt;- molecules[,1:288]
 molecules1ind3r_pool &lt;- data.frame(apply(molecules_1ind_3r, 1 , sum))
 colnames(molecules1ind3r_pool) &lt;- c(&quot;pool_count&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../output/pooled_molecules.rda&quot;)</code></pre>
 <pre class="r"><code>pooled_molecules &lt;- c()
 for (row in rownames(molecules_pool)){
   which_row &lt;- rownames(molecules_pool) == row
@@ -348,6 +354,7 @@ for (row in rownames(molecules_pool)){
   pooled_molecules &lt;- c(pooled_molecules, num)
 }</code></pre>
 <p>3 replicates</p>
+<pre class="r"><code>load(&quot;../output/pooled_molecules_3rep.rda&quot;)</code></pre>
 <pre class="r"><code>pooled_molecules_3rep &lt;- c()
 for (row in rownames(molecules1ind3r_pool)){
   which_row3 &lt;- rownames(molecules1ind3r_pool) == row
@@ -389,13 +396,87 @@ for (row in rownames(molecules1ind3r_pool)){
 <div id="apply-function" class="section level3">
 <h3>Apply function</h3>
 <p>I will run my function at a bunch of different N values and plot the returned value against the sample size N.</p>
+<pre class="r"><code>not_in_simbulk&lt;- sapply(N_samples, function(x) subsample_func(x))
+not_in_simbulk3r&lt;- sapply(N_samples, function(x) subsample_func_3(x))</code></pre>
 <pre class="r"><code>N_samples &lt;-seq(100000, 100000000, by = 1000000)
-not_in_simbulk&lt;- sapply(N_samples, function(x) subsample_func(x))
-plot(not_in_simbulk ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 1 replicate&quot;, xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) </code></pre>
-<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>not_in_simbulk3r&lt;- sapply(N_samples, function(x) subsample_func_3(x))
-plot(not_in_simbulk3r ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 3 replicate&quot;, xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) </code></pre>
-<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-10-2.png" width="672" style="display: block; margin: auto;" /></p>
+load(&quot;../output/not_in_simbulk.rda&quot;)
+plot(not_in_simbulk ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 1 replicate&quot;, xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) 
+abline(971,0)</code></pre>
+<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>load(&quot;../output/not_in_simbulk3r.rda&quot;)
+plot(not_in_simbulk3r ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 3 replicate&quot;, ylim =c(0,9000),
+     xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) 
+abline(971, 0)
+points(31279090, 971, cex=1,  col=&quot;blue&quot;, pch=16)</code></pre>
+<p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="compare-runtime-of-multinomial-function-and-uniform-random-sampling" class="section level3">
+<h3>Compare runtime of multinomial function and uniform random sampling</h3>
+<pre class="r"><code>load(&quot;../output/runtime.rda&quot;)
+
+# runtime for multinomial appraoch
+print(t1)</code></pre>
+<pre><code>   user  system elapsed 
+  1.428   0.028   1.455 </code></pre>
+<pre class="r"><code># runtime for multinomial appraoch
+print(t2)</code></pre>
+<pre><code>   user  system elapsed 
+380.452 165.377 546.179 </code></pre>
+<pre class="r"><code># N_samples: a vector of sample coverage
+# rmultinom parameters
+# n: coverage
+# prob: a vector of the number of molecules seen in each gene (length = # genes)
+# size: number of genes
+
+genes_observed_molecules &lt;- rownames(molecules_1ind)[rowSums(molecules_1ind) &gt; 0]
+
+N_samples = 1000
+t1 &lt;- system.time({
+  not_in_simbulk&lt;- sapply(N_samples, function(x) {
+     subsample_genes &lt;- rmultinom(n = x, size = length(molecules_pool$pool_count),
+               prob = molecules_pool$pool_count)
+     unique_subsample_pool &lt;- rownames(molecules_pool)[rowSums(subsample_genes)&gt;0]
+     #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+     only_sc &lt;- length(setdiff(genes_observed_molecules, unique_subsample_pool))
+     return(only_sc)
+   })
+})
+
+t2 &lt;- system.time({
+  pooled_molecules &lt;- c()
+  for (row in rownames(molecules_pool)){
+    which_row &lt;- rownames(molecules_pool) == row
+    num = rep(row, times= molecules_pool[which_row,])
+    pooled_molecules &lt;- c(pooled_molecules, num)
+  }
+  subsample_func &lt;- function(N){
+    #subsample with replacement
+    subsample_pool &lt;- sample(pooled_molecules, N, replace=TRUE)
+    #make list of unique genes in sample
+    unique_subsample_pool &lt;- unique(subsample_pool)
+    #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+    only_sc &lt;- setdiff(genes_observed_molecules, unique_subsample_pool)
+    return(length(only_sc))
+  }
+  not_in_simbulk&lt;- sapply(N_samples, function(x) subsample_func(x))
+})</code></pre>
+</div>
+<div id="try-multinomial-for-all-samples" class="section level3">
+<h3>Try multinomial for all samples</h3>
+<pre class="r"><code>molecules_pool_total &lt;- data.frame(apply(molecules, 1 , sum))
+colnames(molecules_pool_total) &lt;- c(&quot;pool_count&quot;)
+
+genes_observed_molecules &lt;- rownames(molecules_1ind)[rowSums(molecules_1ind) &gt; 0]
+
+# N_samples &lt;-seq(100000, 100000000, by = 1000000)
+#   not_in_simbulk_multi&lt;- sapply(N_samples, function(x) {
+#      subsample_genes &lt;- rmultinom(n = x, size = length(molecules_pool$pool_count),
+#                prob = molecules_pool$pool_count)
+#      unique_subsample_pool &lt;- rownames(molecules)[rowSums(subsample_genes)&gt;0]
+#      #list of gene in genes_observed_molecules that arnt in unique list (call it only_sc)
+#      only_sc &lt;- length(setdiff(genes_observed_molecules, unique_subsample_pool))
+#      return(only_sc)
+#    })</code></pre>
 </div>
 
 <hr>
