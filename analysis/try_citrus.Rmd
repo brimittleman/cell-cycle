@@ -198,3 +198,19 @@ ff2
 ###Notes on other algoritms  
 
 scPLS() also provides other alternative algorithms to estimate the confounding factors. Users can select different algorithms by specifying the option method. PCA algorithm implements the initializer of our EM algorithm. The latent factors are estimated from a Singular Value Decomposition. Details of the algorithm can be found in []. Other choices all impose sparsity assumptions on the structured biological factor matrix to improve interpretability. These include “EMSparse” algorithm, with penalty on sparsity of the factor matrix pre-specified, “EMSparseTraining” algorithm with penalty on sparsity learned from training samples, “EMparseNfold” algorithm with penalty on sparsity learned from N fold cross-validation, and “IBP” algorithm with the sparse factor matrix modeled by an Indian Buffet Process prior.  
+
+
+```{r}
+
+#try 100 gene chunks 
+system.time(res_chuncks_100 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = "EM", Chunk = TRUE , chunk.size = 100, center = TRUE))
+#try 300 gene chunk 
+system.time(res_chunks_300 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = "EM", Chunk = TRUE, chunk.size = 300, center = TRUE))
+#try 50 gene chunks
+system.time(res_chunks_50 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = "EM", Chunk = TRUE, chunk.size = 50, center = TRUE))
+```
+
+Smaller chunks of genes help the algorithm run faster. With a gene set as small as this sample chunks are not needed. Chunk size is set default to 1000 if Chunk=TRUE.  The number of genes comes only from the target genes.  
