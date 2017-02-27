@@ -185,10 +185,10 @@ ytitle = "PC2", mainTitle = "Cell cyle effect removed", removePanelGrid = TRUE, 
 ```
 
 ```{r}
-ff1
+#ff1
 ```
 
 ```{r}
-ff2
+#ff2
 ```
 
