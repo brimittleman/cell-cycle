@@ -56,5 +56,5 @@ Continue the Gilad single cell anaylsis:
 
 Work with cell cycle normalization  
 
-*[Try citrus package for removing technical and cell cycle effects](try_citrus.html)
+* [Try citrus package for removing technical and cell cycle effects](try_citrus.html)
 
