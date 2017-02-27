@@ -54,4 +54,7 @@ Continue the Gilad single cell anaylsis:
 
 * [Explore cell to cell variation (paper figures)](cell_to_cell_variation.html)
 
+Work with cell cycle normalization  
+
+*[Try citrus](try_citrus.html)
 
