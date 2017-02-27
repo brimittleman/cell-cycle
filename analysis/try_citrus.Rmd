@@ -31,6 +31,7 @@ library(reshape2)
 library(ggplot2) 
 #devtools::install_github("kassambara/easyGgplot2")
 library(easyGgplot2)
+library(stringr)
 ```
 
 
@@ -110,7 +111,9 @@ ff
 
 Figure 1: Decomposition of variance into three components. Genes are evenly divided into ten quantiles based on the sample variance.  
 
+Sructured is biological effect from  $\Lambda_\mu$ and Tech is from  $\Lambda_x$ and  $\Lambda_y$  
 
+**Why does the residue hold such a large proportion?**  
 ###Remove cell cylce effect  
 
 Use same data set, further remove the cell cycle effect by treating the cell cycle genes as controll and non cell cycle genes as target.  
@@ -151,10 +154,13 @@ ff <- ggplot2.barplot(data = df, xName = "Quantile", yName = "Proportion", group
 ff
 ```
 
-COmpare the expression of non cell cycle genes in original dataset and after removing beoth technical effect through spikeins and cell cycle effect with cell cycle genes.  
+Compare the expression of non cell cycle genes in original dataset and after removing beoth technical effect through spikeins and cell cycle effect with cell cycle genes.  
+
+The celltypes code from the userguide does not work. I replaced it with string parsing using the stringr package.  
 
 ```{r}
-celltypes <- gsub("_[ˆ<>]*", "", rownames(CellCycleData$Expression)) 
+celltypes <- str_split_fixed(row.names(CellCycleData$Expression), pattern= "_", n=3)[,1]
+
 pcs <- prcomp(CellCycleData$Expression[, CellCycleData$Label ==
 "NonCellCycle"], center = TRUE)
 PC1 <- pcs$x[, 1]
@@ -163,10 +169,7 @@ df <- data.frame(PC1, PC2, "raw", celltypes)
 colnames(df) <- c("PC1", "PC2", "Method", "Type")
 
 
-ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white",groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
-ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(25,
-"bold", "black"), ytitleFont = c(25, "bold", "black"), xTickLabelFont = c(25, "bold", "black"), yTickLabelFont = c(25,
-        "bold", "black"))
+ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1", ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(10,"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont = c(10, "bold", "black"), yTickLabelFont = c(10, "bold", "black"))
 
 pcs <- prcomp(res2$Adjusted, center = TRUE)
 PC1 <- pcs$x[, 1]
@@ -176,19 +179,22 @@ colnames(df) <- c("PC1", "PC2", "Method", "Type")
 
 
 ff2 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2",
-groupName = "Type", size = 5, backgroundColor = "white",
-groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
-ytitle = "PC2", mainTitle = "Cell cyle effect removed", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(25,
-"bold", "black"), ytitleFont = c(25, "bold", "black"), xTickLabelFont=c(25, "bold", "black"), yTickLabelFont= c(25, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(15, "bold", "black"), legendTextFont = c(15, "bold", "black") )
+groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
+ytitle = "PC2", mainTitle = "Cell cyle effect removed", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(10,
+"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont=c(10, "bold", "black"), yTickLabelFont= c(10, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(10, "bold", "black"), legendTextFont = c(10, "bold", "black") )
 
 
 ```
 
 ```{r}
-#ff1
+ff1
 ```
 
 ```{r}
-#ff2
+ff2
+
 ```
 
+###Notes on other algoritms  
+
+scPLS() also provides other alternative algorithms to estimate the confounding factors. Users can select different algorithms by specifying the option method. PCA algorithm implements the initializer of our EM algorithm. The latent factors are estimated from a Singular Value Decomposition. Details of the algorithm can be found in []. Other choices all impose sparsity assumptions on the structured biological factor matrix to improve interpretability. These include “EMSparse” algorithm, with penalty on sparsity of the factor matrix pre-specified, “EMSparseTraining” algorithm with penalty on sparsity learned from training samples, “EMparseNfold” algorithm with penalty on sparsity learned from N fold cross-validation, and “IBP” algorithm with the sparse factor matrix modeled by an Indian Buffet Process prior.  
