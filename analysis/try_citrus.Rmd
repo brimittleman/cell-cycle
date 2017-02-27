@@ -1,0 +1,194 @@
+---
+title: "Try citrus vingette"
+author: "Briana Mittleman"
+date: 2017-02-27
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Install package  
+
+```{r}
+#install.packages("devtools")
+#devtools::install_github("ChenMengjie/Citrus")
+library("Citrus")
+```
+
+####Install and load packages for figures  
+
+```{r}
+library(reshape2)
+library(ggplot2) 
+#devtools::install_github("kassambara/easyGgplot2")
+library(easyGgplot2)
+```
+
+
+###Load data  
+This uses the data from the Beuttner et al cell cycle paper. This dataset has the top 500 non cell cycle genes, 100 cell cycle genes and 20 spikeins with the largest variance accross samples.  The data The data has 182 cell opservations for each of the genes in the set. 
+
+```{r}
+data(CellCycleData) 
+table(CellCycleData$Label)
+
+
+```
+
+###Remove technical effect  
+The control matrix is cell by gene table with expression for the genes with the spike in label. There are 20 genes and 182 cells. 
+
+The target matrix is cell by gene with expression data for the genes that do not have the Spikein label. There are 600 genes and 182 cells.  
+
+```{r}
+Control <- CellCycleData$Expression[, CellCycleData$Label ==
+    "Spikein"]
+Target <- CellCycleData$Expression[, CellCycleData$Label != "Spikein"]
+#run scPLS
+#technical factors (k1=2)
+#biological factors (k2=5)
+system.time(res <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,method = "EM", Chunk = FALSE, center = TRUE))
+```
+
+The technical effect can be looked at using the spike ins as the control genes and all other genes as the target. 
+
+The default algorithm is the “EM-in-Chunks” algorithm, which will randomly devide genes into different chunks, average the estimates from chunks and thus accelarate the computation. The default chunk size is 1000. We recommend to use the “EM-in-Chunks” algorithm only for large gene sets. When Chunk = FALSE, the “Naive EM” algorithm will be used. In addition, scPLS() will center the expression of each gene to mean of 0 unless setting center = FALSE.  
+
+```{r}
+summary(res)
+```
+
+* Confounding factor: lambdaY  
+
+* counfounding loaing matrix: z  
+
+* strcture factor matrix $\Lambda_\mu$ : Factor  
+
+* structured factor loading matrix U: Loading  
+
+The likelihood for 2 is saved as Likelihood, which can be used for model comparison later. The expression matrix after adjusting for coufounding effect is stored in Adjusted, which is calculated by Y − ΛyZ.  
+
+```{r}
+head(res$VarianceSummary)
+```
+
+VarianceSummary stores total sample variance and sample technical variance as well as total vari- ance and technical variance estimated by the fitted model for each gene. We can further quantify the proportion of variance explained by different sources as the following. For each gene, the expression variance is partitioned into three components: a component that is explained by technical factors, a component that is explained by structured biological factors, and the residual error variance. Genes are evenly divided into ten quantiles based on the sample variance.  
+
+```{r}
+Var <- res$VarianceSummary
+ConProp <- round(Var["ModelConfounding"]/Var["Model"], 3)
+StructuredProp <- round(Var["ModelStructure"]/Var["Model"], 3) 
+PropTable <- data.frame(ConProp, StructuredProp, 1 - ConProp -
+StructuredProp)
+colnames(PropTable) <- c("Tech", "Structured", "Residue")
+QuantileTable <- QuantileSummary(PropTable, quantiles = seq(0.1,
+1, by = 0.1), rankingby = unlist(Var["Sample"]))
+head(QuantileTable)
+```
+
+###Visualize results  
+
+```{r}
+df <- reshape2::melt(QuantileTable, id.vars = "Quantile") 
+colnames(df)[3] <- "Proportion"
+colnames(df)[2] <- "Variance"
+
+ff <- ggplot2.barplot(data = df, xName = "Quantile", yName = "Proportion", groupName = "Variance", groupColors = c("#66B2FF", "#FFB266",
+"#FFAAD4"), position = position_stack(), backgroundColor = "white", color = "black", xtitle = "Quantile (%)", ytitle = "Proportion", mainTitle = "", removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, "solid", "black"), ylim = c(0, 1.05), legendPosition = "top", legendTextFont = c(10, "bold", "black"))
+
+ff
+```
+
+Figure 1: Decomposition of variance into three components. Genes are evenly divided into ten quantiles based on the sample variance.  
+
+
+###Remove cell cylce effect  
+
+Use same data set, further remove the cell cycle effect by treating the cell cycle genes as controll and non cell cycle genes as target.  
+
+```{r}
+Expression <- res$Adjusted
+#dont account for spikeins
+Label <- CellCycleData$Label[CellCycleData$Label != "Spikein"]
+Control <- Expression[, Label == "CellCycle"]
+Target <- Expression[, Label == "NonCellCycle"]
+system.time(res2 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = "EM", Chunk = FALSE, center = TRUE))
+
+```
+
+Similarly quantify proportion of variance explained by the cell cycle process.  
+
+```{r}
+Var <- res2$VarianceSummary
+ConProp <- round(Var["ModelConfounding"]/Var["Model"], 3) 
+StructuredProp <- round(Var["ModelStructure"]/Var["Model"], 3) 
+PropTable <- data.frame(ConProp, StructuredProp, 1 - ConProp - StructuredProp)
+colnames(PropTable) <- c("CellCycle", "Structured", "Residue")
+median(PropTable$CellCycle)
+```
+About 7% of the variance is explained by cell cycle processes.  
+
+
+```{r}
+QuantileTable <- QuantileSummary(PropTable, quantiles = seq(0.1, 1, by = 0.1), rankingby = unlist(Var["Sample"]))
+df <- reshape2::melt(QuantileTable, id.vars = "Quantile") 
+colnames(df)[3] <- "Proportion"
+colnames(df)[2] <- "Variance"
+
+
+ff <- ggplot2.barplot(data = df, xName = "Quantile", yName = "Proportion", groupName = "Variance", groupColors = c("#66B2FF", "#FFB266",
+"#FFAAD4"), position = position_stack(), backgroundColor = "white", color = "black", xtitle = "Quantile (%)", ytitle = "Proportion", mainTitle = "", removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, "solid", "black"), ylim = c(0, 1.05), legendPosition = "top", legendTextFont = c(10, "bold", "black"))
+ff
+```
+
+COmpare the expression of non cell cycle genes in original dataset and after removing beoth technical effect through spikeins and cell cycle effect with cell cycle genes.  
+
+```{r}
+celltypes <- gsub("_[ˆ<>]*", "", rownames(CellCycleData$Expression)) 
+pcs <- prcomp(CellCycleData$Expression[, CellCycleData$Label ==
+"NonCellCycle"], center = TRUE)
+PC1 <- pcs$x[, 1]
+PC2 <- pcs$x[, 2]
+df <- data.frame(PC1, PC2, "raw", celltypes) 
+colnames(df) <- c("PC1", "PC2", "Method", "Type")
+
+
+ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white",groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
+ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(25,
+"bold", "black"), ytitleFont = c(25, "bold", "black"), xTickLabelFont = c(25, "bold", "black"), yTickLabelFont = c(25,
+        "bold", "black"))
+
+pcs <- prcomp(res2$Adjusted, center = TRUE)
+PC1 <- pcs$x[, 1]
+PC2 <- pcs$x[, 2]
+df <- data.frame(PC1, PC2, "rmcellcyle", celltypes) 
+colnames(df) <- c("PC1", "PC2", "Method", "Type")
+
+
+ff2 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2",
+groupName = "Type", size = 5, backgroundColor = "white",
+groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
+ytitle = "PC2", mainTitle = "Cell cyle effect removed", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(25,
+"bold", "black"), ytitleFont = c(25, "bold", "black"), xTickLabelFont=c(25, "bold", "black"), yTickLabelFont= c(25, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(15, "bold", "black"), legendTextFont = c(15, "bold", "black") )
+
+
+```
+
+```{r}
+ff1
+```
+
+```{r}
+ff2
+```
+
