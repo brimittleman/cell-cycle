@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-27</p>
-<p><strong>Code version:</strong> 2892761</p>
+<p><strong>Code version:</strong> e1c038a</p>
 <div id="install-package" class="section level3">
 <h3>Install package</h3>
 <pre class="r"><code>#install.packages(&quot;devtools&quot;)
@@ -346,7 +346,7 @@ Target &lt;- CellCycleData$Expression[, CellCycleData$Label != &quot;Spikein&quo
 #biological factors (k2=5)
 system.time(res &lt;- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,method = &quot;EM&quot;, Chunk = FALSE, center = TRUE))</code></pre>
 <pre><code>   user  system elapsed 
- 11.860   0.000  11.839 </code></pre>
+ 12.053   0.000  12.031 </code></pre>
 <p>The technical effect can be looked at using the spike ins as the control genes and all other genes as the target.</p>
 <p>The default algorithm is the “EM-in-Chunks” algorithm, which will randomly devide genes into different chunks, average the estimates from chunks and thus accelarate the computation. The default chunk size is 1000. We recommend to use the “EM-in-Chunks” algorithm only for large gene sets. When Chunk = FALSE, the “Naive EM” algorithm will be used. In addition, scPLS() will center the expression of each gene to mean of 0 unless setting center = FALSE.</p>
 <pre class="r"><code>summary(res)</code></pre>
@@ -411,7 +411,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 &quot;#FFAAD4&quot;), position = position_stack(), backgroundColor = &quot;white&quot;, color = &quot;black&quot;, xtitle = &quot;Quantile (%)&quot;, ytitle = &quot;Proportion&quot;, mainTitle = &quot;&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, &quot;solid&quot;, &quot;black&quot;), ylim = c(0, 1.05), legendPosition = &quot;top&quot;, legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;))
 
 ff</code></pre>
-<p><img src="figure/try_citrus.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/try_citrus.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Figure 1: Decomposition of variance into three components. Genes are evenly divided into ten quantiles based on the sample variance.</p>
 <p>Sructured is biological effect from <span class="math inline">\(\Lambda_\mu\)</span> and Tech is from <span class="math inline">\(\Lambda_x\)</span> and <span class="math inline">\(\Lambda_y\)</span></p>
 <p><strong>Why does the residue hold such a large proportion?</strong><br />
@@ -425,7 +425,7 @@ Target &lt;- Expression[, Label == &quot;NonCellCycle&quot;]
 system.time(res2 &lt;- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
     method = &quot;EM&quot;, Chunk = FALSE, center = TRUE))</code></pre>
 <pre><code>   user  system elapsed 
- 11.549   0.000  11.527 </code></pre>
+ 11.355   0.000  11.340 </code></pre>
 <p>Similarly quantify proportion of variance explained by the cell cycle process.</p>
 <pre class="r"><code>Var &lt;- res2$VarianceSummary
 ConProp &lt;- round(Var[&quot;ModelConfounding&quot;]/Var[&quot;Model&quot;], 3) 
@@ -444,7 +444,7 @@ colnames(df)[2] &lt;- &quot;Variance&quot;
 ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;Proportion&quot;, groupName = &quot;Variance&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;,
 &quot;#FFAAD4&quot;), position = position_stack(), backgroundColor = &quot;white&quot;, color = &quot;black&quot;, xtitle = &quot;Quantile (%)&quot;, ytitle = &quot;Proportion&quot;, mainTitle = &quot;&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, &quot;solid&quot;, &quot;black&quot;), ylim = c(0, 1.05), legendPosition = &quot;top&quot;, legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;))
 ff</code></pre>
-<p><img src="figure/try_citrus.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/try_citrus.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Compare the expression of non cell cycle genes in original dataset and after removing beoth technical effect through spikeins and cell cycle effect with cell cycle genes.</p>
 <p>The celltypes code from the userguide does not work. I replaced it with string parsing using the stringr package.</p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(CellCycleData$Expression), pattern= &quot;_&quot;, n=3)[,1]
@@ -471,13 +471,29 @@ groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, gro
 ytitle = &quot;PC2&quot;, mainTitle = &quot;Cell cyle effect removed&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,
 &quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )</code></pre>
 <pre class="r"><code>ff1</code></pre>
-<p><img src="figure/try_citrus.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/try_citrus.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ff2</code></pre>
-<p><img src="figure/try_citrus.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/try_citrus.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="notes-on-other-algoritms" class="section level3">
 <h3>Notes on other algoritms</h3>
 <p>scPLS() also provides other alternative algorithms to estimate the confounding factors. Users can select different algorithms by specifying the option method. PCA algorithm implements the initializer of our EM algorithm. The latent factors are estimated from a Singular Value Decomposition. Details of the algorithm can be found in []. Other choices all impose sparsity assumptions on the structured biological factor matrix to improve interpretability. These include “EMSparse” algorithm, with penalty on sparsity of the factor matrix pre-specified, “EMSparseTraining” algorithm with penalty on sparsity learned from training samples, “EMparseNfold” algorithm with penalty on sparsity learned from N fold cross-validation, and “IBP” algorithm with the sparse factor matrix modeled by an Indian Buffet Process prior.</p>
+<pre class="r"><code>#try 100 gene chunks 
+system.time(res_chuncks_100 &lt;- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = &quot;EM&quot;, Chunk = TRUE , chunk.size = 100, center = TRUE))</code></pre>
+<pre><code>   user  system elapsed 
+  6.842   0.036   6.873 </code></pre>
+<pre class="r"><code>#try 300 gene chunk 
+system.time(res_chunks_300 &lt;- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 300, center = TRUE))</code></pre>
+<pre><code>   user  system elapsed 
+  8.010   0.048   8.051 </code></pre>
+<pre class="r"><code>#try 50 gene chunks
+system.time(res_chunks_50 &lt;- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
+    method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 50, center = TRUE))</code></pre>
+<pre><code>   user  system elapsed 
+  7.494   0.058   7.547 </code></pre>
+<p>Smaller chunks of genes help the algorithm run faster. With a gene set as small as this sample chunks are not needed. Chunk size is set default to 1000 if Chunk=TRUE. The number of genes comes only from the target genes.</p>
 </div>
 
 <hr>
