@@ -11,6 +11,7 @@
 
 <meta name="author" content="Briana Mittleman" />
 
+<meta name="date" content="2017-02-28" />
 
 <title>Apply citrus for technical factor normalization</title>
 
@@ -303,13 +304,13 @@ div.tocify {
 
 <h1 class="title toc-ignore">Apply citrus for technical factor normalization</h1>
 <h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>YYYY-MM-DD</em></h4>
+<h4 class="date"><em>2017-02-28</em></h4>
 
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-28</p>
-<p><strong>Code version:</strong> ddc324e</p>
+<p><strong>Last updated:</strong> 2017-03-01</p>
+<p><strong>Code version:</strong> 1c0ac42</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
@@ -392,7 +393,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 
 ff</code></pre>
 <pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
 
 pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
@@ -418,9 +419,34 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;,
 <div id="plot-output" class="section level3">
 <h3>Plot output</h3>
 <pre class="r"><code>ff1</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-44-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ff2</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-45-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="try-more-k-values" class="section level3">
+<h3>Try more k values</h3>
+<p>I changed the chunk size to 500 to try to run the algorithm faster.</p>
+<pre class="r"><code>scPLS_tech.1.2 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 2, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.1.2, file=&quot;../data/scPLS_tech.1.2.rda&quot;)
+scPLS_tech.2.1 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 1, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.2.1, file=&quot;../data/scPLS_tech.2.1.rda&quot;)
+scPLS_tech.2.2 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 2, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.2.2, file=&quot;../data/scPLS_tech.2.2.rda&quot;)
+scPLS_tech.2.3 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 3, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.2.3, file=&quot;../data/scPLS_tech.2.3.rda&quot;)
+scPLS_tech.3.2 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 3, k2 = 2, iter = 100, method = &quot;EM&quot;, Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.3.2, file=&quot;../data/scPLS_tech.3.2.rda&quot;)
+scPLS_tech.3.3 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 3, k2 = 3, iter = 100, method = &quot;EM&quot;, Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.3.3, file=&quot;../data/scPLS_tech.3.3.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/scPLS_tech.1.2.rda&quot;)
+load(&quot;../data/scPLS_tech.2.1.rda&quot;)
+load(&quot;../data/scPLS_tech.2.2.rda&quot;)
+load(&quot;../data/scPLS_tech.2.3.rda&quot;)
+load(&quot;../data/scPLS_tech.3.2.rda&quot;)
+load(&quot;../data/scPLS_tech.3.3.rda&quot;)</code></pre>
+</div>
+<div id="plot-k-value-likelihoods" class="section level3">
+<h3>Plot K value likelihoods</h3>
 </div>
 
 <hr>
