@@ -310,14 +310,15 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-01</p>
-<p><strong>Code version:</strong> 88d7a6d</p>
+<p><strong>Code version:</strong> 8328094</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
 library(ggplot2) 
 #devtools::install_github(&quot;kassambara/easyGgplot2&quot;)
 library(easyGgplot2)
-library(stringr)</code></pre>
+library(stringr)
+library(&quot;cowplot&quot;)</code></pre>
 <div id="input-data" class="section level3">
 <h3>Input data</h3>
 <p>I will input the data that has been transpormed with 1 + cpm. The ERCC genes and target genes are in seperate datasets. I subset the data for onlt the first individual.</p>
@@ -393,7 +394,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 
 ff</code></pre>
 <pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
 
 pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
@@ -403,7 +404,7 @@ df &lt;- data.frame(PC1, PC2, &quot;raw&quot;, celltypes)
 colnames(df) &lt;- c(&quot;PC1&quot;, &quot;PC2&quot;, &quot;Method&quot;, &quot;Type&quot;)
 
 
-ff1 &lt;- ggplot2.scatterplot(data = df, xName = &quot;PC1&quot;, yName = &quot;PC2&quot;, groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;, &quot;#FFAAD4&quot;), xtitle = &quot;PC1&quot;, ytitle = &quot;PC2&quot;, mainTitle = &quot;Raw&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,&quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;))
+ff1 &lt;- ggplot2.scatterplot(data = df, xName = &quot;PC1&quot;, yName = &quot;PC2&quot;, groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;, &quot;#FFAAD4&quot;), xtitle = &quot;PC1&quot;, ytitle = &quot;PC2&quot;, mainTitle = &quot;Raw&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(15, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,&quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;))
 
 pcs &lt;- prcomp(scPLS_tech$Adjusted, center = TRUE)
 PC1 &lt;- pcs$x[, 1]
@@ -413,15 +414,13 @@ colnames(df) &lt;- c(&quot;PC1&quot;, &quot;PC2&quot;, &quot;Method&quot;, &quot
 
 ff2 &lt;- ggplot2.scatterplot(data = df, xName = &quot;PC1&quot;, yName = &quot;PC2&quot;,
 groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;, &quot;#FFAAD4&quot;), xtitle = &quot;PC1&quot;,
-ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,
+ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,
 &quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )</code></pre>
 </div>
 <div id="plot-output" class="section level3">
 <h3>Plot output</h3>
-<pre class="r"><code>ff1</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ff2</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot_grid(ff1,ff2)</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="try-more-k-values" class="section level3">
 <h3>Try more k values</h3>
@@ -470,7 +469,7 @@ vary_k =data.frame(vary_k)</code></pre>
 6  3  2 -6.026e+08
 7  3  2 -6.026e+08</code></pre>
 <pre class="r"><code>ggplot2.scatterplot(data=vary_k, xName = &quot;k1&quot;, yName = &quot;k2&quot;, mapping=aes(size =(&quot;likelihood&quot;)),  backgroundColor=&quot;white&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
