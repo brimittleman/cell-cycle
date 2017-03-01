@@ -158,3 +158,25 @@ load("../data/scPLS_tech.3.3.rda")
 ```
 
 ###Plot K value likelihoods  
+
+Create dataframe with likelihoods  
+
+```{r vary k dataframe}
+scPLS.1.1= c(1,1,mean(summary(scPLS_tech$Likelihood)))
+scPLS.1.2 = c(1,2,mean(summary(scPLS_tech.1.2$Likelihood)))
+scPLS.2.1 = c(2,1,mean(summary(scPLS_tech.2.1$Likelihood)))
+scPLS.2.2 = c(2,2,mean(summary(scPLS_tech.2.2$Likelihood)))
+scPLS.2.3 = c(2,3,mean(summary(scPLS_tech.2.3$Likelihood)))
+scPLS.3.2 = c(3,2,mean(summary(scPLS_tech.3.2$Likelihood)))
+scPLS.3.3 = c(3,3,mean(summary(scPLS_tech.3.3$Likelihood)))
+vary_k = rbind(scPLS.1.1, scPLS.1.2, scPLS.2.1, scPLS.2.2, scPLS.2.3, scPLS.3.2, scPLS.3.2)
+colnames(vary_k) = c("k1", "k2", "likelihood")
+vary_k =data.frame(vary_k)
+```
+
+```{r}
+vary_k
+ggplot2.scatterplot(data=vary_k, xName = "k1", yName = "k2", mapping=aes(size =("likelihood")),  backgroundColor="white")
+
+```
+
