@@ -180,3 +180,27 @@ ggplot2.scatterplot(data=vary_k, xName = "k1", yName = "k2", mapping=aes(size =(
 
 ```
 
+
+###Do something to compare likliehood 
+compare to previous 1 
+(one-other)/one 
+
+run: (1,3), (1,4), (1,5)
+
+
+```{r}
+pcs <- prcomp(scPLS_tech.2.2$Adjusted, center = TRUE)
+PC1 <- pcs$x[, 1]
+PC2 <- pcs$x[, 2]
+df <- data.frame(PC1, PC2, "rm_ERCC", celltypes) 
+colnames(df) <- c("PC1", "PC2", "Method", "Type")
+
+ff3 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2",
+groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
+ytitle = "PC2", mainTitle = "ERCC technical effect removed", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(10, "bold", "black"), xtitleFont = c(10,
+"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont=c(10, "bold", "black"), yTickLabelFont= c(10, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(10, "bold", "black"), legendTextFont = c(10, "bold", "black") )
+
+ff3
+```
+
+

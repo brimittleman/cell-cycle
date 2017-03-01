@@ -137,6 +137,89 @@ plot((molecules_non_zero_order$non_zero_cells)/864, main="Most genes are seen in
 This plot is made with the genes we only detected in the single cell analysis. Of these genes, most of them are seen in a low proportion of cells (<2%). This could be a reason the bulk samples could not capture these cells. These cells are unique and could be interesting but only genes that were seen in the union of single cell and bulk were used in the paper. If genes are differncially expressed in a bulk sample we may not have the power to see this when only bulk RNA seq is done.  
 
 
+Flip this analysis around and look at the proportion of cells expressing genes for all genes in the set and highlighting the single cell only genes.  
+
+```{r}
+non_zero_cells_all <- apply(molecules, 1, function(c)sum(c!=0))
+molecules_with_nonzero_all <- cbind(molecules, non_zero_cells_all)
+molecules_non_zero_order_all <- arrange(molecules_with_nonzero_all, desc(non_zero_cells_all))
+
+xy <- data.frame(x= c(1:NROW(molecules_with_nonzero_all)),
+     y = molecules_with_nonzero_all$non_zero_cells_all/864)
+plot(xy,  pch=16, cex=1, 
+     col=alpha(col_vec_onlySC, .8), xlab = "Gene index", ylab="Proportion cells- non-zero molecule count" , main= "Genes seen only in sc span distribution")
+
+# plot((molecules_non_zero_order_all$non_zero_cells_all)/864,  pch=16, cex=1, col=alpha(col_vec_onlySC, .8), xlab = "Gene index", ylab="Proportion cells- non-zero molecule count" , main= "Genes seen only in sc span distribution")
+# points(((molecules_non_zero_order_all$non_zero_cells_all)/864)[which(rownames(molecules_non_zero_all) %in% rownames(molecules_with_nonzero))], col = "black", cex = 2)
+
+
+
+```
+
+
+```{r}
+#maybe 2 boxplots with the percentage of the genes in both vs the genes only in single cell? 
+#seperate molecules_with_nonzero_all to take out the cells that are in the only sc sett
+
+#single cell only
+summary(molecules_with_nonzero$non_zero_cells)
+summary(molecules_with_nonzero_all$non_zero_cells_all)
+boxplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), ylab="Proportion cells- non-zero molecule count")
+
+table(molecules_with_nonzero$non_zero_cells)
+table(molecules_with_nonzero_all$non_zero_cells_all)
+#genes found only once in all data (this is y)
+dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==1,])[1]
+dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==2,])[1]
+
+
+prop_cell_function= function(c){
+  return(dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==c,])[1])
+}
+
+prop_cell_function(1)
+prop_cell_function(2)
+#do this in sapply for 0-864
+prop_cells= c()
+
+for (i in seq(1:864)){
+  num= prop_cell_function(i)
+  prop_cells=c(prop_cells, num)
+}
+plot(prop_cells/864, ylab="Proportion of genes detected per number of cels given gene observed in sigle cell or pulk ")
+
+
+# given a gene is observed in single cell or bulk ( genes), we condition on the 
+# number of cells (ranging 0 - 864 cells) and look at the proportion of cells
+# that a gene is detected in single cell 
+
+
+```
+
+```{r}
+prop_cell_function_SConly= function(c){
+  return(dim(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells==c,])[1])
+}
+
+#do this in sapply for 0-864
+prop_cells_SC= c()
+
+for (i in seq(1:864)){
+  num= prop_cell_function_SConly(i)
+  prop_cells_SC=c(prop_cells_SC, num)
+}
+
+plot(prop_cells_SC)
+
+table(molecules_with_nonzero$non_zero_cells)
+
+#condition on only single cell, 424 in 1 cell, 197 in 2 cells, number of genes found in that cell number  
+```
+
+
+
+
+
 ###Only in Bulk
 ```{r}
 bulk_mean <- apply(reads_bulk, 1, mean)
