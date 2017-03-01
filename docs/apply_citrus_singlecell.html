@@ -309,7 +309,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-02-28</p>
-<p><strong>Code version:</strong> a1a8d9c</p>
+<p><strong>Code version:</strong> ddc324e</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
@@ -321,32 +321,106 @@ library(stringr)</code></pre>
 <h3>Input data</h3>
 <p>I will input the data that has been transpormed with 1 + cpm. The ERCC genes and target genes are in seperate datasets. I subset the data for onlt the first individual.</p>
 <pre class="r"><code>molecules_cpm_ERCC= read.table(&quot;../data/molecules-cpm-ercc.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
-molecules_cpm_ERCC_19101= molecules_cpm_ERCC[,1:288]
+molecules_cpm_ERCC_19101= molecules_cpm_ERCC[ ,grep(&quot;19101&quot;, colnames(molecules_cpm_ERCC) )]
 molecules_cpm= read.table(&quot;../data/molecules-cpm.txt&quot;, header=TRUE, stringsAsFactors = FALSE)
-molecules_cpm_19101= molecules_cpm[,1:288]</code></pre>
+molecules_cpm_19101= molecules_cpm[, grep(&quot;19101&quot;, colnames(molecules_cpm) )]</code></pre>
 <p>Transpose datasets for method</p>
 <pre class="r"><code>molecules_cpm_ERCC_19101t= molecules_cpm_ERCC_19101 %&gt;% t
 molecules_cpm_ERCC_19101t[1:3,1:3]</code></pre>
 <pre><code>               ERCC-00002 ERCC-00003 ERCC-00004
-NA19098.r1.A01   17.28340   14.00002   15.29114
-NA19098.r1.A02   17.14022   14.00625   15.79564
-NA19098.r1.A04   17.03181   14.06719   15.85712</code></pre>
+NA19101.r1.A02   17.34963   12.78952   15.39881
+NA19101.r1.A03   16.96914   13.59557   15.26609
+NA19101.r1.A04   17.20472   14.45713   15.50018</code></pre>
 <pre class="r"><code>dim(molecules_cpm_ERCC_19101t)</code></pre>
-<pre><code>[1] 288  48</code></pre>
+<pre><code>[1] 201  48</code></pre>
 <pre class="r"><code>molecules_cpm_19101t = molecules_cpm_19101 %&gt;% t 
 molecules_cpm_19101t[1:3, 1:3]</code></pre>
 <pre><code>               ENSG00000237683 ENSG00000188976 ENSG00000187961
-NA19098.r1.A01        1.868781        5.745079        1.868781
-NA19098.r1.A02        1.868781        6.664517        1.868781
-NA19098.r1.A04        4.536361        5.962729        1.868781</code></pre>
+NA19101.r1.A02        1.868781        5.056857        1.868781
+NA19101.r1.A03        1.868781        5.886246        4.129754
+NA19101.r1.A04        1.868781        6.727420        1.868781</code></pre>
 <pre class="r"><code>dim(molecules_cpm_19101t)</code></pre>
-<pre><code>[1]   288 13058</code></pre>
+<pre><code>[1]   201 13058</code></pre>
 <p>There are 48 ERCC genes and 13058 target genes.</p>
 </div>
 <div id="run-scpls" class="section level3">
 <h3>Run scPLS</h3>
 <p>I will run the scPLS algorithm using the ERCC genes as control and the ENSG genes as the target genes. Start with K values both equaling 1. I will work on optimization of this once I have the algorithm working.</p>
-<pre class="r"><code>scPLS_tech &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, center = TRUE)</code></pre>
+<pre class="r"><code>scPLS_tech &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, center = TRUE)
+save(scPLS_tech, file=&quot;../data/scPLS_tech.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/scPLS_tech.rda&quot;)</code></pre>
+</div>
+<div id="evaluate-model" class="section level3">
+<h3>Evaluate model</h3>
+<pre class="r"><code>summary(scPLS_tech)</code></pre>
+<pre><code>                Length  Class      Mode     
+Factor            13058 -none-     numeric  
+Loading             201 -none-     numeric  
+Likelihood            1 -none-     numeric  
+Z                   201 -none-     numeric  
+lambdaY           13058 -none-     numeric  
+lambdaX              48 -none-     numeric  
+psi_y             13058 -none-     numeric  
+Method                1 -none-     character
+Adjusted        2624658 -none-     numeric  
+VarianceSummary       6 data.frame list     </code></pre>
+<pre class="r"><code>summary(scPLS_tech$Likelihood)</code></pre>
+<pre><code>      Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
+-4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 </code></pre>
+<pre class="r"><code>Var &lt;- scPLS_tech$VarianceSummary
+ConProp &lt;- round(Var[&quot;ModelConfounding&quot;]/Var[&quot;Model&quot;], 3)
+StructuredProp &lt;- round(Var[&quot;ModelStructure&quot;]/Var[&quot;Model&quot;], 3) 
+PropTable &lt;- data.frame(ConProp, StructuredProp, 1 - ConProp -
+StructuredProp)
+colnames(PropTable) &lt;- c(&quot;Tech&quot;, &quot;Structured&quot;, &quot;Residue&quot;)
+QuantileTable &lt;- QuantileSummary(PropTable, quantiles = seq(0.1,
+1, by = 0.1), rankingby = unlist(Var[&quot;Sample&quot;]))
+head(QuantileTable)</code></pre>
+<pre><code>        Tech Structured   Residue Quantile
+1        NaN        NaN       NaN       10
+2 0.02244648 0.03282339 0.9447301       20
+3 0.01945524 0.02172609 0.9588187       30
+4 0.01690742 0.01700077 0.9660918       40
+5 0.01766794 0.01710813 0.9652239       50
+6 0.01621347 0.01520735 0.9685792       60</code></pre>
+<pre class="r"><code>df &lt;- reshape2::melt(QuantileTable, id.vars = &quot;Quantile&quot;) 
+colnames(df)[3] &lt;- &quot;Proportion&quot;
+colnames(df)[2] &lt;- &quot;Variance&quot;
+
+ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;Proportion&quot;, groupName = &quot;Variance&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;,
+&quot;#FFAAD4&quot;), position = position_stack(), backgroundColor = &quot;white&quot;, color = &quot;black&quot;, xtitle = &quot;Quantile (%)&quot;, ytitle = &quot;Proportion&quot;, mainTitle = &quot;&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, &quot;solid&quot;, &quot;black&quot;), ylim = c(0, 1.05), legendPosition = &quot;top&quot;, legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;))
+
+ff</code></pre>
+<pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
+
+pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
+PC1 &lt;- pcs$x[, 1]
+PC2 &lt;- pcs$x[, 2]
+df &lt;- data.frame(PC1, PC2, &quot;raw&quot;, celltypes) 
+colnames(df) &lt;- c(&quot;PC1&quot;, &quot;PC2&quot;, &quot;Method&quot;, &quot;Type&quot;)
+
+
+ff1 &lt;- ggplot2.scatterplot(data = df, xName = &quot;PC1&quot;, yName = &quot;PC2&quot;, groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;, &quot;#FFAAD4&quot;), xtitle = &quot;PC1&quot;, ytitle = &quot;PC2&quot;, mainTitle = &quot;Raw&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,&quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont = c(10, &quot;bold&quot;, &quot;black&quot;))
+
+pcs &lt;- prcomp(scPLS_tech$Adjusted, center = TRUE)
+PC1 &lt;- pcs$x[, 1]
+PC2 &lt;- pcs$x[, 2]
+df &lt;- data.frame(PC1, PC2, &quot;rm_ERCC&quot;, celltypes) 
+colnames(df) &lt;- c(&quot;PC1&quot;, &quot;PC2&quot;, &quot;Method&quot;, &quot;Type&quot;)
+
+ff2 &lt;- ggplot2.scatterplot(data = df, xName = &quot;PC1&quot;, yName = &quot;PC2&quot;,
+groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, groupColors = c(&quot;#66B2FF&quot;, &quot;#FFB266&quot;, &quot;#FFAAD4&quot;), xtitle = &quot;PC1&quot;,
+ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,
+&quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )</code></pre>
+</div>
+<div id="plot-output" class="section level3">
+<h3>Plot output</h3>
+<pre class="r"><code>ff1</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-44-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ff2</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-45-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
