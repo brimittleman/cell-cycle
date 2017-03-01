@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-01</p>
-<p><strong>Code version:</strong> ab88151</p>
+<p><strong>Code version:</strong> 6790fdc</p>
 <p>This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many’s intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
@@ -533,8 +533,11 @@ dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==1,
 <pre><code>[1] 731</code></pre>
 <pre class="r"><code>dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==2,])[1]</code></pre>
 <pre><code>[1] 507</code></pre>
-<pre class="r"><code>prop_cell_function= function(c){
-  return(dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==c,])[1])
+<pre class="r"><code>###In function need to count the number of these genes that are only found found in single cell
+prop_cell_function= function(c){
+  x= molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==c, ]
+  x[rownames(x) %in% rownames(molecules_only_SC),]
+  return(dim(x)[1])
 }
 
 prop_cell_function(1)</code></pre>
@@ -548,32 +551,11 @@ for (i in seq(1:864)){
   num= prop_cell_function(i)
   prop_cells=c(prop_cells, num)
 }
-plot(prop_cells/864, ylab=&quot;Proportion of genes detected per number of cels given gene observed in sigle cell or pulk &quot;)</code></pre>
+plot(prop_cells/971, ylab=&quot;proportion of single cell only genes&quot;, xlab=&quot;number of cells&quot;)</code></pre>
 <p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code># given a gene is observed in single cell or bulk ( genes), we condition on the 
-# number of cells (ranging 0 - 864 cells) and look at the proportion of cells
-# that a gene is detected in single cell </code></pre>
-<pre class="r"><code>prop_cell_function_SConly= function(c){
-  return(dim(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells==c,])[1])
-}
-
-#do this in sapply for 0-864
-prop_cells_SC= c()
-
-for (i in seq(1:864)){
-  num= prop_cell_function_SConly(i)
-  prop_cells_SC=c(prop_cells_SC, num)
-}
-
-plot(prop_cells_SC)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>table(molecules_with_nonzero$non_zero_cells)</code></pre>
-<pre><code>
-  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  18  21 
-424 197 107  77  45  26  31   9  12  10   5   4   5   4   2   2   2   1 
- 25  32  33  35  45 112 
-  1   1   1   3   1   1 </code></pre>
-<pre class="r"><code>#condition on only single cell, 424 in 1 cell, 197 in 2 cells, number of genes found in that cell number  </code></pre>
+<pre class="r"><code># For all genes that are detected in single cell or bulk (19,027 genes), we condition on the 
+# number of cells (ranging 1 - 864 cells) and given n number of cells, we look at 
+# the proportion of genes that are detected in single cell only but not in bulk</code></pre>
 </div>
 </div>
 <div id="only-in-bulk" class="section level3">
@@ -590,7 +572,7 @@ col_vec_onlyBULK &lt;- c(&quot;lightpink&quot;, &quot;blue&quot;)[as.numeric(whi
 
 
 plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = &quot;Mean expression of reads in bulk samples&quot;, ylab=&quot; read count&quot;, xlab = &quot;genes (blue are only bulk genes)&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
