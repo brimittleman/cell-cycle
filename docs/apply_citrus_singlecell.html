@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-01</p>
-<p><strong>Code version:</strong> 1c0ac42</p>
+<p><strong>Code version:</strong> 88d7a6d</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
@@ -393,7 +393,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 
 ff</code></pre>
 <pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
 
 pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
@@ -419,9 +419,9 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;,
 <div id="plot-output" class="section level3">
 <h3>Plot output</h3>
 <pre class="r"><code>ff1</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-35-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ff2</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="try-more-k-values" class="section level3">
 <h3>Try more k values</h3>
@@ -447,6 +447,30 @@ load(&quot;../data/scPLS_tech.3.3.rda&quot;)</code></pre>
 </div>
 <div id="plot-k-value-likelihoods" class="section level3">
 <h3>Plot K value likelihoods</h3>
+<p>Create dataframe with likelihoods</p>
+<pre class="r"><code>scPLS.1.1= c(1,1,mean(summary(scPLS_tech$Likelihood)))
+scPLS.1.2 = c(1,2,mean(summary(scPLS_tech.1.2$Likelihood)))
+scPLS.2.1 = c(2,1,mean(summary(scPLS_tech.2.1$Likelihood)))
+scPLS.2.2 = c(2,2,mean(summary(scPLS_tech.2.2$Likelihood)))
+scPLS.2.3 = c(2,3,mean(summary(scPLS_tech.2.3$Likelihood)))
+scPLS.3.2 = c(3,2,mean(summary(scPLS_tech.3.2$Likelihood)))
+scPLS.3.3 = c(3,3,mean(summary(scPLS_tech.3.3$Likelihood)))
+vary_k = rbind(scPLS.1.1, scPLS.1.2, scPLS.2.1, scPLS.2.2, scPLS.2.3, scPLS.3.2, scPLS.3.2)
+colnames(vary_k) = c(&quot;k1&quot;, &quot;k2&quot;, &quot;likelihood&quot;)
+vary_k =data.frame(vary_k)</code></pre>
+<pre><code>Warning in data.row.names(row.names, rowsi, i): some row.names duplicated:
+7 --&gt; row.names NOT used</code></pre>
+<pre class="r"><code>vary_k</code></pre>
+<pre><code>  k1 k2 likelihood
+1  1  1 -4.805e+10
+2  1  2 -2.096e+09
+3  2  1 -8.921e+09
+4  2  2 -1.322e+09
+5  2  3 -1.351e+09
+6  3  2 -6.026e+08
+7  3  2 -6.026e+08</code></pre>
+<pre class="r"><code>ggplot2.scatterplot(data=vary_k, xName = &quot;k1&quot;, yName = &quot;k2&quot;, mapping=aes(size =(&quot;likelihood&quot;)),  backgroundColor=&quot;white&quot;)</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
