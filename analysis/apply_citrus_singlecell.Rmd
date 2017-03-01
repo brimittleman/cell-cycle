@@ -1,0 +1,61 @@
+---
+title: "Apply citrus for technical factor normalization"
+author: "Briana Mittleman"
+date: YYYY-MM-DD
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.  
+
+```{r load packages}
+library("Citrus")
+library(reshape2)
+library(ggplot2) 
+#devtools::install_github("kassambara/easyGgplot2")
+library(easyGgplot2)
+library(stringr)
+```
+
+
+###Input data
+I will input the data that has been transpormed with 1 + cpm. The ERCC genes and target genes are in seperate datasets. I subset the data for onlt the first individual.  
+
+```{r load data}
+molecules_cpm_ERCC= read.table("../data/molecules-cpm-ercc.txt", header=TRUE, stringsAsFactors = FALSE)
+molecules_cpm_ERCC_19101= molecules_cpm_ERCC[,1:288]
+molecules_cpm= read.table("../data/molecules-cpm.txt", header=TRUE, stringsAsFactors = FALSE)
+molecules_cpm_19101= molecules_cpm[,1:288]
+```
+
+Transpose datasets for method  
+
+```{r transpose}
+molecules_cpm_ERCC_19101t= molecules_cpm_ERCC_19101 %>% t
+molecules_cpm_ERCC_19101t[1:3,1:3]
+dim(molecules_cpm_ERCC_19101t)
+molecules_cpm_19101t = molecules_cpm_19101 %>% t 
+molecules_cpm_19101t[1:3, 1:3]
+dim(molecules_cpm_19101t)
+```
+
+There are 48 ERCC genes and 13058 target genes.  
+
+###Run scPLS  
+
+I will run the scPLS algorithm using the ERCC genes as control and the ENSG genes as the target genes. Start with K values both equaling 1. I will work on optimization of this once I have the algorithm working.    
+
+```{r scPLS, eval=FALSE}
+scPLS_tech <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = "EM", Chunk = TRUE, center = TRUE)
+```
+

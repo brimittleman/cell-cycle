@@ -58,6 +58,7 @@ Target <- CellCycleData$Expression[, CellCycleData$Label != "Spikein"]
 #technical factors (k1=2)
 #biological factors (k2=5)
 system.time(res <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,method = "EM", Chunk = FALSE, center = TRUE))
+summary(res$Likelihood)
 ```
 
 The technical effect can be looked at using the spike ins as the control genes and all other genes as the target. 
@@ -126,7 +127,12 @@ Control <- Expression[, Label == "CellCycle"]
 Target <- Expression[, Label == "NonCellCycle"]
 system.time(res2 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
     method = "EM", Chunk = FALSE, center = TRUE))
+summary(res2$Likelihood)
 
+
+system.time(res2a <- scPLS(Target, Control, k1 = 5, k2 = 2, iter = 100,
+    method = "EM", Chunk = FALSE, center = TRUE))
+summary(res2a$Likelihood)
 ```
 
 Similarly quantify proportion of variance explained by the cell cycle process.  
@@ -211,6 +217,15 @@ system.time(res_chunks_300 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
 #try 50 gene chunks
 system.time(res_chunks_50 <- scPLS(Target, Control, k1 = 2, k2 = 5, iter = 100,
     method = "EM", Chunk = TRUE, chunk.size = 50, center = TRUE))
+summary(res_chunks_50$Likelihood)
+
+system.time(res_chunks_k2.2 <- scPLS(Target, Control, k1 = 2, k2 = 2, iter = 100,
+    method = "EM", Chunk = TRUE, chunk.size = 50, center = TRUE))
+summary(res_chunks_k2.2$Likelihood)
+
 ```
 
 Smaller chunks of genes help the algorithm run faster. With a gene set as small as this sample chunks are not needed. Chunk size is set default to 1000 if Chunk=TRUE.  The number of genes comes only from the target genes.  
+
+
+**k values vs liklihood**

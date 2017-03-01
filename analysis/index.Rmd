@@ -58,3 +58,5 @@ Work with cell cycle normalization
 
 * [Try citrus package for removing technical and cell cycle effects](try_citrus.html)
 
+* [Apply citrus package to Gilad lab data](apply_citrus_singlecell.html) 
+
