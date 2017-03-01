@@ -33,9 +33,9 @@ I will input the data that has been transpormed with 1 + cpm. The ERCC genes and
 
 ```{r load data}
 molecules_cpm_ERCC= read.table("../data/molecules-cpm-ercc.txt", header=TRUE, stringsAsFactors = FALSE)
-molecules_cpm_ERCC_19101= molecules_cpm_ERCC[,1:288]
+molecules_cpm_ERCC_19101= molecules_cpm_ERCC[ ,grep("19101", colnames(molecules_cpm_ERCC) )]
 molecules_cpm= read.table("../data/molecules-cpm.txt", header=TRUE, stringsAsFactors = FALSE)
-molecules_cpm_19101= molecules_cpm[,1:288]
+molecules_cpm_19101= molecules_cpm[, grep("19101", colnames(molecules_cpm) )]
 ```
 
 Transpose datasets for method  
@@ -57,5 +57,75 @@ I will run the scPLS algorithm using the ERCC genes as control and the ENSG gene
 
 ```{r scPLS, eval=FALSE}
 scPLS_tech <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = "EM", Chunk = TRUE, center = TRUE)
+save(scPLS_tech, file="../data/scPLS_tech.rda")
+```
+
+```{r load scPLS}
+load("../data/scPLS_tech.rda")
+```
+
+###Evaluate model  
+
+```{r}
+summary(scPLS_tech)
+summary(scPLS_tech$Likelihood)
+```
+```{r make quantile table }
+Var <- scPLS_tech$VarianceSummary
+ConProp <- round(Var["ModelConfounding"]/Var["Model"], 3)
+StructuredProp <- round(Var["ModelStructure"]/Var["Model"], 3) 
+PropTable <- data.frame(ConProp, StructuredProp, 1 - ConProp -
+StructuredProp)
+colnames(PropTable) <- c("Tech", "Structured", "Residue")
+QuantileTable <- QuantileSummary(PropTable, quantiles = seq(0.1,
+1, by = 0.1), rankingby = unlist(Var["Sample"]))
+head(QuantileTable)
+```
+```{r}
+df <- reshape2::melt(QuantileTable, id.vars = "Quantile") 
+colnames(df)[3] <- "Proportion"
+colnames(df)[2] <- "Variance"
+
+ff <- ggplot2.barplot(data = df, xName = "Quantile", yName = "Proportion", groupName = "Variance", groupColors = c("#66B2FF", "#FFB266",
+"#FFAAD4"), position = position_stack(), backgroundColor = "white", color = "black", xtitle = "Quantile (%)", ytitle = "Proportion", mainTitle = "", removePanelGrid = TRUE, removePanelBorder = TRUE, axisLine = c(0.5, "solid", "black"), ylim = c(0, 1.05), legendPosition = "top", legendTextFont = c(10, "bold", "black"))
+
+ff
+```
+```{r}
+celltypes <- str_split_fixed(row.names(molecules_cpm_19101t), pattern= ".[A-H]", n=3)[,2]
+
+pcs <- prcomp(molecules_cpm_19101t, center = TRUE)
+PC1 <- pcs$x[, 1]
+PC2 <- pcs$x[, 2]
+df <- data.frame(PC1, PC2, "raw", celltypes) 
+colnames(df) <- c("PC1", "PC2", "Method", "Type")
+
+
+ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1", ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(10,"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont = c(10, "bold", "black"), yTickLabelFont = c(10, "bold", "black"))
+
+pcs <- prcomp(scPLS_tech$Adjusted, center = TRUE)
+PC1 <- pcs$x[, 1]
+PC2 <- pcs$x[, 2]
+df <- data.frame(PC1, PC2, "rm_ERCC", celltypes) 
+colnames(df) <- c("PC1", "PC2", "Method", "Type")
+
+ff2 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2",
+groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1",
+ytitle = "PC2", mainTitle = "ERCC technical effect removed", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(25, "bold", "black"), xtitleFont = c(10,
+"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont=c(10, "bold", "black"), yTickLabelFont= c(10, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(10, "bold", "black"), legendTextFont = c(10, "bold", "black") )
+
+```
+
+
+###Plot output  
+
+
+```{r}
+ff1
+```
+
+
+```{r}
+ff2
 ```
 
