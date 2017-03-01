@@ -1,7 +1,7 @@
 ---
 title: "Apply citrus for technical factor normalization"
 author: "Briana Mittleman"
-date: YYYY-MM-DD
+date: 2017-02-28
 output: html_document
 ---
 
@@ -129,3 +129,32 @@ ff1
 ff2
 ```
 
+###Try more k values  
+I changed the chunk size to 500 to try to run the algorithm faster.  
+
+```{r try k values, eval=FALSE}
+scPLS_tech.1.2 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 2, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.1.2, file="../data/scPLS_tech.1.2.rda")
+scPLS_tech.2.1 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 1, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.2.1, file="../data/scPLS_tech.2.1.rda")
+scPLS_tech.2.2 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 2, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+#save(scPLS_tech.2.2, file="../data/scPLS_tech.2.2.rda")
+scPLS_tech.2.3 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 3, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.2.3, file="../data/scPLS_tech.2.3.rda")
+scPLS_tech.3.2 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 3, k2 = 2, iter = 100, method = "EM", Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.3.2, file="../data/scPLS_tech.3.2.rda")
+scPLS_tech.3.3 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 3, k2 = 3, iter = 100, method = "EM", Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.3.3, file="../data/scPLS_tech.3.3.rda")
+
+```
+
+```{r load k values}
+load("../data/scPLS_tech.1.2.rda")
+load("../data/scPLS_tech.2.1.rda")
+load("../data/scPLS_tech.2.2.rda")
+load("../data/scPLS_tech.2.3.rda")
+load("../data/scPLS_tech.3.2.rda")
+load("../data/scPLS_tech.3.3.rda")
+```
+
+###Plot K value likelihoods  
