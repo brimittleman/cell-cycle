@@ -1,0 +1,113 @@
+---
+title: "Explore biological significance of single cell only genes"
+author: "Briana Mittleman"
+date: 2017-03-02
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+
+###Pull in genes lists  
+
+```{r}
+library("biomaRt")
+library("data.table")
+library("testit")
+library("dplyr")
+library("edgeR")
+library("VennDiagram")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+
+
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+```
+Create vectors with the list of genes in each set.   
+```{r}
+genes_observed_reads_bulk <- rownames(reads_bulk)[rowSums(reads_bulk) > 0]
+genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
+genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
+single_cell_observed <- union(genes_observed_molecules, genes_observed_molecules)
+```
+
+
+####Genes only in single cell molecules  
+
+```{r}
+
+gene_onlysinglecell <- setdiff(single_cell_observed,genes_observed_reads_bulk)
+#subset molecules by these genes  
+molecules_df= data.frame(molecules)
+molecules_only_SC <- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell,]
+```
+
+
+Count number of cells we see these genes in  
+
+```{r}
+non_zero_cells <- apply(molecules_only_SC, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero <- cbind(molecules_only_SC, non_zero_cells)
+
+summary(molecules_with_nonzero$non_zero_cells)
+```
+
+```{r}
+genes_most_expressed= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells > 20, 1:3])
+genes_most_expressed
+
+
+
+```
+
+```{r}
+ensembl <- useMart(host = "grch37.ensembl.org",
+                   biomart = "ENSEMBL_MART_ENSEMBL",
+                   dataset = "hsapiens_gene_ensembl")
+
+genes_most_expressed_info <- getBM(attributes = c("ensembl_gene_id", "chromosome_name",
+                                                 "external_gene_name", "transcript_count","description"), filters = "ensembl_gene_id", values = genes_most_expressed[grep("ENSG", genes_most_expressed)],mart = ensembl)
+genes_most_expressed_info
+```
+
+
+
+```{r}
+genes_not_singleton= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells > 1, 1:3])
+
+```
+
+
+```{r extract gene info}
+
+not_singleton_genes_info <- getBM(attributes = c("ensembl_gene_id", "chromosome_name",
+                                                 "external_gene_name", "transcript_count","description"), filters = "ensembl_gene_id", values = genes_not_singleton[grep("ENSG", genes_not_singleton)],mart = ensembl)
+not_singleton_genes_info
+
+```
+
+###GO analysis  
+https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd  

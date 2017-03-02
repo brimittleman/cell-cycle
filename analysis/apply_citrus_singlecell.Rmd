@@ -332,16 +332,52 @@ plot_grid(ff1, ff2, ff3, ff4, ff5, ff6, nrow = 3 )
 
 
 
+###Run k1=2 values 
+
+
+```{r eval=FALSE}
+scPLS_tech.2.4 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 4, iter = 100, method = "EM", Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.2.4, file="../data/scPLS_tech.2.4.rda")
+scPLS_tech.2.5 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 5, iter = 100, method = "EM", Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.2.5, file="../data/scPLS_tech.2.5.rda")
+```
+
+
+
+```{r}
+load("../data/scPLS_tech.2.1.rda")
+load("../data/scPLS_tech.2.2.rda")
+load("../data/scPLS_tech.2.3.rda")
+load("../data/scPLS_tech.2.4.rda")
+load("../data/scPLS_tech.2.5.rda")
+```
+
+
+```{r}
+Bic2.1= log(ncells) * (3) - (2 * (mean(summary(scPLS_tech.2.1$Likelihood))))
+Bic2.2= log(ncells) * (4) - (2 * (mean(summary(scPLS_tech.2.2$Likelihood))))
+Bic2.3= log(ncells) * (5) - (2 * (mean(summary(scPLS_tech.2.3$Likelihood))))
+Bic2.4= log(ncells) * (6) - (2 * (mean(summary(scPLS_tech.2.4$Likelihood))))
+Bic2.5= log(ncells) * (7) - (2 * (mean(summary(scPLS_tech.2.5$Likelihood))))
+```
+
+
 ```{r}
 
+x1.1= c(1,1, Bic1/(10^9))
+x1.2= c(1,2,Bic2/(10^9))
+x1.3= c(1,3,Bic3/(10^9))
+x1.4= c(1,4,Bic4/(10^9))
+x1.5= c(1,5,Bic5/(10^9))
 
-x1= c(1,1, Bic1/(10^9))
-x2= c(1,2,Bic2/(10^9))
-x3= c(1,3,Bic3/(10^9))
-x4= c(1,4,Bic4/(10^9))
-x5= c(1,5,Bic5/(10^9))
-BIC_V= c(Bic1/(10^9), Bic2/(10^9), Bic3/(10^9), Bic4/(10^9), Bic5/(10^9))
-BIC_m= rbind(x1, x2,x3,x4,x5)
+x2.1= c(2,1, Bic2.1/(10^9))
+x2.2= c(2,2,Bic2.2/(10^9))
+x2.3= c(2,3,Bic2.3/(10^9))
+x2.4= c(2,4,Bic2.4/(10^9))
+x2.5= c(2,5,Bic2.5/(10^9))
+
+
+BIC_m= rbind(x1.1, x1.2,x1.3,x1.4,x1.5, x2.1, x2.2, x2.3, x2.4, x2.5)
 colnames(BIC_m)=c("k1", "k2", "BIC_prop")
 BIC_df=data.frame(BIC_m)
 BIC_df
@@ -350,9 +386,12 @@ BIC_df
 
 ggplot(BIC_df, aes(x=k1, y=k2)) + 
   geom_point(aes(size=BIC_prop)) +
-  ggtitle("BIC values divided by 10^9 plotted by K values")
-             
+  ggtitle("BIC values divided by 10^9 plotted by K values") +
+  scale_x_discrete("Number of Biological factors", limits=c("1","2")) +
+  ylab(" Number of Technical factors ") 
+  
 
+
+ ##NEED TO ADD LABELS            
 ```
-
 
