@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-03-01</p>
-<p><strong>Code version:</strong> 6790fdc</p>
+<p><strong>Last updated:</strong> 2017-03-02</p>
+<p><strong>Code version:</strong> d865a5a</p>
 <p>This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many’s intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
@@ -536,14 +536,14 @@ dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==1,
 <pre class="r"><code>###In function need to count the number of these genes that are only found found in single cell
 prop_cell_function= function(c){
   x= molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==c, ]
-  x[rownames(x) %in% rownames(molecules_only_SC),]
-  return(dim(x)[1])
+  y=x[rownames(x) %in% rownames(molecules_only_SC),]
+  return(dim(y)[1])
 }
 
 prop_cell_function(1)</code></pre>
-<pre><code>[1] 731</code></pre>
+<pre><code>[1] 424</code></pre>
 <pre class="r"><code>prop_cell_function(2)</code></pre>
-<pre><code>[1] 507</code></pre>
+<pre><code>[1] 197</code></pre>
 <pre class="r"><code>#do this in sapply for 0-864
 prop_cells= c()
 
