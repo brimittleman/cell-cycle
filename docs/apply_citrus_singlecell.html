@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-01</p>
-<p><strong>Code version:</strong> ab88151</p>
+<p><strong>Code version:</strong> 5994ec5</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
@@ -348,7 +348,7 @@ NA19101.r1.A04        1.868781        6.727420        1.868781</code></pre>
 <div id="run-scpls" class="section level3">
 <h3>Run scPLS</h3>
 <p>I will run the scPLS algorithm using the ERCC genes as control and the ENSG genes as the target genes. Start with K values both equaling 1. I will work on optimization of this once I have the algorithm working.</p>
-<pre class="r"><code>scPLS_tech &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, center = TRUE)
+<pre class="r"><code>scPLS_tech &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
 save(scPLS_tech, file=&quot;../data/scPLS_tech.rda&quot;)</code></pre>
 <pre class="r"><code>load(&quot;../data/scPLS_tech.rda&quot;)</code></pre>
 </div>
@@ -368,7 +368,7 @@ Adjusted        2624658 -none-     numeric
 VarianceSummary       6 data.frame list     </code></pre>
 <pre class="r"><code>summary(scPLS_tech$Likelihood)</code></pre>
 <pre><code>      Min.    1st Qu.     Median       Mean    3rd Qu.       Max. 
--4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 -4.805e+10 </code></pre>
+-1.019e+10 -1.019e+10 -1.019e+10 -1.019e+10 -1.019e+10 -1.019e+10 </code></pre>
 <pre class="r"><code>Var &lt;- scPLS_tech$VarianceSummary
 ConProp &lt;- round(Var[&quot;ModelConfounding&quot;]/Var[&quot;Model&quot;], 3)
 StructuredProp &lt;- round(Var[&quot;ModelStructure&quot;]/Var[&quot;Model&quot;], 3) 
@@ -380,11 +380,11 @@ QuantileTable &lt;- QuantileSummary(PropTable, quantiles = seq(0.1,
 head(QuantileTable)</code></pre>
 <pre><code>        Tech Structured   Residue Quantile
 1        NaN        NaN       NaN       10
-2 0.02244648 0.03282339 0.9447301       20
-3 0.01945524 0.02172609 0.9588187       30
-4 0.01690742 0.01700077 0.9660918       40
-5 0.01766794 0.01710813 0.9652239       50
-6 0.01621347 0.01520735 0.9685792       60</code></pre>
+2 0.02398777 0.02933486 0.9466774       20
+3 0.02046136 0.01941239 0.9601262       30
+4 0.01734124 0.01541393 0.9672448       40
+5 0.01819018 0.01563880 0.9661710       50
+6 0.01646366 0.01404514 0.9694912       60</code></pre>
 <pre class="r"><code>df &lt;- reshape2::melt(QuantileTable, id.vars = &quot;Quantile&quot;) 
 colnames(df)[3] &lt;- &quot;Proportion&quot;
 colnames(df)[2] &lt;- &quot;Variance&quot;
@@ -394,7 +394,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 
 ff</code></pre>
 <pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-152-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
 
 pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
@@ -420,7 +420,7 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;,
 <div id="plot-output" class="section level3">
 <h3>Plot output</h3>
 <pre class="r"><code>plot_grid(ff1,ff2)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-154-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="try-more-k-values" class="section level3">
 <h3>Try more k values</h3>
@@ -461,7 +461,7 @@ vary_k =data.frame(vary_k)</code></pre>
 7 --&gt; row.names NOT used</code></pre>
 <pre class="r"><code>vary_k</code></pre>
 <pre><code>  k1 k2 likelihood
-1  1  1 -4.805e+10
+1  1  1 -1.019e+10
 2  1  2 -2.096e+09
 3  2  1 -8.921e+09
 4  2  2 -1.322e+09
@@ -469,7 +469,7 @@ vary_k =data.frame(vary_k)</code></pre>
 6  3  2 -6.026e+08
 7  3  2 -6.026e+08</code></pre>
 <pre class="r"><code>ggplot2.scatterplot(data=vary_k, xName = &quot;k1&quot;, yName = &quot;k2&quot;, mapping=aes(size =(&quot;likelihood&quot;)),  backgroundColor=&quot;white&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-155-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="do-something-to-compare-likliehood" class="section level3">
 <h3>Do something to compare likliehood</h3>
@@ -487,7 +487,45 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;,
 &quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )
 
 ff3</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-156-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<ul>
+<li>need k1=1 and k2=1:5</li>
+</ul>
+<pre class="r"><code>scPLS_tech.1.3 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 3, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.3, file=&quot;../data/scPLS_tech.1.3.rda&quot;)
+scPLS_tech.1.4 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 4, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.4, file=&quot;../data/scPLS_tech.1.4.rda&quot;)
+scPLS_tech.1.5 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 5, iter = 100, method = &quot;EM&quot;, Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.5, file=&quot;../data/scPLS_tech.1.5.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/scPLS_tech.1.3.rda&quot;)
+load(&quot;../data/scPLS_tech.1.4.rda&quot;)
+load(&quot;../data/scPLS_tech.1.5.rda&quot;)</code></pre>
+<pre class="r"><code>scPLS.1.1= c(1,1,mean(summary(scPLS_tech$Likelihood)))
+scPLS.1.2 = c(1,2,mean(summary(scPLS_tech.1.2$Likelihood)))
+scPLS.1.3 = c(1,3,mean(summary(scPLS_tech.1.3$Likelihood)))
+scPLS.1.4 = c(1,4,mean(summary(scPLS_tech.1.4$Likelihood)))
+scPLS.1.5 = c(1,5,mean(summary(scPLS_tech.1.5$Likelihood)))
+scPLS.1.1.5= rbind(scPLS.1.1,scPLS.1.2,scPLS.1.3,scPLS.1.4,scPLS.1.5)
+colnames(scPLS.1.1.5)=c(&quot;k1&quot;, &quot;k2&quot;, &quot;Likelihood&quot;)
+scPLS.1.1.5</code></pre>
+<pre><code>          k1 k2 Likelihood
+scPLS.1.1  1  1 -1.019e+10
+scPLS.1.2  1  2 -2.096e+09
+scPLS.1.3  1  3 -5.831e+08
+scPLS.1.4  1  4 -5.906e+08
+scPLS.1.5  1  5 -5.431e+08</code></pre>
+<pre class="r"><code>change1=(mean(summary(scPLS_tech.1.2$Likelihood))- mean(summary(scPLS_tech$Likelihood)))/mean(summary(scPLS_tech$Likelihood))
+
+change2=(mean(summary(scPLS_tech.1.3$Likelihood))- mean(summary(scPLS_tech.1.2$Likelihood)))/mean(summary(scPLS_tech.1.2$Likelihood))
+
+change3=(mean(summary(scPLS_tech.1.4$Likelihood))- mean(summary(scPLS_tech.1.3$Likelihood)))/mean(summary(scPLS_tech.1.3$Likelihood))
+
+change4=(mean(summary(scPLS_tech.1.5$Likelihood))- mean(summary(scPLS_tech.1.4$Likelihood)))/mean(summary(scPLS_tech.1.4$Likelihood))
+
+L_change= c(abs(change1), abs(change2), abs(change3), abs(change4))
+plot(L_change, ylab=&quot;Absolute value change in Likelihood&quot;, main=&quot;Compare k2 values 1-5&quot;)</code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Biggest improvement in likelihood is between k2=1 and k2=2.</p>
 </div>
 
 <hr>
