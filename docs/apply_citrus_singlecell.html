@@ -310,7 +310,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-02</p>
-<p><strong>Code version:</strong> d865a5a</p>
+<p><strong>Code version:</strong> 3ce427b</p>
 <p>In this analysis I will use the scPLS method in the Citrus package to regress technical factor out of the single cell data. I will use filtered molecule counts for the first individual in the dataset.</p>
 <pre class="r"><code>library(&quot;Citrus&quot;)
 library(reshape2)
@@ -394,7 +394,7 @@ ff &lt;- ggplot2.barplot(data = df, xName = &quot;Quantile&quot;, yName = &quot;
 
 ff</code></pre>
 <pre><code>Warning: Removed 3 rows containing missing values (position_stack).</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-56-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-67-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>celltypes &lt;- str_split_fixed(row.names(molecules_cpm_19101t), pattern= &quot;.[A-H]&quot;, n=3)[,2]
 
 pcs &lt;- prcomp(molecules_cpm_19101t, center = TRUE)
@@ -420,7 +420,7 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed&quot;,
 <div id="plot-output" class="section level3">
 <h3>Plot output</h3>
 <pre class="r"><code>plot_grid(ff1,ff2)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-58-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-69-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="try-more-k-values" class="section level3">
 <h3>Try more k values</h3>
@@ -469,7 +469,7 @@ vary_k =data.frame(vary_k)</code></pre>
 6  3  2 -6.026e+08
 7  3  2 -6.026e+08</code></pre>
 <pre class="r"><code>ggplot2.scatterplot(data=vary_k, xName = &quot;k1&quot;, yName = &quot;k2&quot;, mapping=aes(size =(&quot;likelihood&quot;)),  backgroundColor=&quot;white&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-59-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-70-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="do-something-to-compare-likliehood" class="section level3">
 <h3>Do something to compare likliehood</h3>
@@ -487,7 +487,7 @@ ytitle = &quot;PC2&quot;, mainTitle = &quot;ERCC technical effect removed, k2=2&
 &quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )
 
 ff3</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-60-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-71-1.png" width="672" style="display: block; margin: auto;" /></p>
 <ul>
 <li>need k1=1 and k2=1:5</li>
 </ul>
@@ -524,7 +524,7 @@ change4=(mean(summary(scPLS_tech.1.5$Likelihood))- mean(summary(scPLS_tech.1.4$L
 
 L_change= c(abs(change1), abs(change2), abs(change3), abs(change4))
 plot(L_change, ylab=&quot;Absolute value change in Likelihood&quot;, main=&quot;Compare k2 values 1-5&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-61-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-72-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Biggest improvement in likelihood is between k2=1 and k2=2.</p>
 <p><strong>DON’T USE THIS ANALYSIS FOR MODEL SELECTION, USE THE MIN BIC</strong></p>
 </div>
@@ -543,7 +543,7 @@ Bic5= log(ncells) * (6) - (2 * (mean(summary(scPLS_tech.1.5$Likelihood))))
 Bic_likelihood= c(Bic1,Bic2, Bic3, Bic4, Bic5)
 
 plot(Bic_likelihood, ylab=&quot;Bayesian information criterion&quot;, xlab=&quot;k2 value&quot;, main=&quot;With a constant k1 value, BIC decreases with k2 increase&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-62-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-73-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>which.min(Bic_likelihood)</code></pre>
 <pre><code>[1] 5</code></pre>
 <p>The smallest BIC is achieved when k2=5.</p>
@@ -587,27 +587,59 @@ groupName = &quot;Type&quot;, size = 5, backgroundColor = &quot;white&quot;, gro
 ytitle = &quot;PC2&quot;, mainTitle = &quot;k2=5&quot;, removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xtitleFont = c(10,
 &quot;bold&quot;, &quot;black&quot;), ytitleFont = c(10, &quot;bold&quot;, &quot;black&quot;), xTickLabelFont=c(10, &quot;bold&quot;, &quot;black&quot;), yTickLabelFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTitle= &quot;Cell type&quot;, legendTitleFont= c(10, &quot;bold&quot;, &quot;black&quot;), legendTextFont = c(10, &quot;bold&quot;, &quot;black&quot;) )</code></pre>
 <pre class="r"><code>plot_grid(ff1, ff2, ff3, ff4, ff5, ff6, nrow = 3 )</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-63-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>x1= c(1,1, Bic1/(10^9))
-x2= c(1,2,Bic2/(10^9))
-x3= c(1,3,Bic3/(10^9))
-x4= c(1,4,Bic4/(10^9))
-x5= c(1,5,Bic5/(10^9))
-BIC_V= c(Bic1/(10^9), Bic2/(10^9), Bic3/(10^9), Bic4/(10^9), Bic5/(10^9))
-BIC_m= rbind(x1, x2,x3,x4,x5)
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-74-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="run-k12-values" class="section level3">
+<h3>Run k1=2 values</h3>
+<pre class="r"><code>scPLS_tech.2.4 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 4, iter = 100, method = &quot;EM&quot;, Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.2.4, file=&quot;../data/scPLS_tech.2.4.rda&quot;)
+scPLS_tech.2.5 &lt;- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 2, k2 = 5, iter = 100, method = &quot;EM&quot;, Chunk = TRUE,chunk.size = 500,  center = TRUE)
+save(scPLS_tech.2.5, file=&quot;../data/scPLS_tech.2.5.rda&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/scPLS_tech.2.1.rda&quot;)
+load(&quot;../data/scPLS_tech.2.2.rda&quot;)
+load(&quot;../data/scPLS_tech.2.3.rda&quot;)
+load(&quot;../data/scPLS_tech.2.4.rda&quot;)
+load(&quot;../data/scPLS_tech.2.5.rda&quot;)</code></pre>
+<pre class="r"><code>Bic2.1= log(ncells) * (3) - (2 * (mean(summary(scPLS_tech.2.1$Likelihood))))
+Bic2.2= log(ncells) * (4) - (2 * (mean(summary(scPLS_tech.2.2$Likelihood))))
+Bic2.3= log(ncells) * (5) - (2 * (mean(summary(scPLS_tech.2.3$Likelihood))))
+Bic2.4= log(ncells) * (6) - (2 * (mean(summary(scPLS_tech.2.4$Likelihood))))
+Bic2.5= log(ncells) * (7) - (2 * (mean(summary(scPLS_tech.2.5$Likelihood))))</code></pre>
+<pre class="r"><code>x1.1= c(1,1, Bic1/(10^9))
+x1.2= c(1,2,Bic2/(10^9))
+x1.3= c(1,3,Bic3/(10^9))
+x1.4= c(1,4,Bic4/(10^9))
+x1.5= c(1,5,Bic5/(10^9))
+
+x2.1= c(2,1, Bic2.1/(10^9))
+x2.2= c(2,2,Bic2.2/(10^9))
+x2.3= c(2,3,Bic2.3/(10^9))
+x2.4= c(2,4,Bic2.4/(10^9))
+x2.5= c(2,5,Bic2.5/(10^9))
+
+
+BIC_m= rbind(x1.1, x1.2,x1.3,x1.4,x1.5, x2.1, x2.2, x2.3, x2.4, x2.5)
 colnames(BIC_m)=c(&quot;k1&quot;, &quot;k2&quot;, &quot;BIC_prop&quot;)
 BIC_df=data.frame(BIC_m)
 BIC_df</code></pre>
-<pre><code>   k1 k2 BIC_prop
-x1  1  1  20.3800
-x2  1  2   4.1920
-x3  1  3   1.1662
-x4  1  4   1.1812
-x5  1  5   1.0862</code></pre>
+<pre><code>     k1 k2 BIC_prop
+x1.1  1  1  20.3800
+x1.2  1  2   4.1920
+x1.3  1  3   1.1662
+x1.4  1  4   1.1812
+x1.5  1  5   1.0862
+x2.1  2  1  17.8420
+x2.2  2  2   2.6440
+x2.3  2  3   2.7020
+x2.4  2  4   1.3724
+x2.5  2  5   1.9892</code></pre>
 <pre class="r"><code>ggplot(BIC_df, aes(x=k1, y=k2)) + 
   geom_point(aes(size=BIC_prop)) +
-  ggtitle(&quot;BIC values divided by 10^9 plotted by K values&quot;)</code></pre>
-<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-64-1.png" width="672" style="display: block; margin: auto;" /></p>
+  ggtitle(&quot;BIC values divided by 10^9 plotted by K values&quot;) +
+  scale_x_discrete(&quot;Number of Biological factors&quot;, limits=c(&quot;1&quot;,&quot;2&quot;)) +
+  ylab(&quot; Number of Technical factors &quot;) </code></pre>
+<p><img src="figure/apply_citrus_singlecell.Rmd/unnamed-chunk-78-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code> ##NEED TO ADD LABELS            </code></pre>
 </div>
 
 <hr>

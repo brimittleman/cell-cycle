@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Briana Mittleman" />
+
+<meta name="date" content="2017-03-02" />
+
+<title>Explore biological significance of single cell only genes</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Cell cycle</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Explore biological significance of single cell only genes</h1>
+<h4 class="author"><em>Briana Mittleman</em></h4>
+<h4 class="date"><em>2017-03-02</em></h4>
+
+</div>
+
+
+<p><strong>Last updated:</strong> 2017-03-02</p>
+<p><strong>Code version:</strong> 3ce427b</p>
+<div id="pull-in-genes-lists" class="section level3">
+<h3>Pull in genes lists</h3>
+<pre class="r"><code>library(&quot;biomaRt&quot;)
+library(&quot;data.table&quot;)
+library(&quot;testit&quot;)
+library(&quot;dplyr&quot;)
+library(&quot;edgeR&quot;)
+library(&quot;VennDiagram&quot;)
+library(&quot;ggplot2&quot;)
+theme_set(theme_bw(base_size = 12))
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+<pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads &lt;- read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)</code></pre>
+<p>Create vectors with the list of genes in each set.</p>
+<pre class="r"><code>genes_observed_reads_bulk &lt;- rownames(reads_bulk)[rowSums(reads_bulk) &gt; 0]
+genes_observed_reads &lt;- rownames(reads)[rowSums(reads) &gt; 0]
+genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]
+single_cell_observed &lt;- union(genes_observed_molecules, genes_observed_molecules)</code></pre>
+<div id="genes-only-in-single-cell-molecules" class="section level4">
+<h4>Genes only in single cell molecules</h4>
+<pre class="r"><code>gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk)
+#subset molecules by these genes  
+molecules_df= data.frame(molecules)
+molecules_only_SC &lt;- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell,]</code></pre>
+<p>Count number of cells we see these genes in</p>
+<pre class="r"><code>non_zero_cells &lt;- apply(molecules_only_SC, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero &lt;- cbind(molecules_only_SC, non_zero_cells)
+
+summary(molecules_with_nonzero$non_zero_cells)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   1.00    1.00    2.00    3.11    3.50  112.00 </code></pre>
+<pre class="r"><code>genes_most_expressed= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 20, 1:3])
+genes_most_expressed</code></pre>
+<pre><code>[1] &quot;ENSG00000121318&quot; &quot;ENSG00000011465&quot; &quot;ENSG00000214324&quot; &quot;ENSG00000204296&quot;
+[5] &quot;ENSG00000230062&quot; &quot;ENSG00000176571&quot; &quot;ERCC-00048&quot;      &quot;ERCC-00083&quot;     
+[9] &quot;ERCC-00164&quot;     </code></pre>
+<pre class="r"><code>ensembl &lt;- useMart(host = &quot;grch37.ensembl.org&quot;,
+                   biomart = &quot;ENSEMBL_MART_ENSEMBL&quot;,
+                   dataset = &quot;hsapiens_gene_ensembl&quot;)
+
+genes_most_expressed_info &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, &quot;chromosome_name&quot;,
+                                                 &quot;external_gene_name&quot;, &quot;transcript_count&quot;,&quot;description&quot;), filters = &quot;ensembl_gene_id&quot;, values = genes_most_expressed[grep(&quot;ENSG&quot;, genes_most_expressed)],mart = ensembl)
+genes_most_expressed_info</code></pre>
+<pre><code>  ensembl_gene_id chromosome_name external_gene_name transcript_count
+1 ENSG00000011465              12                DCN               22
+2 ENSG00000121318              12            TAS2R10                1
+3 ENSG00000176571               8              CNBD1                6
+4 ENSG00000204296               6            C6orf10                8
+5 ENSG00000214324               3            C3orf56                1
+6 ENSG00000230062               6            ANKRD66                3
+                                                                   description
+1                                        decorin [Source:HGNC Symbol;Acc:2705]
+2             taste receptor, type 2, member 10 [Source:HGNC Symbol;Acc:14918]
+3 cyclic nucleotide binding domain containing 1 [Source:HGNC Symbol;Acc:26663]
+4            chromosome 6 open reading frame 10 [Source:HGNC Symbol;Acc:13922]
+5            chromosome 3 open reading frame 56 [Source:HGNC Symbol;Acc:32481]
+6                      ankyrin repeat domain 66 [Source:HGNC Symbol;Acc:44669]</code></pre>
+<pre class="r"><code>genes_not_singleton= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 1, 1:3])</code></pre>
+<pre class="r"><code>not_singleton_genes_info &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, &quot;chromosome_name&quot;,
+                                                 &quot;external_gene_name&quot;, &quot;transcript_count&quot;,&quot;description&quot;), filters = &quot;ensembl_gene_id&quot;, values = genes_not_singleton[grep(&quot;ENSG&quot;, genes_not_singleton)],mart = ensembl)
+not_singleton_genes_info</code></pre>
+<pre><code>    ensembl_gene_id chromosome_name external_gene_name transcript_count
+1   ENSG00000005981               7               ASB4                3
+2   ENSG00000007216              17            SLC13A2                8
+3   ENSG00000007908               1               SELE               11
+4   ENSG00000011465              12                DCN               22
+5   ENSG00000012504              12              NR1H4                9
+6   ENSG00000019169               2              MARCO                4
+7   ENSG00000029559               4               IBSP                1
+8   ENSG00000039537               5                 C6                8
+9   ENSG00000042304               2            C2orf83                2
+10  ENSG00000046774               X             MAGEC2                1
+11  ENSG00000072444              10             ASAH2C                2
+12  ENSG00000078098               2                FAP               13
+13  ENSG00000080293               2               SCTR                3
+14  ENSG00000081800               7            SLC13A1                4
+15  ENSG00000082293               6            COL19A1                6
+16  ENSG00000083782              12               EPYC                3
+17  ENSG00000086548              19            CEACAM6                2
+18  ENSG00000086696              16            HSD17B2                6
+19  ENSG00000090104               1               RGS1                6
+20  ENSG00000090402               3                 SI                3
+21  ENSG00000091106               2              NLRC4                4
+22  ENSG00000091138               7            SLC26A3                6
+23  ENSG00000094796              17              KRT31                1
+24  ENSG00000095981               6             KCNK16                5
+25  ENSG00000100450              14               GZMH                3
+26  ENSG00000100557              14          C14orf105               11
+27  ENSG00000100739              14             BDKRB1                3
+28  ENSG00000101200              20                AVP                1
+29  ENSG00000101892               X             ATP1B4                3
+30  ENSG00000102239               X               BRS3                1
+31  ENSG00000103241              16              FOXF1                1
+32  ENSG00000104415               8              WISP1                6
+33  ENSG00000104537               8             ANXA13                6
+34  ENSG00000104755               8              ADAM2                6
+35  ENSG00000104918              19               RETN                2
+36  ENSG00000105141              19             CASP14                3
+37  ENSG00000105352              19            CEACAM4                3
+38  ENSG00000105997               7              HOXA3                7
+39  ENSG00000106541               7               AGR2                8
+40  ENSG00000108688              17               CCL7                4
+41  ENSG00000108759              17              KRT32                1
+42  ENSG00000108849              17                PPY                6
+43  ENSG00000111700              12            SLCO1B3                6
+44  ENSG00000111701              12            APOBEC1                2
+45  ENSG00000112337               6            SLC17A2                3
+46  ENSG00000112761               6              WISP3                9
+47  ENSG00000113492               5              AGXT2                5
+48  ENSG00000114547               3             ROPN1B               10
+49  ENSG00000115263               2                GCG                5
+50  ENSG00000115523               2               GNLY               14
+51  ENSG00000115596               2               WNT6                2
+52  ENSG00000116031               2              CD207                1
+53  ENSG00000116748               1              AMPD1                4
+54  ENSG00000116783               1             TNNI3K                9
+55  ENSG00000117215               1            PLA2G2D                1
+56  ENSG00000117834               1             SLC5A9               11
+57  ENSG00000118017               3              A4GNT                1
+58  ENSG00000118271              18                TTR                3
+59  ENSG00000118729               1              CASQ2                3
+60  ENSG00000120075              17              HOXB5                1
+61  ENSG00000120094              17              HOXB1                2
+62  ENSG00000120235               9              IFNA6                1
+63  ENSG00000120289               X             MAGEB4                1
+64  ENSG00000121314              12             TAS2R8                1
+65  ENSG00000121318              12            TAS2R10                1
+66  ENSG00000122122               X              SASH3                2
+67  ENSG00000122548               7           KIAA0087                1
+68  ENSG00000123165               X             ACTRT1                1
+69  ENSG00000123561               X           SERPINA7                3
+70  ENSG00000123576               X               ESX1                1
+71  ENSG00000123594               X             ATXN3L                1
+72  ENSG00000124227              20            ANKRD60                2
+73  ENSG00000124253              20               PCK1                8
+74  ENSG00000124467              19               PSG8                9
+75  ENSG00000124568               6            SLC17A1                5
+76  ENSG00000124578               6           HIST1H4G                1
+77  ENSG00000125508              20               SRMS                1
+78  ENSG00000125551               2             PLGLB2                3
+79  ENSG00000125735              19            TNFSF14                3
+80  ENSG00000125787              20              GNRH2                5
+81  ENSG00000125861              20              GFRA4                3
+82  ENSG00000125975              20          C20orf173                4
+83  ENSG00000126262              19              FFAR2                3
+84  ENSG00000126856              16              PRDM7                6
+85  ENSG00000126860              17              EVI2A                3
+86  ENSG00000126890               X              CTAG2                2
+87  ENSG00000126952               X               NXF5                8
+88  ENSG00000127318              12               IL22                2
+89  ENSG00000127530              19              OR7C1                1
+90  ENSG00000128250              22              RFPL1                1
+91  ENSG00000128617               7             OPN1SW                1
+92  ENSG00000129151              11              BBOX1                8
+93  ENSG00000129864               Y                VCY                1
+94  ENSG00000129873               Y              CDY2B                2
+95  ENSG00000130487              22            KLHDC7B                1
+96  ENSG00000132185               1              FCRLA               15
+97  ENSG00000132464               4               ENAM                4
+98  ENSG00000132704               1              FCRL2                6
+99  ENSG00000132855               1            ANGPTL3                3
+100 ENSG00000133020              17               MYH8                1
+101 ENSG00000134240               1             HMGCS2                4
+102 ENSG00000134339              11               SAA2                6
+103 ENSG00000134460              10              IL2RA                4
+104 ENSG00000134539              12              KLRD1               12
+105 ENSG00000134812              11                GIF                6
+106 ENSG00000135443              12              KRT85                3
+107 ENSG00000136535               2               TBR1                6
+108 ENSG00000137675              11              MMP27                1
+109 ENSG00000137752              11              CASP1               21
+110 ENSG00000138294              10               MSMB                6
+111 ENSG00000138449               2            SLC40A1                7
+112 ENSG00000138653               4              NDST4                3
+113 ENSG00000139223              12             ANP32D                1
+114 ENSG00000139648              12              KRT71                1
+115 ENSG00000141194              17              OR4D1                1
+116 ENSG00000141946              19               ZIM3                1
+117 ENSG00000142484              17             TM4SF5                2
+118 ENSG00000142615               1             CELA2A                3
+119 ENSG00000143105               1             KCNA10                1
+120 ENSG00000143196               1                DPT                1
+121 ENSG00000143520               1               FLG2                1
+122 ENSG00000144015               2             TRIM43                1
+123 ENSG00000144460               2              NYAP2                2
+124 ENSG00000144820               3             GPR128                5
+125 ENSG00000145107               3            TM4SF19                4
+126 ENSG00000147081               X              AKAP4                8
+127 ENSG00000148604              10                RGR               10
+128 ENSG00000148702              10              HABP2                5
+129 ENSG00000149133              11              OR5F1                1
+130 ENSG00000149516              11              MS4A3                8
+131 ENSG00000150165              10            ANXA8L1                4
+132 ENSG00000150201              10              FXYD4                3
+133 ENSG00000150269              11              OR5M9                1
+134 ENSG00000150337               1             FCGR1A                4
+135 ENSG00000152254               2              G6PC2                5
+136 ENSG00000153498              13             SPACA7                4
+137 ENSG00000153684              15            GOLGA8F                8
+138 ENSG00000153822              17             KCNJ16               10
+139 ENSG00000154415               7            PPP1R3A                3
+140 ENSG00000154438               7               ASZ1                6
+141 ENSG00000154646              21           TMPRSS15                3
+142 ENSG00000155282               9      RP11-195B21.3                2
+143 ENSG00000155659               X              VSIG4                4
+144 ENSG00000155875               9            FAM154A                4
+145 ENSG00000155890               3             TRIM42                1
+146 ENSG00000156009               X             MAGEA8                5
+147 ENSG00000156269               4              NAA11                3
+148 ENSG00000157131               1                C8A                1
+149 ENSG00000157330               1           C1orf158                3
+150 ENSG00000158553               6           POM121L2                3
+151 ENSG00000158786               1            PLA2G2F                2
+152 ENSG00000159123               X             DMRTC1                4
+153 ENSG00000159189               1               C1QC                3
+154 ENSG00000159387              16               IRX6                2
+155 ENSG00000160339               9               FCN2                2
+156 ENSG00000160791               3               CCR5                3
+157 ENSG00000160882               8            CYP11B1                5
+158 ENSG00000161572              17              LYZL6                4
+159 ENSG00000161573              17              CCL16                3
+160 ENSG00000161583              17            TBC1D3G               19
+161 ENSG00000161849              12              KRT84                1
+162 ENSG00000162006              16              MSLNL                4
+163 ENSG00000162267               3              ITIH3               10
+164 ENSG00000162739               1             SLAMF6                3
+165 ENSG00000162843               1              WDR64                9
+166 ENSG00000163218               1            PGLYRP4                3
+167 ENSG00000163295               2               ALPI                2
+168 ENSG00000163687               3           DNASE1L3                8
+169 ENSG00000164113               4              ADAD1                7
+170 ENSG00000164123               4            C4orf45                3
+171 ENSG00000164188               5            RANBP3L                4
+172 ENSG00000164256               5              PRDM9                2
+173 ENSG00000164299               5               SPZ1                2
+174 ENSG00000164399               5                IL3                1
+175 ENSG00000164438               5               TLX3                1
+176 ENSG00000164512               5            ANKRD55                6
+177 ENSG00000164556               7            FAM183B                1
+178 ENSG00000164600               7            NEUROD6                1
+179 ENSG00000164744               7               SUN3               10
+180 ENSG00000164871               8            SPAG11B                9
+181 ENSG00000165370               X             GPR101                1
+182 ENSG00000165682              12             CLEC1B                4
+183 ENSG00000165685              12            TMEM52B                7
+184 ENSG00000166220              10              TBATA                4
+185 ENSG00000166391              11             MOGAT2                3
+186 ENSG00000166927              11              MS4A7               12
+187 ENSG00000167080              17           B4GALNT2                3
+188 ENSG00000167580              12               AQP2                3
+189 ENSG00000167910               8             CYP7A1                1
+190 ENSG00000168582               2              CRYGA                1
+191 ENSG00000168746              20           C20orf62                2
+192 ENSG00000168955               2            TM4SF20                2
+193 ENSG00000169059               X              VCX3A                2
+194 ENSG00000169214               1              OR6F1                1
+195 ENSG00000169248               4             CXCL11                2
+196 ENSG00000169313               3             P2RY12                2
+197 ENSG00000169344              16               UMOD               15
+198 ENSG00000169347              16                GP2               11
+199 ENSG00000169393              19            ELSPBP1                5
+200 ENSG00000169507               2           SLC38A11               10
+                                                                                                                      description
+1                                                         ankyrin repeat and SOCS box containing 4 [Source:HGNC Symbol;Acc:16009]
+2                  solute carrier family 13 (sodium-dependent dicarboxylate transporter), member 2 [Source:HGNC Symbol;Acc:10917]
+3                                                                                       selectin E [Source:HGNC Symbol;Acc:10718]
+4                                                                                           decorin [Source:HGNC Symbol;Acc:2705]
+5                                                   nuclear receptor subfamily 1, group H, member 4 [Source:HGNC Symbol;Acc:7967]
+6                                                    macrophage receptor with collagenous structure [Source:HGNC Symbol;Acc:6895]
+7                                                                     integrin-binding sialoprotein [Source:HGNC Symbol;Acc:5341]
+8                                                                            complement component 6 [Source:HGNC Symbol;Acc:1339]
+9                                                               chromosome 2 open reading frame 83 [Source:HGNC Symbol;Acc:25344]
+10                                                                    melanoma antigen family C, 2 [Source:HGNC Symbol;Acc:13574]
+11                                  N-acylsphingosine amidohydrolase (non-lysosomal ceramidase) 2C [Source:HGNC Symbol;Acc:23457]
+12                                                             fibroblast activation protein, alpha [Source:HGNC Symbol;Acc:3590]
+13                                                                               secretin receptor [Source:HGNC Symbol;Acc:10608]
+14                                   solute carrier family 13 (sodium/sulfate symporter), member 1 [Source:HGNC Symbol;Acc:10916]
+15                                                                      collagen, type XIX, alpha 1 [Source:HGNC Symbol;Acc:2196]
+16                                                                                        epiphycan [Source:HGNC Symbol;Acc:3053]
+17  carcinoembryonic antigen-related cell adhesion molecule 6 (non-specific cross reacting antigen) [Source:HGNC Symbol;Acc:1818]
+18                                                         hydroxysteroid (17-beta) dehydrogenase 2 [Source:HGNC Symbol;Acc:5211]
+19                                                               regulator of G-protein signaling 1 [Source:HGNC Symbol;Acc:9991]
+20                                                          sucrase-isomaltase (alpha-glucosidase) [Source:HGNC Symbol;Acc:10856]
+21                                                            NLR family, CARD domain containing 4 [Source:HGNC Symbol;Acc:16412]
+22                                             solute carrier family 26 (anion exchanger), member 3 [Source:HGNC Symbol;Acc:3018]
+23                                                                                       keratin 31 [Source:HGNC Symbol;Acc:6448]
+24                                                       potassium channel, subfamily K, member 16 [Source:HGNC Symbol;Acc:14464]
+25                                                  granzyme H (cathepsin G-like 2, protein h-CCPX) [Source:HGNC Symbol;Acc:4710]
+26                                                            chromosome 14 open reading frame 105 [Source:HGNC Symbol;Acc:20189]
+27                                                                           bradykinin receptor B1 [Source:HGNC Symbol;Acc:1029]
+28                                                                              arginine vasopressin [Source:HGNC Symbol;Acc:894]
+29                                                   ATPase, Na+/K+ transporting, beta 4 polypeptide [Source:HGNC Symbol;Acc:808]
+30                                                                         bombesin-like receptor 3 [Source:HGNC Symbol;Acc:1113]
+31                                                                                  forkhead box F1 [Source:HGNC Symbol;Acc:3809]
+32                                                      WNT1 inducible signaling pathway protein 1 [Source:HGNC Symbol;Acc:12769]
+33                                                                                       annexin A13 [Source:HGNC Symbol;Acc:536]
+34                                                                    ADAM metallopeptidase domain 2 [Source:HGNC Symbol;Acc:198]
+35                                                                                        resistin [Source:HGNC Symbol;Acc:20389]
+36                                                 caspase 14, apoptosis-related cysteine peptidase [Source:HGNC Symbol;Acc:1502]
+37                                        carcinoembryonic antigen-related cell adhesion molecule 4 [Source:HGNC Symbol;Acc:1816]
+38                                                                                      homeobox A3 [Source:HGNC Symbol;Acc:5104]
+39                                                                               anterior gradient 2 [Source:HGNC Symbol;Acc:328]
+40                                                                  chemokine (C-C motif) ligand 7 [Source:HGNC Symbol;Acc:10634]
+41                                                                                       keratin 32 [Source:HGNC Symbol;Acc:6449]
+42                                                                           pancreatic polypeptide [Source:HGNC Symbol;Acc:9327]
+43                                     solute carrier organic anion transporter family, member 1B3 [Source:HGNC Symbol;Acc:10961]
+44                                     apolipoprotein B mRNA editing enzyme, catalytic polypeptide 1 [Source:HGNC Symbol;Acc:604]
+45                                                              solute carrier family 17, member 2 [Source:HGNC Symbol;Acc:10930]
+46                                                      WNT1 inducible signaling pathway protein 3 [Source:HGNC Symbol;Acc:12771]
+47                                                          alanine--glyoxylate aminotransferase 2 [Source:HGNC Symbol;Acc:14412]
+48                                                            rhophilin associated tail protein 1B [Source:HGNC Symbol;Acc:31927]
+49                                                                                         glucagon [Source:HGNC Symbol;Acc:4191]
+50                                                                                       granulysin [Source:HGNC Symbol;Acc:4414]
+51                                            wingless-type MMTV integration site family, member 6 [Source:HGNC Symbol;Acc:12785]
+52                                                                        CD207 molecule, langerin [Source:HGNC Symbol;Acc:17935]
+53                                                               adenosine monophosphate deaminase 1 [Source:HGNC Symbol;Acc:468]
+54                                                                        TNNI3 interacting kinase [Source:HGNC Symbol;Acc:19661]
+55                                                                      phospholipase A2, group IID [Source:HGNC Symbol;Acc:9033]
+56                                  solute carrier family 5 (sodium/sugar cotransporter), member 9 [Source:HGNC Symbol;Acc:22146]
+57                                                       alpha-1,4-N-acetylglucosaminyltransferase [Source:HGNC Symbol;Acc:17968]
+58                                                                                   transthyretin [Source:HGNC Symbol;Acc:12405]
+59                                                                 calsequestrin 2 (cardiac muscle) [Source:HGNC Symbol;Acc:1513]
+60                                                                                      homeobox B5 [Source:HGNC Symbol;Acc:5116]
+61                                                                                      homeobox B1 [Source:HGNC Symbol;Acc:5111]
+62                                                                              interferon, alpha 6 [Source:HGNC Symbol;Acc:5427]
+63                                                                     melanoma antigen family B, 4 [Source:HGNC Symbol;Acc:6811]
+64                                                                taste receptor, type 2, member 8 [Source:HGNC Symbol;Acc:14915]
+65                                                               taste receptor, type 2, member 10 [Source:HGNC Symbol;Acc:14918]
+66                                                                 SAM and SH3 domain containing 3 [Source:HGNC Symbol;Acc:15975]
+67                                                                                        KIAA0087 [Source:HGNC Symbol;Acc:22191]
+68                                                                        actin-related protein T1 [Source:HGNC Symbol;Acc:24027]
+69             serpin peptidase inhibitor, clade A (alpha-1 antiproteinase, antitrypsin), member 7 [Source:HGNC Symbol;Acc:11583]
+70                                                                                  ESX homeobox 1 [Source:HGNC Symbol;Acc:14865]
+71                                                                                   ataxin 3-like [Source:HGNC Symbol;Acc:24173]
+72                                                                        ankyrin repeat domain 60 [Source:HGNC Symbol;Acc:16217]
+73                                                    phosphoenolpyruvate carboxykinase 1 (soluble) [Source:HGNC Symbol;Acc:8724]
+74                                                         pregnancy specific beta-1-glycoprotein 8 [Source:HGNC Symbol;Acc:9525]
+75                                  solute carrier family 17 (organic anion transporter), member 1 [Source:HGNC Symbol;Acc:10929]
+76                                                                           histone cluster 1, H4g [Source:HGNC Symbol;Acc:4792]
+77    src-related kinase lacking C-terminal regulatory tyrosine and N-terminal myristylation sites [Source:HGNC Symbol;Acc:11298]
+78                                                                              plasminogen-like B2 [Source:HGNC Symbol;Acc:9073]
+79                                           tumor necrosis factor (ligand) superfamily, member 14 [Source:HGNC Symbol;Acc:11930]
+80                                                                 gonadotropin-releasing hormone 2 [Source:HGNC Symbol;Acc:4420]
+81                                                                    GDNF family receptor alpha 4 [Source:HGNC Symbol;Acc:13821]
+82                                                            chromosome 20 open reading frame 173 [Source:HGNC Symbol;Acc:16166]
+83                                                                       free fatty acid receptor 2 [Source:HGNC Symbol;Acc:4501]
+84                                                                           PR domain containing 7 [Source:HGNC Symbol;Acc:9351]
+85                                                              ecotropic viral integration site 2A [Source:HGNC Symbol;Acc:3499]
+86                                                                          cancer/testis antigen 2 [Source:HGNC Symbol;Acc:2492]
+87                                                                      nuclear RNA export factor 5 [Source:HGNC Symbol;Acc:8075]
+88                                                                                  interleukin 22 [Source:HGNC Symbol;Acc:14900]
+89                                              olfactory receptor, family 7, subfamily C, member 1 [Source:HGNC Symbol;Acc:8373]
+90                                                                        ret finger protein-like 1 [Source:HGNC Symbol;Acc:9977]
+91                                                    opsin 1 (cone pigments), short-wave-sensitive [Source:HGNC Symbol;Acc:1012]
+92             butyrobetaine (gamma), 2-oxoglutarate dioxygenase (gamma-butyrobetaine hydroxylase) 1 [Source:HGNC Symbol;Acc:964]
+93                                                                       variable charge, Y-linked [Source:HGNC Symbol;Acc:12668]
+94                                                              chromodomain protein, Y-linked, 2B [Source:HGNC Symbol;Acc:23921]
+95                                                                      kelch domain containing 7B [Source:HGNC Symbol;Acc:25145]
+96                                                                              Fc receptor-like A [Source:HGNC Symbol;Acc:18504]
+97                                                                                         enamelin [Source:HGNC Symbol;Acc:3344]
+98                                                                              Fc receptor-like 2 [Source:HGNC Symbol;Acc:14875]
+99                                                                               angiopoietin-like 3 [Source:HGNC Symbol;Acc:491]
+100                                               myosin, heavy chain 8, skeletal muscle, perinatal [Source:HGNC Symbol;Acc:7578]
+101                                       3-hydroxy-3-methylglutaryl-CoA synthase 2 (mitochondrial) [Source:HGNC Symbol;Acc:5008]
+102                                                                               serum amyloid A2 [Source:HGNC Symbol;Acc:10514]
+103                                                                   interleukin 2 receptor, alpha [Source:HGNC Symbol;Acc:6008]
+104                                          killer cell lectin-like receptor subfamily D, member 1 [Source:HGNC Symbol;Acc:6378]
+105                                                  gastric intrinsic factor (vitamin B synthesis) [Source:HGNC Symbol;Acc:4268]
+106                                                                                      keratin 85 [Source:HGNC Symbol;Acc:6462]
+107                                                                                T-box, brain, 1 [Source:HGNC Symbol;Acc:11590]
+108                                                                     matrix metallopeptidase 27 [Source:HGNC Symbol;Acc:14250]
+109                                                 caspase 1, apoptosis-related cysteine peptidase [Source:HGNC Symbol;Acc:1499]
+110                                                                       microseminoprotein, beta- [Source:HGNC Symbol;Acc:7372]
+111                                solute carrier family 40 (iron-regulated transporter), member 1 [Source:HGNC Symbol;Acc:10909]
+112                                      N-deacetylase/N-sulfotransferase (heparan glucosaminyl) 4 [Source:HGNC Symbol;Acc:20779]
+113                               acidic (leucine-rich) nuclear phosphoprotein 32 family, member D [Source:HGNC Symbol;Acc:16676]
+114                                                                                     keratin 71 [Source:HGNC Symbol;Acc:28927]
+115                                             olfactory receptor, family 4, subfamily D, member 1 [Source:HGNC Symbol;Acc:8293]
+116                                                                       zinc finger, imprinted 3 [Source:HGNC Symbol;Acc:16366]
+117                                                          transmembrane 4 L six family member 5 [Source:HGNC Symbol;Acc:11857]
+118                                                   chymotrypsin-like elastase family, member 2A [Source:HGNC Symbol;Acc:24609]
+119                            potassium voltage-gated channel, shaker-related subfamily, member 10 [Source:HGNC Symbol;Acc:6219]
+120                                                                                   dermatopontin [Source:HGNC Symbol;Acc:3011]
+121                                                                      filaggrin family member 2 [Source:HGNC Symbol;Acc:33276]
+122                                                                 tripartite motif containing 43 [Source:HGNC Symbol;Acc:19015]
+123                           neuronal tyrosine-phosphorylated phosphoinositide-3-kinase adaptor 2 [Source:HGNC Symbol;Acc:29291]
+124                                                                 G protein-coupled receptor 128 [Source:HGNC Symbol;Acc:19241]
+125                                                         transmembrane 4 L six family member 19 [Source:HGNC Symbol;Acc:25167]
+126                                                                 A kinase (PRKA) anchor protein 4 [Source:HGNC Symbol;Acc:374]
+127                                                              retinal G protein coupled receptor [Source:HGNC Symbol;Acc:9990]
+128                                                                    hyaluronan binding protein 2 [Source:HGNC Symbol;Acc:4798]
+129                                             olfactory receptor, family 5, subfamily F, member 1 [Source:HGNC Symbol;Acc:8343]
+130                membrane-spanning 4-domains, subfamily A, member 3 (hematopoietic cell-specific) [Source:HGNC Symbol;Acc:7317]
+131                                                                              annexin A8-like 1 [Source:HGNC Symbol;Acc:23334]
+132                                                FXYD domain containing ion transport regulator 4 [Source:HGNC Symbol;Acc:4028]
+133                                            olfactory receptor, family 5, subfamily M, member 9 [Source:HGNC Symbol;Acc:15294]
+134                                           Fc fragment of IgG, high affinity Ia, receptor (CD64) [Source:HGNC Symbol;Acc:3613]
+135                                                            glucose-6-phosphatase, catalytic, 2 [Source:HGNC Symbol;Acc:28906]
+136                                                                    sperm acrosome associated 7 [Source:HGNC Symbol;Acc:29575]
+137                                                                     golgin A8 family, member F [Source:HGNC Symbol;Acc:32378]
+138                                   potassium inwardly-rectifying channel, subfamily J, member 16 [Source:HGNC Symbol;Acc:6262]
+139                                                    protein phosphatase 1, regulatory subunit 3A [Source:HGNC Symbol;Acc:9291]
+140                                ankyrin repeat, SAM and basic leucine zipper domain containing 1 [Source:HGNC Symbol;Acc:1350]
+141                                                               transmembrane protease, serine 15 [Source:HGNC Symbol;Acc:9490]
+142                                                                       Protein LOC644249  [Source:UniProtKB/TrEMBL;Acc:Q4V308]
+143                                                   V-set and immunoglobulin domain containing 4 [Source:HGNC Symbol;Acc:17032]
+144                                                  family with sequence similarity 154, member A [Source:HGNC Symbol;Acc:28566]
+145                                                                 tripartite motif containing 42 [Source:HGNC Symbol;Acc:19014]
+146                                                                    melanoma antigen family A, 8 [Source:HGNC Symbol;Acc:6806]
+147                                          N(alpha)-acetyltransferase 11, NatA catalytic subunit [Source:HGNC Symbol;Acc:28125]
+148                                                       complement component 8, alpha polypeptide [Source:HGNC Symbol;Acc:1352]
+149                                                            chromosome 1 open reading frame 158 [Source:HGNC Symbol;Acc:28567]
+150                                                        POM121 transmembrane nucleoporin-like 2 [Source:HGNC Symbol;Acc:13973]
+151                                                                    phospholipase A2, group IIF [Source:HGNC Symbol;Acc:30040]
+152                                                                            DMRT-like family C1 [Source:HGNC Symbol;Acc:13910]
+153                                                 complement component 1, q subcomponent, C chain [Source:HGNC Symbol;Acc:1245]
+154                                                                            iroquois homeobox 6 [Source:HGNC Symbol;Acc:14675]
+155                                        ficolin (collagen/fibrinogen domain containing lectin) 2 [Source:HGNC Symbol;Acc:3624]
+156                                              chemokine (C-C motif) receptor 5 (gene/pseudogene) [Source:HGNC Symbol;Acc:1606]
+157                                          cytochrome P450, family 11, subfamily B, polypeptide 1 [Source:HGNC Symbol;Acc:2591]
+158                                                                                lysozyme-like 6 [Source:HGNC Symbol;Acc:29614]
+159                                                                chemokine (C-C motif) ligand 16 [Source:HGNC Symbol;Acc:10614]
+160                                                                  TBC1 domain family, member 3G [Source:HGNC Symbol;Acc:29860]
+161                                                                                      keratin 84 [Source:HGNC Symbol;Acc:6461]
+162                                                                                mesothelin-like [Source:HGNC Symbol;Acc:14170]
+163                                                     inter-alpha-trypsin inhibitor heavy chain 3 [Source:HGNC Symbol;Acc:6168]
+164                                                                           SLAM family member 6 [Source:HGNC Symbol;Acc:21392]
+165                                                                            WD repeat domain 64 [Source:HGNC Symbol;Acc:26570]
+166                                                            peptidoglycan recognition protein 4 [Source:HGNC Symbol;Acc:30015]
+167                                                                 alkaline phosphatase, intestinal [Source:HGNC Symbol;Acc:437]
+168                                                                      deoxyribonuclease I-like 3 [Source:HGNC Symbol;Acc:2959]
+169                                      adenosine deaminase domain containing 1 (testis-specific) [Source:HGNC Symbol;Acc:30713]
+170                                                             chromosome 4 open reading frame 45 [Source:HGNC Symbol;Acc:26342]
+171                                                                     RAN binding protein 3-like [Source:HGNC Symbol;Acc:26353]
+172                                                                         PR domain containing 9 [Source:HGNC Symbol;Acc:13994]
+173                                                                 spermatogenic leucine zipper 1 [Source:HGNC Symbol;Acc:30721]
+174                                             interleukin 3 (colony-stimulating factor, multiple) [Source:HGNC Symbol;Acc:6011]
+175                                                                     T-cell leukemia homeobox 3 [Source:HGNC Symbol;Acc:13532]
+176                                                                       ankyrin repeat domain 55 [Source:HGNC Symbol;Acc:25681]
+177                                                  family with sequence similarity 183, member B [Source:HGNC Symbol;Acc:34511]
+178                                                                     neuronal differentiation 6 [Source:HGNC Symbol;Acc:13804]
+179                                                             Sad1 and UNC84 domain containing 3 [Source:HGNC Symbol;Acc:22429]
+180                                                                   sperm associated antigen 11B [Source:HGNC Symbol;Acc:14534]
+181                                                                 G protein-coupled receptor 101 [Source:HGNC Symbol;Acc:14963]
+182                                                        C-type lectin domain family 1, member B [Source:HGNC Symbol;Acc:24356]
+183                                                                      transmembrane protein 52B [Source:HGNC Symbol;Acc:26438]
+184                                                            thymus, brain and testes associated [Source:HGNC Symbol;Acc:23511]
+185                                                           monoacylglycerol O-acyltransferase 2 [Source:HGNC Symbol;Acc:23248]
+186                                             membrane-spanning 4-domains, subfamily A, member 7 [Source:HGNC Symbol;Acc:13378]
+187                                                 beta-1,4-N-acetyl-galactosaminyl transferase 2 [Source:HGNC Symbol;Acc:24136]
+188                                                                    aquaporin 2 (collecting duct) [Source:HGNC Symbol;Acc:634]
+189                                           cytochrome P450, family 7, subfamily A, polypeptide 1 [Source:HGNC Symbol;Acc:2651]
+190                                                                             crystallin, gamma A [Source:HGNC Symbol;Acc:2408]
+191                                                            chromosome 20 open reading frame 62 [Source:HGNC Symbol;Acc:16195]
+192                                                         transmembrane 4 L six family member 20 [Source:HGNC Symbol;Acc:26230]
+193                                                                   variable charge, X-linked 3A [Source:HGNC Symbol;Acc:18159]
+194                                            olfactory receptor, family 6, subfamily F, member 1 [Source:HGNC Symbol;Acc:15027]
+195                                                              chemokine (C-X-C motif) ligand 11 [Source:HGNC Symbol;Acc:10638]
+196                                                 purinergic receptor P2Y, G-protein coupled, 12 [Source:HGNC Symbol;Acc:18124]
+197                                                                                     uromodulin [Source:HGNC Symbol;Acc:12559]
+198                                                       glycoprotein 2 (zymogen granule membrane) [Source:HGNC Symbol;Acc:4441]
+199                                                             epididymal sperm binding protein 1 [Source:HGNC Symbol;Acc:14417]
+200                                                            solute carrier family 38, member 11 [Source:HGNC Symbol;Acc:26836]
+ [ reached getOption(&quot;max.print&quot;) -- omitted 335 rows ]</code></pre>
+</div>
+</div>
+<div id="go-analysis" class="section level3">
+<h3>GO analysis</h3>
+<p><a href="https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd" class="uri">https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd</a></p>
+</div>
+
+<hr>
+<p>
+    This site was created with <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
