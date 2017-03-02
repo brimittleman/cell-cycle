@@ -176,8 +176,8 @@ dim(molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==2,
 ###In function need to count the number of these genes that are only found found in single cell
 prop_cell_function= function(c){
   x= molecules_with_nonzero_all[molecules_with_nonzero_all$non_zero_cells_all==c, ]
-  x[rownames(x) %in% rownames(molecules_only_SC),]
-  return(dim(x)[1])
+  y=x[rownames(x) %in% rownames(molecules_only_SC),]
+  return(dim(y)[1])
 }
 
 prop_cell_function(1)
