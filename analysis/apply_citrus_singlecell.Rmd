@@ -57,7 +57,7 @@ There are 48 ERCC genes and 13058 target genes.
 I will run the scPLS algorithm using the ERCC genes as control and the ENSG genes as the target genes. Start with K values both equaling 1. I will work on optimization of this once I have the algorithm working.    
 
 ```{r scPLS, eval=FALSE}
-scPLS_tech <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = "EM", Chunk = TRUE, center = TRUE)
+scPLS_tech <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 1, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
 save(scPLS_tech, file="../data/scPLS_tech.rda")
 ```
 
@@ -204,3 +204,45 @@ ff3
 ```
 
 
+* need k1=1 and k2=1:5  
+
+```{r 1.3-5, eval=FALSE}
+scPLS_tech.1.3 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 3, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.3, file="../data/scPLS_tech.1.3.rda")
+scPLS_tech.1.4 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 4, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.4, file="../data/scPLS_tech.1.4.rda")
+scPLS_tech.1.5 <- scPLS(molecules_cpm_19101t, molecules_cpm_ERCC_19101t, k1 = 1, k2 = 5, iter = 100, method = "EM", Chunk = TRUE, chunk.size = 500, center = TRUE)
+save(scPLS_tech.1.5, file="../data/scPLS_tech.1.5.rda")
+```
+
+```{r load 3-5}
+load("../data/scPLS_tech.1.3.rda")
+load("../data/scPLS_tech.1.4.rda")
+load("../data/scPLS_tech.1.5.rda")
+```
+
+```{r extract L}
+scPLS.1.1= c(1,1,mean(summary(scPLS_tech$Likelihood)))
+scPLS.1.2 = c(1,2,mean(summary(scPLS_tech.1.2$Likelihood)))
+scPLS.1.3 = c(1,3,mean(summary(scPLS_tech.1.3$Likelihood)))
+scPLS.1.4 = c(1,4,mean(summary(scPLS_tech.1.4$Likelihood)))
+scPLS.1.5 = c(1,5,mean(summary(scPLS_tech.1.5$Likelihood)))
+scPLS.1.1.5= rbind(scPLS.1.1,scPLS.1.2,scPLS.1.3,scPLS.1.4,scPLS.1.5)
+colnames(scPLS.1.1.5)=c("k1", "k2", "Likelihood")
+scPLS.1.1.5
+```
+```{r}
+change1=(mean(summary(scPLS_tech.1.2$Likelihood))- mean(summary(scPLS_tech$Likelihood)))/mean(summary(scPLS_tech$Likelihood))
+
+change2=(mean(summary(scPLS_tech.1.3$Likelihood))- mean(summary(scPLS_tech.1.2$Likelihood)))/mean(summary(scPLS_tech.1.2$Likelihood))
+
+change3=(mean(summary(scPLS_tech.1.4$Likelihood))- mean(summary(scPLS_tech.1.3$Likelihood)))/mean(summary(scPLS_tech.1.3$Likelihood))
+
+change4=(mean(summary(scPLS_tech.1.5$Likelihood))- mean(summary(scPLS_tech.1.4$Likelihood)))/mean(summary(scPLS_tech.1.4$Likelihood))
+
+L_change= c(abs(change1), abs(change2), abs(change3), abs(change4))
+plot(L_change, ylab="Absolute value change in Likelihood", main="Compare k2 values 1-5")
+
+```
+
+Biggest improvement in likelihood is between k2=1 and k2=2. 
