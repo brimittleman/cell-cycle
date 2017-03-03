@@ -29,6 +29,9 @@ library("VennDiagram")
 library("ggplot2")
 theme_set(theme_bw(base_size = 12))
 source("../../singleCellSeq/analysis/functions.R")
+require(Humanzee)
+library("GOstats")
+
 ```
 
 
@@ -50,6 +53,8 @@ Create vectors with the list of genes in each set.
 genes_observed_reads_bulk <- rownames(reads_bulk)[rowSums(reads_bulk) > 0]
 genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
 genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
+genes_observed_molecules_ENSG <- genes_observed_molecules[grep("ERCC", genes_observed_molecules, invert = TRUE)]
+write.table(genes_observed_molecules_ENSG, file = "../output/gene-observed-molecules-ensg.txt", quote = FALSE, row.names = FALSE)
 single_cell_observed <- union(genes_observed_molecules, genes_observed_molecules)
 ```
 
@@ -105,9 +110,37 @@ genes_not_singleton= row.names(molecules_with_nonzero[molecules_with_nonzero$non
 
 not_singleton_genes_info <- getBM(attributes = c("ensembl_gene_id", "chromosome_name",
                                                  "external_gene_name", "transcript_count","description"), filters = "ensembl_gene_id", values = genes_not_singleton[grep("ENSG", genes_not_singleton)],mart = ensembl)
-not_singleton_genes_info
+head(not_singleton_genes_info)
 
 ```
 
 ###GO analysis  
 https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd  
+https://github.com/jhsiao999/Humanzee/blob/master/R/GOtest.R
+
+
+
+```{r run go, eval=FALSE}
+not_singleton_genes_GO<- GOtest(my_ensembl_gene_universe = rownames(molecules),
+                      my_ensembl_gene_test =row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells > 1, ]),
+                      pval_cutoff = 1, ontology=c("BP") )
+
+
+gene_names <- row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells > 1, ])
+gene_names_ensg <- gene_names[grep("ERCC", gene_names, invert = TRUE)]
+write.table(gene_names_ensg, file = "../output/gene-ensg.txt", quote = FALSE)
+
+save(not_singleton_genes_GO,file="../data/not_singleton_genes_GO.rda")
+```
+
+
+
+```{r GO}
+
+load("../data/not_singleton_genes_GO.rda")
+goterms_SC <- summary(not_singleton_genes_GO$GO$BP, pvalue = .05)
+goterms_SC
+  
+```
+
+Online GO analysis: http://consensuspathdb.org  

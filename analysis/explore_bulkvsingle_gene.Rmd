@@ -221,3 +221,6 @@ col_vec_onlyBULK <- c("lightpink", "blue")[as.numeric(which_onlyBULK)]
 plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = "Mean expression of reads in bulk samples", ylab=" read count", xlab = "genes (blue are only bulk genes)")
 
 ```
+
+
+

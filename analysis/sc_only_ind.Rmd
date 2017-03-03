@@ -1,0 +1,160 @@
+---
+title: "Look at single cell only genes by individual"
+author: "Briana Mittleman"
+date: 2017/03/03
+output: html_document
+---
+
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+**Last updated:** `r Sys.Date()`
+
+**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+
+###Pull in genes lists  
+
+```{r}
+library("biomaRt")
+library("data.table")
+library("testit")
+library("dplyr")
+library("edgeR")
+library("VennDiagram")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+require(Humanzee)
+library("GOstats")
+
+```
+
+
+
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+```
+Create vectors with the list of genes in each set.   
+```{r}
+genes_observed_reads_bulk <- rownames(reads_bulk)[rowSums(reads_bulk) > 0]
+genes_observed_reads_bulk_ENSG= genes_observed_reads_bulk[grep("ERCC", genes_observed_reads_bulk, invert = TRUE)]
+genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
+genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
+genes_observed_molecules_ENSG <- genes_observed_molecules[grep("ERCC", genes_observed_molecules, invert = TRUE)]
+
+```
+
+####Genes only in single cell molecules  
+
+```{r}
+
+gene_onlysinglecell_ENSG <- setdiff(genes_observed_molecules_ENSG,genes_observed_reads_bulk_ENSG)
+#subset molecules by these genes  
+molecules_df= data.frame(molecules)
+molecules_only_SC_ENSG <- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell_ENSG,]
+dim(molecules_only_SC_ENSG)
+```
+
+Count number of cells we see these genes in  
+
+```{r}
+non_zero_cells_ENSG <- apply(molecules_only_SC_ENSG, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero_ENSG <- cbind(molecules_only_SC_ENSG, non_zero_cells_ENSG)
+
+summary(molecules_with_nonzero_ENSG$non_zero_cells_ENSG)
+
+```
+###Individual 19098   
+
+```{r}
+molecules_SC_ENSG_19098= molecules_with_nonzero_ENSG[,grep("19098", colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19098
+dim(molecules_SC_ENSG_19098)
+
+non_zero_cells_ENSG_19098 <- apply(molecules_SC_ENSG_19098, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098 <- cbind(molecules_SC_ENSG_19098, non_zero_cells_ENSG_19098)
+
+summary(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)
+plot(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)
+```
+
+###Individual 19101  
+```{r}
+molecules_SC_ENSG_19101= molecules_with_nonzero_ENSG[,grep("19101", colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19101
+
+dim(molecules_SC_ENSG_19101)
+
+non_zero_cells_ENSG_19101 <- apply(molecules_SC_ENSG_19101, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101 <- cbind(molecules_SC_ENSG_19101, non_zero_cells_ENSG_19101)
+
+summary(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)
+plot(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)
+```
+  
+###Individual 19239   
+
+```{r}
+molecules_SC_ENSG_19239= molecules_with_nonzero_ENSG[,grep("19239", colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19239
+
+dim(molecules_SC_ENSG_19239)
+
+non_zero_cells_ENSG_19239 <- apply(molecules_SC_ENSG_19239, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239 <- cbind(molecules_SC_ENSG_19239, non_zero_cells_ENSG_19239)
+
+summary(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)
+plot(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)
+```
+
+
+###Compare individuals  
+
+I want to look at the genes that are expressed in these individuals and see if there are genes that are unique to one individual  
+
+* find genes with non_zero > 1 (exclude singleton)
+
+* make a list of these genes  
+
+* create a ven diagram with these genes  
+
+
+
+```{r extract non singleton gene lists}
+#19098
+genes_not_singleton_19098= row.names(molecules_with_nonzero_ENSG_19098[molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098 > 1, ])
+length(genes_not_singleton_19098)
+
+#19101
+genes_not_singleton_19101= row.names(molecules_with_nonzero_ENSG_19101[molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101 > 1, ])
+length(genes_not_singleton_19101)
+
+#19239
+genes_not_singleton_19239= row.names(molecules_with_nonzero_ENSG_19239[molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239 > 1, ])
+length(genes_not_singleton_19239)
+
+```
+
+```{r ven diagram}
+non_sing_venn <- venn.diagram(x = list("19098" = genes_not_singleton_19098,
+                                    "19101" = genes_not_singleton_19101,
+                                    "19239" = genes_not_singleton_19239),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn)
+```
+

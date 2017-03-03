@@ -392,6 +392,13 @@ ggplot(BIC_df, aes(x=k1, y=k2)) +
   
 
 
- ##NEED TO ADD LABELS            
+      
+```
+###Final model selection  
+ 
+Final model: k1=1 and k2=5
+
+```{r}
+ff6
 ```
 
