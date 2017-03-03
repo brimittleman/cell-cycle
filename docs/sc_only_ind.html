@@ -11,9 +11,8 @@
 
 <meta name="author" content="Briana Mittleman" />
 
-<meta name="date" content="2017-03-02" />
 
-<title>Explore biological significance of single cell only genes</title>
+<title>Look at single cell only genes by individual</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -302,9 +301,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Explore biological significance of single cell only genes</h1>
+<h1 class="title toc-ignore">Look at single cell only genes by individual</h1>
 <h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>2017-03-02</em></h4>
+<h4 class="date"><em>2017/03/03</em></h4>
 
 </div>
 
@@ -336,91 +335,102 @@ molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, h
 reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)</code></pre>
 <p>Create vectors with the list of genes in each set.</p>
 <pre class="r"><code>genes_observed_reads_bulk &lt;- rownames(reads_bulk)[rowSums(reads_bulk) &gt; 0]
+genes_observed_reads_bulk_ENSG= genes_observed_reads_bulk[grep(&quot;ERCC&quot;, genes_observed_reads_bulk, invert = TRUE)]
 genes_observed_reads &lt;- rownames(reads)[rowSums(reads) &gt; 0]
 genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]
-genes_observed_molecules_ENSG &lt;- genes_observed_molecules[grep(&quot;ERCC&quot;, genes_observed_molecules, invert = TRUE)]
-write.table(genes_observed_molecules_ENSG, file = &quot;../output/gene-observed-molecules-ensg.txt&quot;, quote = FALSE, row.names = FALSE)
-single_cell_observed &lt;- union(genes_observed_molecules, genes_observed_molecules)</code></pre>
+genes_observed_molecules_ENSG &lt;- genes_observed_molecules[grep(&quot;ERCC&quot;, genes_observed_molecules, invert = TRUE)]</code></pre>
 <div id="genes-only-in-single-cell-molecules" class="section level4">
 <h4>Genes only in single cell molecules</h4>
-<pre class="r"><code>gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk)
+<pre class="r"><code>gene_onlysinglecell_ENSG &lt;- setdiff(genes_observed_molecules_ENSG,genes_observed_reads_bulk_ENSG)
 #subset molecules by these genes  
 molecules_df= data.frame(molecules)
-molecules_only_SC &lt;- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell,]</code></pre>
+molecules_only_SC_ENSG &lt;- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell_ENSG,]
+dim(molecules_only_SC_ENSG)</code></pre>
+<pre><code>[1] 956 864</code></pre>
 <p>Count number of cells we see these genes in</p>
-<pre class="r"><code>non_zero_cells &lt;- apply(molecules_only_SC, 1, function(c)sum(c!=0))
+<pre class="r"><code>non_zero_cells_ENSG &lt;- apply(molecules_only_SC_ENSG, 1, function(c)sum(c!=0))
 
-molecules_with_nonzero &lt;- cbind(molecules_only_SC, non_zero_cells)
+molecules_with_nonzero_ENSG &lt;- cbind(molecules_only_SC_ENSG, non_zero_cells_ENSG)
 
-summary(molecules_with_nonzero$non_zero_cells)</code></pre>
+summary(molecules_with_nonzero_ENSG$non_zero_cells_ENSG)</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-   1.00    1.00    2.00    3.11    3.50  112.00 </code></pre>
-<pre class="r"><code>genes_most_expressed= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 20, 1:3])
-genes_most_expressed</code></pre>
-<pre><code>[1] &quot;ENSG00000121318&quot; &quot;ENSG00000011465&quot; &quot;ENSG00000214324&quot; &quot;ENSG00000204296&quot;
-[5] &quot;ENSG00000230062&quot; &quot;ENSG00000176571&quot; &quot;ERCC-00048&quot;      &quot;ERCC-00083&quot;     
-[9] &quot;ERCC-00164&quot;     </code></pre>
-<pre class="r"><code>ensembl &lt;- useMart(host = &quot;grch37.ensembl.org&quot;,
-                   biomart = &quot;ENSEMBL_MART_ENSEMBL&quot;,
-                   dataset = &quot;hsapiens_gene_ensembl&quot;)
-
-genes_most_expressed_info &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, &quot;chromosome_name&quot;,
-                                                 &quot;external_gene_name&quot;, &quot;transcript_count&quot;,&quot;description&quot;), filters = &quot;ensembl_gene_id&quot;, values = genes_most_expressed[grep(&quot;ENSG&quot;, genes_most_expressed)],mart = ensembl)
-genes_most_expressed_info</code></pre>
-<pre><code>  ensembl_gene_id chromosome_name external_gene_name transcript_count
-1 ENSG00000011465              12                DCN               22
-2 ENSG00000121318              12            TAS2R10                1
-3 ENSG00000176571               8              CNBD1                6
-4 ENSG00000204296               6            C6orf10                8
-5 ENSG00000214324               3            C3orf56                1
-6 ENSG00000230062               6            ANKRD66                3
-                                                                   description
-1                                        decorin [Source:HGNC Symbol;Acc:2705]
-2             taste receptor, type 2, member 10 [Source:HGNC Symbol;Acc:14918]
-3 cyclic nucleotide binding domain containing 1 [Source:HGNC Symbol;Acc:26663]
-4            chromosome 6 open reading frame 10 [Source:HGNC Symbol;Acc:13922]
-5            chromosome 3 open reading frame 56 [Source:HGNC Symbol;Acc:32481]
-6                      ankyrin repeat domain 66 [Source:HGNC Symbol;Acc:44669]</code></pre>
-<pre class="r"><code>genes_not_singleton= row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 1, 1:3])</code></pre>
-<pre class="r"><code>not_singleton_genes_info &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, &quot;chromosome_name&quot;,
-                                                 &quot;external_gene_name&quot;, &quot;transcript_count&quot;,&quot;description&quot;), filters = &quot;ensembl_gene_id&quot;, values = genes_not_singleton[grep(&quot;ENSG&quot;, genes_not_singleton)],mart = ensembl)
-head(not_singleton_genes_info)</code></pre>
-<pre><code>  ensembl_gene_id chromosome_name external_gene_name transcript_count
-1 ENSG00000005981               7               ASB4                3
-2 ENSG00000007216              17            SLC13A2                8
-3 ENSG00000007908               1               SELE               11
-4 ENSG00000011465              12                DCN               22
-5 ENSG00000012504              12              NR1H4                9
-6 ENSG00000019169               2              MARCO                4
-                                                                                                     description
-1                                        ankyrin repeat and SOCS box containing 4 [Source:HGNC Symbol;Acc:16009]
-2 solute carrier family 13 (sodium-dependent dicarboxylate transporter), member 2 [Source:HGNC Symbol;Acc:10917]
-3                                                                      selectin E [Source:HGNC Symbol;Acc:10718]
-4                                                                          decorin [Source:HGNC Symbol;Acc:2705]
-5                                  nuclear receptor subfamily 1, group H, member 4 [Source:HGNC Symbol;Acc:7967]
-6                                   macrophage receptor with collagenous structure [Source:HGNC Symbol;Acc:6895]</code></pre>
+  1.000   1.000   2.000   2.899   3.000  45.000 </code></pre>
 </div>
 </div>
-<div id="go-analysis" class="section level3">
-<h3>GO analysis</h3>
-<p><a href="https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd" class="uri">https://github.com/jdblischak/singleCellSeq/blob/master/analysis/cv-adjusted-profile-annotation.Rmd</a><br />
-<a href="https://github.com/jhsiao999/Humanzee/blob/master/R/GOtest.R" class="uri">https://github.com/jhsiao999/Humanzee/blob/master/R/GOtest.R</a></p>
-<pre class="r"><code>not_singleton_genes_GO&lt;- GOtest(my_ensembl_gene_universe = rownames(molecules),
-                      my_ensembl_gene_test =row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 1, ]),
-                      pval_cutoff = 1, ontology=c(&quot;BP&quot;) )
+<div id="individual-19098" class="section level3">
+<h3>Individual 19098</h3>
+<pre class="r"><code>molecules_SC_ENSG_19098= molecules_with_nonzero_ENSG[,grep(&quot;19098&quot;, colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19098
+dim(molecules_SC_ENSG_19098)</code></pre>
+<pre><code>[1] 956 288</code></pre>
+<pre class="r"><code>non_zero_cells_ENSG_19098 &lt;- apply(molecules_SC_ENSG_19098, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098 &lt;- cbind(molecules_SC_ENSG_19098, non_zero_cells_ENSG_19098)
 
+summary(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.0000  1.0000  0.8923  1.0000 13.0000 </code></pre>
+<pre class="r"><code>plot(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="individual-19101" class="section level3">
+<h3>Individual 19101</h3>
+<pre class="r"><code>molecules_SC_ENSG_19101= molecules_with_nonzero_ENSG[,grep(&quot;19101&quot;, colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19101
 
-gene_names &lt;- row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 1, ])
-gene_names_ensg &lt;- gene_names[grep(&quot;ERCC&quot;, gene_names, invert = TRUE)]
-write.table(gene_names_ensg, file = &quot;../output/gene-ensg.txt&quot;, quote = FALSE)
+dim(molecules_SC_ENSG_19101)</code></pre>
+<pre><code>[1] 956 288</code></pre>
+<pre class="r"><code>non_zero_cells_ENSG_19101 &lt;- apply(molecules_SC_ENSG_19101, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101 &lt;- cbind(molecules_SC_ENSG_19101, non_zero_cells_ENSG_19101)
 
-save(not_singleton_genes_GO,file=&quot;../data/not_singleton_genes_GO.rda&quot;)</code></pre>
-<pre class="r"><code>load(&quot;../data/not_singleton_genes_GO.rda&quot;)
-goterms_SC &lt;- summary(not_singleton_genes_GO$GO$BP, pvalue = .05)
-goterms_SC</code></pre>
-<pre><code>        Length          Class           Mode 
-             1 GOHyperGResult             S4 </code></pre>
-<p>Online GO analysis: <a href="http://consensuspathdb.org" class="uri">http://consensuspathdb.org</a></p>
+summary(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+  0.000   0.000   1.000   1.124   2.000  22.000 </code></pre>
+<pre class="r"><code>plot(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="individual-19239" class="section level3">
+<h3>Individual 19239</h3>
+<pre class="r"><code>molecules_SC_ENSG_19239= molecules_with_nonzero_ENSG[,grep(&quot;19239&quot;, colnames(molecules_with_nonzero_ENSG))]
+# this is a dataframe for the sc only genes in 19239
+
+dim(molecules_SC_ENSG_19239)</code></pre>
+<pre><code>[1] 956 288</code></pre>
+<pre class="r"><code>non_zero_cells_ENSG_19239 &lt;- apply(molecules_SC_ENSG_19239, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239 &lt;- cbind(molecules_SC_ENSG_19239, non_zero_cells_ENSG_19239)
+
+summary(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)</code></pre>
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.0000  0.0000  0.8818  1.0000 34.0000 </code></pre>
+<pre class="r"><code>plot(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="compare-individuals" class="section level3">
+<h3>Compare individuals</h3>
+<p>I want to look at the genes that are expressed in these individuals and see if there are genes that are unique to one individual</p>
+<ul>
+<li><p>find genes with non_zero &gt; 1 (exclude singleton)</p></li>
+<li><p>make a list of these genes</p></li>
+<li><p>create a ven diagram with these genes</p></li>
+</ul>
+<pre class="r"><code>#19098
+genes_not_singleton_19098= row.names(molecules_with_nonzero_ENSG_19098[molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098 &gt; 1, ])
+length(genes_not_singleton_19098)</code></pre>
+<pre><code>[1] 181</code></pre>
+<pre class="r"><code>#19101
+genes_not_singleton_19101= row.names(molecules_with_nonzero_ENSG_19101[molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101 &gt; 1, ])
+length(genes_not_singleton_19101)</code></pre>
+<pre><code>[1] 241</code></pre>
+<pre class="r"><code>#19239
+genes_not_singleton_19239= row.names(molecules_with_nonzero_ENSG_19239[molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239 &gt; 1, ])
+length(genes_not_singleton_19239)</code></pre>
+<pre><code>[1] 168</code></pre>
+<pre class="r"><code>non_sing_venn &lt;- venn.diagram(x = list(&quot;19098&quot; = genes_not_singleton_19098,
+                                    &quot;19101&quot; = genes_not_singleton_19101,
+                                    &quot;19239&quot; = genes_not_singleton_19239),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/ven%20diagram-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 
 <hr>
