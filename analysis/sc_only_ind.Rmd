@@ -305,3 +305,39 @@ non_sing_venn_19239<- venn.diagram(x = list("R1" = genes_not_singleton_19239.R1,
 grid.newpage()
 grid.draw(non_sing_venn_19239)
 ```
+
+
+##PCA for SC only genes  
+
+```{r}
+pca_SConly <- run_pca(molecules_only_SC_ENSG )
+pca_SConly_plot <- plot_pca(pca_SConly$PCs, explained = pca_SConly$explained,
+         metadata = anno, color = "individual",
+         shape = "replicate", alpha = 0.5, size = 3) +
+        labs(title="PCA for single cell only genes") +
+        geom_text(aes(label= ifelse(PC1 < -60  |  PC2 >40,colnames(molecules_only_SC_ENSG), "") , vjust="inward", hjust="inward"))
+                      
+                  
+
+pca_SConly_plot
+```
+The green one is NA19101.r1.C11 and the red one is NA19098.r1.F01  
+
+
+Check if these cells passes the quality control steps in the original analysis.  
+
+```{r}
+quality_single_cells <- scan("../../singleCellSeq//data/quality-single-cells.txt",
+                             what = "character")
+
+
+
+green_cell= c("NA19101.r1.C11")
+red_cell=c("NA19098.r1.F01")
+
+green_cell %in% quality_single_cells
+
+red_cell %in% quality_single_cells
+```
+
+Cell NA19101.r1.C11 is in the list of quality cells. Cell NA19098.r1.F01 was not included in the quality cells. 
