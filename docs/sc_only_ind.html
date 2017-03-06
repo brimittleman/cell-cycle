@@ -309,7 +309,7 @@ div.tocify {
 
 
 <p><strong>Last updated:</strong> 2017-03-06</p>
-<p><strong>Code version:</strong> 1fa3775</p>
+<p><strong>Code version:</strong> 8b862d2</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -372,7 +372,7 @@ summary(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)</code></pre
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
  0.0000  0.0000  1.0000  0.8923  1.0000 13.0000 </code></pre>
 <pre class="r"><code>plot(molecules_with_nonzero_ENSG_19098$non_zero_cells_ENSG_19098)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-72-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="individual-19101" class="section level3">
 <h3>Individual 19101</h3>
@@ -388,7 +388,7 @@ summary(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)</code></pre
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
   0.000   0.000   1.000   1.124   2.000  22.000 </code></pre>
 <pre class="r"><code>plot(molecules_with_nonzero_ENSG_19101$non_zero_cells_ENSG_19101)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-73-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="individual-19239" class="section level3">
 <h3>Individual 19239</h3>
@@ -404,7 +404,7 @@ summary(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)</code></pre
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
  0.0000  0.0000  0.0000  0.8818  1.0000 34.0000 </code></pre>
 <pre class="r"><code>plot(molecules_with_nonzero_ENSG_19239$non_zero_cells_ENSG_19239)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-74-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="compare-individuals" class="section level3">
 <h3>Compare individuals</h3>
@@ -480,7 +480,7 @@ length(genes_not_singleton_19098.R3)</code></pre>
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(non_sing_venn_19098)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-78-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="section-1" class="section level3">
@@ -526,7 +526,7 @@ length(genes_not_singleton_19101.R3)</code></pre>
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(non_sing_venn_19101)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-82-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="section-2" class="section level3">
@@ -572,9 +572,37 @@ length(genes_not_singleton_19239.R3)</code></pre>
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(non_sing_venn_19239)</code></pre>
-<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-86-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
+</div>
+<div id="pca-for-sc-only-genes" class="section level2">
+<h2>PCA for SC only genes</h2>
+<pre class="r"><code>pca_SConly &lt;- run_pca(molecules_only_SC_ENSG )
+pca_SConly_plot &lt;- plot_pca(pca_SConly$PCs, explained = pca_SConly$explained,
+         metadata = anno, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;, alpha = 0.5, size = 3) +
+        labs(title=&quot;PCA for single cell only genes&quot;) +
+        geom_text(aes(label= ifelse(PC1 &lt; -60  |  PC2 &gt;40,colnames(molecules_only_SC_ENSG), &quot;&quot;) , vjust=&quot;inward&quot;, hjust=&quot;inward&quot;))
+                      
+                  
+
+pca_SConly_plot</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-87-1.png" width="672" style="display: block; margin: auto;" /> The green one is NA19101.r1.C11 and the red one is NA19098.r1.F01</p>
+<p>Check if these cells passes the quality control steps in the original analysis.</p>
+<pre class="r"><code>quality_single_cells &lt;- scan(&quot;../../singleCellSeq//data/quality-single-cells.txt&quot;,
+                             what = &quot;character&quot;)
+
+
+
+green_cell= c(&quot;NA19101.r1.C11&quot;)
+red_cell=c(&quot;NA19098.r1.F01&quot;)
+
+green_cell %in% quality_single_cells</code></pre>
+<pre><code>[1] TRUE</code></pre>
+<pre class="r"><code>red_cell %in% quality_single_cells</code></pre>
+<pre><code>[1] FALSE</code></pre>
+<p>Cell NA19101.r1.C11 is in the list of quality cells. Cell NA19098.r1.F01 was not included in the quality cells.</p>
 </div>
 
 <hr>
