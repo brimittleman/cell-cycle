@@ -53,7 +53,7 @@ setDF(bri_reads_raw)
 Create annotation file for the data. 
 ```{r}
 
-anno <- read.table("../../singleCellSeq//data/annotation.txt", header = TRUE,stringsAsFactors = FALSE)
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,stringsAsFactors = FALSE)
 anno_bri <- bri_reads_raw %>%
   select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
