@@ -5,16 +5,24 @@ date: 2016-02-10
 output: html_document
 ---
 
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
 ```{r read-chunk, include=FALSE, cache=FALSE}
 knitr::read_chunk("chunks.R")
 ```
 
+<!-- Update knitr chunk options -->
 ```{r knitr-opts-chunk, include=FALSE}
 ```
 
-**Last updated:** `r Sys.Date()`
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
 
-**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
 
 This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many's intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.  
 
@@ -224,7 +232,8 @@ plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = "
 
 
 
-## Session Information
+## Session information
 
+<!-- Insert the session information into the document -->
 ```{r session-info}
 ```
