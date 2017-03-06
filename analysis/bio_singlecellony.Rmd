@@ -128,19 +128,45 @@ not_singleton_genes_GO<- GOtest(my_ensembl_gene_universe = rownames(molecules),
 
 gene_names <- row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells > 1, ])
 gene_names_ensg <- gene_names[grep("ERCC", gene_names, invert = TRUE)]
-write.table(gene_names_ensg, file = "../output/gene-ensg.txt", quote = FALSE)
-
+write.table(gene_names_ensg, file = "../output/gene-names.txt", quote = FALSE)
 save(not_singleton_genes_GO,file="../data/not_singleton_genes_GO.rda")
+save(gene_names_ensg, file="../data/gene_names_ensg.txt")
 ```
 
 
 
 ```{r GO}
-
+load("../data/gene_names_ensg.txt")
 load("../data/not_singleton_genes_GO.rda")
 goterms_SC <- summary(not_singleton_genes_GO$GO$BP, pvalue = .05)
 goterms_SC
-  
+#size in how many in universe
+#count is how many in set  
 ```
 
 Online GO analysis: http://consensuspathdb.org  
+
+
+###Look at gene symbols  
+535 non singleton single cell only ENSG genes.  
+```{r}
+gene_symbols <- read.table(file = "../../singleCellSeq/data/gene-info.txt", sep = "\t",header = TRUE, stringsAsFactors = FALSE, quote = "")
+
+```
+
+
+```{r}
+library("biomaRt")
+ensembl <- useMart(host = "grch37.ensembl.org",
+                     biomart = "ENSEMBL_MART_ENSEMBL",
+                     dataset = "hsapiens_gene_ensembl")
+
+gene_info_non_sing_ENSG <- getBM(attributes = c("ensembl_gene_id", 
+                               "chromosome_name",
+                               "external_gene_name",
+                               "description"),
+                      filters = "ensembl_gene_id",
+                      values =gene_names_ensg,
+                      mart = ensembl)
+```
+

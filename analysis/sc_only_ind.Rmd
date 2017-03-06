@@ -78,6 +78,8 @@ molecules_with_nonzero_ENSG <- cbind(molecules_only_SC_ENSG, non_zero_cells_ENSG
 summary(molecules_with_nonzero_ENSG$non_zero_cells_ENSG)
 
 ```
+##Individual level analysis  
+
 ###Individual 19098   
 
 ```{r}
@@ -158,3 +160,148 @@ grid.newpage()
 grid.draw(non_sing_venn)
 ```
 
+##Replicate level analysis 
+###19098
+####R1  
+
+```{r}
+molecules_SC_ENSG_19098.R1= molecules_with_nonzero_ENSG_19098[,grep("r1", colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R1 <- apply(molecules_SC_ENSG_19098.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R1 <- cbind(molecules_SC_ENSG_19098.R1, non_zero_cells_ENSG_19098.R1)
+
+genes_not_singleton_19098.R1= row.names(molecules_with_nonzero_ENSG_19098.R1[molecules_with_nonzero_ENSG_19098.R1$non_zero_cells_ENSG_19098.R1  > 1, ])
+length(genes_not_singleton_19098.R1)
+```
+####R2  
+
+```{r}
+molecules_SC_ENSG_19098.R2= molecules_with_nonzero_ENSG_19098[,grep("r2", colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R2 <- apply(molecules_SC_ENSG_19098.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R2 <- cbind(molecules_SC_ENSG_19098.R2, non_zero_cells_ENSG_19098.R2)
+
+genes_not_singleton_19098.R2= row.names(molecules_with_nonzero_ENSG_19098.R2[molecules_with_nonzero_ENSG_19098.R2$non_zero_cells_ENSG_19098.R2  > 1, ])
+length(genes_not_singleton_19098.R2)
+```
+####R3  
+
+```{r}
+molecules_SC_ENSG_19098.R3= molecules_with_nonzero_ENSG_19098[,grep("r3", colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R3 <- apply(molecules_SC_ENSG_19098.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R3 <- cbind(molecules_SC_ENSG_19098.R3, non_zero_cells_ENSG_19098.R3)
+
+genes_not_singleton_19098.R3= row.names(molecules_with_nonzero_ENSG_19098.R3[molecules_with_nonzero_ENSG_19098.R3$non_zero_cells_ENSG_19098.R3  > 1, ])
+length(genes_not_singleton_19098.R3)
+```
+
+####Create ven diagram  
+
+```{r}
+non_sing_venn_19098 <- venn.diagram(x = list("R1" = genes_not_singleton_19098.R1,
+                                    "R2" = genes_not_singleton_19098.R2,
+                                    "R3" = genes_not_singleton_19098.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19098)
+```
+
+
+
+
+
+
+###19101
+####R1  
+
+```{r}
+molecules_SC_ENSG_19101.R1= molecules_with_nonzero_ENSG_19101[,grep("r1", colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R1 <- apply(molecules_SC_ENSG_19101.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R1 <- cbind(molecules_SC_ENSG_19101.R1, non_zero_cells_ENSG_19101.R1)
+
+genes_not_singleton_19101.R1= row.names(molecules_with_nonzero_ENSG_19101.R1[molecules_with_nonzero_ENSG_19101.R1$non_zero_cells_ENSG_19101.R1  > 1, ])
+length(genes_not_singleton_19101.R1)
+```
+####R2  
+
+```{r}
+molecules_SC_ENSG_19101.R2= molecules_with_nonzero_ENSG_19101[,grep("r2", colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R2 <- apply(molecules_SC_ENSG_19101.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R2 <- cbind(molecules_SC_ENSG_19101.R2, non_zero_cells_ENSG_19101.R2)
+
+genes_not_singleton_19101.R2= row.names(molecules_with_nonzero_ENSG_19101.R2[molecules_with_nonzero_ENSG_19101.R2$non_zero_cells_ENSG_19101.R2  > 1, ])
+length(genes_not_singleton_19101.R2)
+```
+####R3  
+
+```{r}
+
+molecules_SC_ENSG_19101.R3= molecules_with_nonzero_ENSG_19101[,grep("r3", colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R3 <- apply(molecules_SC_ENSG_19101.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R3 <- cbind(molecules_SC_ENSG_19101.R3, non_zero_cells_ENSG_19101.R3)
+
+genes_not_singleton_19101.R3= row.names(molecules_with_nonzero_ENSG_19101.R3[molecules_with_nonzero_ENSG_19101.R3$non_zero_cells_ENSG_19101.R3  > 1, ])
+length(genes_not_singleton_19101.R3)
+```
+
+####Create ven diagram  
+
+```{r}
+non_sing_venn_19101 <- venn.diagram(x = list("R1" = genes_not_singleton_19101.R1,
+                                    "R2" = genes_not_singleton_19101.R2,
+                                    "R3" = genes_not_singleton_19101.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19101)
+```
+
+###19239
+####R1  
+
+```{r}
+molecules_SC_ENSG_19239.R1= molecules_with_nonzero_ENSG_19239[,grep("r1", colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R1 <- apply(molecules_SC_ENSG_19239.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R1 <- cbind(molecules_SC_ENSG_19239.R1, non_zero_cells_ENSG_19239.R1)
+
+genes_not_singleton_19239.R1= row.names(molecules_with_nonzero_ENSG_19239.R1[molecules_with_nonzero_ENSG_19239.R1$non_zero_cells_ENSG_19239.R1  > 1, ])
+length(genes_not_singleton_19239.R1)
+```
+####R2  
+
+```{r}
+molecules_SC_ENSG_19239.R2= molecules_with_nonzero_ENSG_19239[,grep("r2", colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R2 <- apply(molecules_SC_ENSG_19239.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R2 <- cbind(molecules_SC_ENSG_19239.R2, non_zero_cells_ENSG_19239.R2)
+
+genes_not_singleton_19239.R2= row.names(molecules_with_nonzero_ENSG_19239.R2[molecules_with_nonzero_ENSG_19239.R2$non_zero_cells_ENSG_19239.R2  > 1, ])
+length(genes_not_singleton_19239.R2)
+```
+####R3  
+
+```{r}
+
+molecules_SC_ENSG_19239.R3= molecules_with_nonzero_ENSG_19239[,grep("r3", colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R3 <- apply(molecules_SC_ENSG_19239.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R3 <- cbind(molecules_SC_ENSG_19239.R3, non_zero_cells_ENSG_19239.R3)
+
+genes_not_singleton_19239.R3= row.names(molecules_with_nonzero_ENSG_19239.R3[molecules_with_nonzero_ENSG_19239.R3$non_zero_cells_ENSG_19239.R3  > 1, ])
+length(genes_not_singleton_19239.R3)
+```
+
+####Create ven diagram  
+
+```{r}
+non_sing_venn_19239<- venn.diagram(x = list("R1" = genes_not_singleton_19239.R1,
+                                    "R2" = genes_not_singleton_19239.R2,
+                                    "R3" = genes_not_singleton_19239.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19239)
+```
