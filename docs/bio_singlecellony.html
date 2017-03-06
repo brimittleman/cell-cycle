@@ -309,8 +309,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-03-03</p>
-<p><strong>Code version:</strong> 6da6895</p>
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<p><strong>Code version:</strong> 1fa3775</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -412,15 +412,35 @@ head(not_singleton_genes_info)</code></pre>
 
 gene_names &lt;- row.names(molecules_with_nonzero[molecules_with_nonzero$non_zero_cells &gt; 1, ])
 gene_names_ensg &lt;- gene_names[grep(&quot;ERCC&quot;, gene_names, invert = TRUE)]
-write.table(gene_names_ensg, file = &quot;../output/gene-ensg.txt&quot;, quote = FALSE)
-
-save(not_singleton_genes_GO,file=&quot;../data/not_singleton_genes_GO.rda&quot;)</code></pre>
-<pre class="r"><code>load(&quot;../data/not_singleton_genes_GO.rda&quot;)
+write.table(gene_names_ensg, file = &quot;../output/gene-names.txt&quot;, quote = FALSE)
+save(not_singleton_genes_GO,file=&quot;../data/not_singleton_genes_GO.rda&quot;)
+save(gene_names_ensg, file=&quot;../data/gene_names_ensg.txt&quot;)</code></pre>
+<pre class="r"><code>load(&quot;../data/gene_names_ensg.txt&quot;)
+load(&quot;../data/not_singleton_genes_GO.rda&quot;)
 goterms_SC &lt;- summary(not_singleton_genes_GO$GO$BP, pvalue = .05)
 goterms_SC</code></pre>
 <pre><code>        Length          Class           Mode 
              1 GOHyperGResult             S4 </code></pre>
+<pre class="r"><code>#size in how many in universe
+#count is how many in set  </code></pre>
 <p>Online GO analysis: <a href="http://consensuspathdb.org" class="uri">http://consensuspathdb.org</a></p>
+</div>
+<div id="look-at-gene-symbols" class="section level3">
+<h3>Look at gene symbols</h3>
+<p>535 non singleton single cell only ENSG genes.</p>
+<pre class="r"><code>gene_symbols &lt;- read.table(file = &quot;../../singleCellSeq/data/gene-info.txt&quot;, sep = &quot;\t&quot;,header = TRUE, stringsAsFactors = FALSE, quote = &quot;&quot;)</code></pre>
+<pre class="r"><code>library(&quot;biomaRt&quot;)
+ensembl &lt;- useMart(host = &quot;grch37.ensembl.org&quot;,
+                     biomart = &quot;ENSEMBL_MART_ENSEMBL&quot;,
+                     dataset = &quot;hsapiens_gene_ensembl&quot;)
+
+gene_info_non_sing_ENSG &lt;- getBM(attributes = c(&quot;ensembl_gene_id&quot;, 
+                               &quot;chromosome_name&quot;,
+                               &quot;external_gene_name&quot;,
+                               &quot;description&quot;),
+                      filters = &quot;ensembl_gene_id&quot;,
+                      values =gene_names_ensg,
+                      mart = ensembl)</code></pre>
 </div>
 
 <hr>

@@ -308,8 +308,8 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-03-03</p>
-<p><strong>Code version:</strong> 6da6895</p>
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<p><strong>Code version:</strong> 1fa3775</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -357,6 +357,8 @@ summary(molecules_with_nonzero_ENSG$non_zero_cells_ENSG)</code></pre>
   1.000   1.000   2.000   2.899   3.000  45.000 </code></pre>
 </div>
 </div>
+<div id="individual-level-analysis" class="section level2">
+<h2>Individual level analysis</h2>
 <div id="individual-19098" class="section level3">
 <h3>Individual 19098</h3>
 <pre class="r"><code>molecules_SC_ENSG_19098= molecules_with_nonzero_ENSG[,grep(&quot;19098&quot;, colnames(molecules_with_nonzero_ENSG))]
@@ -431,6 +433,148 @@ length(genes_not_singleton_19239)</code></pre>
 grid.newpage()
 grid.draw(non_sing_venn)</code></pre>
 <p><img src="figure/sc_only_ind.Rmd/ven%20diagram-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="replicate-level-analysis" class="section level2">
+<h2>Replicate level analysis</h2>
+<div id="section" class="section level3">
+<h3>19098</h3>
+<div id="r1" class="section level4">
+<h4>R1</h4>
+<pre class="r"><code>molecules_SC_ENSG_19098.R1= molecules_with_nonzero_ENSG_19098[,grep(&quot;r1&quot;, colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R1 &lt;- apply(molecules_SC_ENSG_19098.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R1 &lt;- cbind(molecules_SC_ENSG_19098.R1, non_zero_cells_ENSG_19098.R1)
+
+genes_not_singleton_19098.R1= row.names(molecules_with_nonzero_ENSG_19098.R1[molecules_with_nonzero_ENSG_19098.R1$non_zero_cells_ENSG_19098.R1  &gt; 1, ])
+length(genes_not_singleton_19098.R1)</code></pre>
+<pre><code>[1] 45</code></pre>
+</div>
+<div id="r2" class="section level4">
+<h4>R2</h4>
+<pre class="r"><code>molecules_SC_ENSG_19098.R2= molecules_with_nonzero_ENSG_19098[,grep(&quot;r2&quot;, colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R2 &lt;- apply(molecules_SC_ENSG_19098.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R2 &lt;- cbind(molecules_SC_ENSG_19098.R2, non_zero_cells_ENSG_19098.R2)
+
+genes_not_singleton_19098.R2= row.names(molecules_with_nonzero_ENSG_19098.R2[molecules_with_nonzero_ENSG_19098.R2$non_zero_cells_ENSG_19098.R2  &gt; 1, ])
+length(genes_not_singleton_19098.R2)</code></pre>
+<pre><code>[1] 28</code></pre>
+</div>
+<div id="r3" class="section level4">
+<h4>R3</h4>
+<pre class="r"><code>molecules_SC_ENSG_19098.R3= molecules_with_nonzero_ENSG_19098[,grep(&quot;r3&quot;, colnames(molecules_with_nonzero_ENSG_19098))]
+
+non_zero_cells_ENSG_19098.R3 &lt;- apply(molecules_SC_ENSG_19098.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19098.R3 &lt;- cbind(molecules_SC_ENSG_19098.R3, non_zero_cells_ENSG_19098.R3)
+
+genes_not_singleton_19098.R3= row.names(molecules_with_nonzero_ENSG_19098.R3[molecules_with_nonzero_ENSG_19098.R3$non_zero_cells_ENSG_19098.R3  &gt; 1, ])
+length(genes_not_singleton_19098.R3)</code></pre>
+<pre><code>[1] 46</code></pre>
+</div>
+<div id="create-ven-diagram" class="section level4">
+<h4>Create ven diagram</h4>
+<pre class="r"><code>non_sing_venn_19098 &lt;- venn.diagram(x = list(&quot;R1&quot; = genes_not_singleton_19098.R1,
+                                    &quot;R2&quot; = genes_not_singleton_19098.R2,
+                                    &quot;R3&quot; = genes_not_singleton_19098.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19098)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="section-1" class="section level3">
+<h3>19101</h3>
+<div id="r1-1" class="section level4">
+<h4>R1</h4>
+<pre class="r"><code>molecules_SC_ENSG_19101.R1= molecules_with_nonzero_ENSG_19101[,grep(&quot;r1&quot;, colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R1 &lt;- apply(molecules_SC_ENSG_19101.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R1 &lt;- cbind(molecules_SC_ENSG_19101.R1, non_zero_cells_ENSG_19101.R1)
+
+genes_not_singleton_19101.R1= row.names(molecules_with_nonzero_ENSG_19101.R1[molecules_with_nonzero_ENSG_19101.R1$non_zero_cells_ENSG_19101.R1  &gt; 1, ])
+length(genes_not_singleton_19101.R1)</code></pre>
+<pre><code>[1] 87</code></pre>
+</div>
+<div id="r2-1" class="section level4">
+<h4>R2</h4>
+<pre class="r"><code>molecules_SC_ENSG_19101.R2= molecules_with_nonzero_ENSG_19101[,grep(&quot;r2&quot;, colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R2 &lt;- apply(molecules_SC_ENSG_19101.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R2 &lt;- cbind(molecules_SC_ENSG_19101.R2, non_zero_cells_ENSG_19101.R2)
+
+genes_not_singleton_19101.R2= row.names(molecules_with_nonzero_ENSG_19101.R2[molecules_with_nonzero_ENSG_19101.R2$non_zero_cells_ENSG_19101.R2  &gt; 1, ])
+length(genes_not_singleton_19101.R2)</code></pre>
+<pre><code>[1] 59</code></pre>
+</div>
+<div id="r3-1" class="section level4">
+<h4>R3</h4>
+<pre class="r"><code>molecules_SC_ENSG_19101.R3= molecules_with_nonzero_ENSG_19101[,grep(&quot;r3&quot;, colnames(molecules_with_nonzero_ENSG_19101))]
+
+non_zero_cells_ENSG_19101.R3 &lt;- apply(molecules_SC_ENSG_19101.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19101.R3 &lt;- cbind(molecules_SC_ENSG_19101.R3, non_zero_cells_ENSG_19101.R3)
+
+genes_not_singleton_19101.R3= row.names(molecules_with_nonzero_ENSG_19101.R3[molecules_with_nonzero_ENSG_19101.R3$non_zero_cells_ENSG_19101.R3  &gt; 1, ])
+length(genes_not_singleton_19101.R3)</code></pre>
+<pre><code>[1] 42</code></pre>
+</div>
+<div id="create-ven-diagram-1" class="section level4">
+<h4>Create ven diagram</h4>
+<pre class="r"><code>non_sing_venn_19101 &lt;- venn.diagram(x = list(&quot;R1&quot; = genes_not_singleton_19101.R1,
+                                    &quot;R2&quot; = genes_not_singleton_19101.R2,
+                                    &quot;R3&quot; = genes_not_singleton_19101.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19101)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="section-2" class="section level3">
+<h3>19239</h3>
+<div id="r1-2" class="section level4">
+<h4>R1</h4>
+<pre class="r"><code>molecules_SC_ENSG_19239.R1= molecules_with_nonzero_ENSG_19239[,grep(&quot;r1&quot;, colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R1 &lt;- apply(molecules_SC_ENSG_19239.R1, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R1 &lt;- cbind(molecules_SC_ENSG_19239.R1, non_zero_cells_ENSG_19239.R1)
+
+genes_not_singleton_19239.R1= row.names(molecules_with_nonzero_ENSG_19239.R1[molecules_with_nonzero_ENSG_19239.R1$non_zero_cells_ENSG_19239.R1  &gt; 1, ])
+length(genes_not_singleton_19239.R1)</code></pre>
+<pre><code>[1] 43</code></pre>
+</div>
+<div id="r2-2" class="section level4">
+<h4>R2</h4>
+<pre class="r"><code>molecules_SC_ENSG_19239.R2= molecules_with_nonzero_ENSG_19239[,grep(&quot;r2&quot;, colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R2 &lt;- apply(molecules_SC_ENSG_19239.R2, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R2 &lt;- cbind(molecules_SC_ENSG_19239.R2, non_zero_cells_ENSG_19239.R2)
+
+genes_not_singleton_19239.R2= row.names(molecules_with_nonzero_ENSG_19239.R2[molecules_with_nonzero_ENSG_19239.R2$non_zero_cells_ENSG_19239.R2  &gt; 1, ])
+length(genes_not_singleton_19239.R2)</code></pre>
+<pre><code>[1] 43</code></pre>
+</div>
+<div id="r3-2" class="section level4">
+<h4>R3</h4>
+<pre class="r"><code>molecules_SC_ENSG_19239.R3= molecules_with_nonzero_ENSG_19239[,grep(&quot;r3&quot;, colnames(molecules_with_nonzero_ENSG_19239))]
+
+non_zero_cells_ENSG_19239.R3 &lt;- apply(molecules_SC_ENSG_19239.R3, 1, function(c)sum(c!=0))
+molecules_with_nonzero_ENSG_19239.R3 &lt;- cbind(molecules_SC_ENSG_19239.R3, non_zero_cells_ENSG_19239.R3)
+
+genes_not_singleton_19239.R3= row.names(molecules_with_nonzero_ENSG_19239.R3[molecules_with_nonzero_ENSG_19239.R3$non_zero_cells_ENSG_19239.R3  &gt; 1, ])
+length(genes_not_singleton_19239.R3)</code></pre>
+<pre><code>[1] 48</code></pre>
+</div>
+<div id="create-ven-diagram-2" class="section level4">
+<h4>Create ven diagram</h4>
+<pre class="r"><code>non_sing_venn_19239&lt;- venn.diagram(x = list(&quot;R1&quot; = genes_not_singleton_19239.R1,
+                                    &quot;R2&quot; = genes_not_singleton_19239.R2,
+                                    &quot;R3&quot; = genes_not_singleton_19239.R3),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(non_sing_venn_19239)</code></pre>
+<p><img src="figure/sc_only_ind.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
 </div>
 
 <hr>
