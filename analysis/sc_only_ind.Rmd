@@ -5,16 +5,24 @@ date: 2017/03/03
 output: html_document
 ---
 
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
 ```{r read-chunk, include=FALSE, cache=FALSE}
 knitr::read_chunk("chunks.R")
 ```
 
+<!-- Update knitr chunk options -->
 ```{r knitr-opts-chunk, include=FALSE}
 ```
 
-**Last updated:** `r Sys.Date()`
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
 
-**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
 
 ###Pull in genes lists  
 
@@ -304,4 +312,10 @@ non_sing_venn_19239<- venn.diagram(x = list("R1" = genes_not_singleton_19239.R1,
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(non_sing_venn_19239)
+```
+
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
 ```

@@ -2,18 +2,25 @@
 title: "Create gene-x-sample count matrices and annotation file"
 output: html_document
 ---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
 ```{r read-chunk, include=FALSE, cache=FALSE}
 knitr::read_chunk("chunks.R")
 ```
 
+<!-- Update knitr chunk options -->
 ```{r knitr-opts-chunk, include=FALSE}
 ```
 
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
 
-**Last updated:** `r Sys.Date()`
-
-**Code version:** `r workflowr::extract_commit(".", 1)$sha1`
-
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
 This is recreating code from http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html.
 
 ```{r}
@@ -171,8 +178,9 @@ Output molecule counts.
 write.table(molecules, "../../singleCellSeq/data/molecules.txt", quote= FALSE, sep= "\t", col.names = NA)
 ```
 
-###Session Information
-```{r}
-sessionInfo()
-```
 
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
+```
