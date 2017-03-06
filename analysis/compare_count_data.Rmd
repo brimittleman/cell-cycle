@@ -55,7 +55,7 @@ Create annotation file for the data.
 
 anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,stringsAsFactors = FALSE)
 anno_bri <- bri_reads_raw %>%
-  select(individual:well) %>%
+  dplyr::select(individual:well) %>%
   mutate(batch = paste(individual, replicate, sep = "."),
          sample_id = paste(batch, well, sep = "."))
 head(anno_bri)
