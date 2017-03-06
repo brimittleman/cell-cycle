@@ -34,3 +34,7 @@ names(sample_stats)
 Mapping and gene count pipeline: https://github.com/Teichlab/celloline  
 
 Talk to Joyce about this. Should we move all of the data over to project 2 and try to get this up and running?  
+## Session Information
+
+```{r session-info}
+```

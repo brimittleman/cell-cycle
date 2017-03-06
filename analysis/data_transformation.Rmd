@@ -217,10 +217,9 @@ plot_final
 Skip writting this figure as a tiff file  
 
 
-###Session Information  
 
-```{r}
-sessionInfo()
+
+## Session Information
+
+```{r session-info}
 ```
-
-

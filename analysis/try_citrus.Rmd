@@ -229,3 +229,7 @@ Smaller chunks of genes help the algorithm run faster. With a gene set as small 
 
 
 **k values vs liklihood**
+## Session Information
+
+```{r session-info}
+```

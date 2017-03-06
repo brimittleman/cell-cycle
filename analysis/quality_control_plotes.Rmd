@@ -267,10 +267,9 @@ plot_grid(plot_mean_log + theme(legend.position = c(.85,.25)) + labs (col = ""),
 ```
 
 
-###Session Information:  
 
-```{r}
-sessionInfo()
+
+## Session Information
+
+```{r session-info}
 ```
-
-

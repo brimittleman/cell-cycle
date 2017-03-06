@@ -725,9 +725,8 @@ lines(lowess( ENSG_cv_adj$all$log10cv2_adj[ii_genes]*(1/2) ~ drop_out$all),
 title(main = "All cells, three individuals", outer = TRUE, line = -1)
 ```
 
-###Session Information  
 
-```{r}
-sessionInfo()
+## Session Information
+
+```{r session-info}
 ```
-

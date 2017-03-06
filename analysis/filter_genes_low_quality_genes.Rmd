@@ -242,9 +242,8 @@ pca_reads_bulk_filter_plot <- plot_pca(pca_reads_bulk_filter$PCs, explained = pc
 pca_reads_bulk_filter_plot
 ```
 
-###Session Info  
 
-```{r}
-sessionInfo()
+## Session Information
+
+```{r session-info}
 ```
-

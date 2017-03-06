@@ -174,3 +174,7 @@ plot_mol_depth_ercc
 sessionInfo()
 ```
 
+## Session Information
+
+```{r session-info}
+```

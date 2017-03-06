@@ -190,7 +190,7 @@ Output molecule counts.
 write.table(molecules_bri, "../data/molecules_bri.txt", quote= FALSE, sep= "\t", col.names = NA)
 ```
 
-###Session Information
-```{r}
-sessionInfo()
+## Session Information
+
+```{r session-info}
 ```

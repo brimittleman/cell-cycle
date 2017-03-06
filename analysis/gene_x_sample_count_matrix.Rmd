@@ -171,8 +171,8 @@ Output molecule counts.
 write.table(molecules, "../../singleCellSeq/data/molecules.txt", quote= FALSE, sep= "\t", col.names = NA)
 ```
 
-###Session Information
-```{r}
-sessionInfo()
-```
 
+## Session Information
+
+```{r session-info}
+```

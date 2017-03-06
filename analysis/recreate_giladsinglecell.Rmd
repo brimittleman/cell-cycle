@@ -403,3 +403,7 @@ In the end I have a directory called counts-matrix with 6 files in it that will 
 *  reads-raw-single-per-lane.txt
 
 * reads-raw-single-per-sample.txt 
+## Session Information
+
+```{r session-info}
+```

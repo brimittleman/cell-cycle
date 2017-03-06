@@ -168,11 +168,6 @@ ggplot( do.call(rbind,variance_components), aes(1-residual,col=method)) + geom_d
 ```
 **What does this plot tell me?**   
 
-###Session Information  
-
-```{r}
-sessionInfo()
-```
 
 
 ####Notes on anova  
@@ -183,3 +178,7 @@ sessionInfo()
 
 * Calculate mean of means and SST ((each point - grand mean)^2)
 
+## Session Information
+
+```{r session-info}
+```

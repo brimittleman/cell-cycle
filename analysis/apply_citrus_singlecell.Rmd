@@ -402,3 +402,7 @@ Final model: k1=1 and k2=5
 ff6
 ```
 
+## Session Information
+
+```{r session-info}
+```

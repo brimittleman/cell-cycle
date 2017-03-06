@@ -234,3 +234,7 @@ genes_observed_molecules <- rownames(molecules_1ind)[rowSums(molecules_1ind) > 0
 #    })
 ```
 
+## Session Information
+
+```{r session-info}
+```

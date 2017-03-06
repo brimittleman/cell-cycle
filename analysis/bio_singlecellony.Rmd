@@ -170,3 +170,7 @@ gene_info_non_sing_ENSG <- getBM(attributes = c("ensembl_gene_id",
                       mart = ensembl)
 ```
 
+## Session Information
+
+```{r session-info}
+```

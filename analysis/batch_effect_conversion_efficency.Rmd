@@ -289,8 +289,8 @@ plot_grid(convertion_ensg + theme(legend.position = "none"),
 
 This analysis provides evidence for batch effects in individual and technical replicates for ERCC and for endogenous gene conversion rate.  
 
-###Session Info  
-```{r}
-sessionInfo()
-```
 
+## Session Information
+
+```{r session-info}
+```

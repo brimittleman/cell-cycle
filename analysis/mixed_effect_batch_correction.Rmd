@@ -110,8 +110,8 @@ pca_final_plot <- plot_pca(pca_final$PCs, explained=pca_final$explained, metadat
 pca_final_plot
 ```
 
-###Session Information
-```{r}
-sessionInfo()
-```
 
+## Session Information
+
+```{r session-info}
+```

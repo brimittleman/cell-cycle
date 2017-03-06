@@ -305,3 +305,7 @@ non_sing_venn_19239<- venn.diagram(x = list("R1" = genes_not_singleton_19239.R1,
 grid.newpage()
 grid.draw(non_sing_venn_19239)
 ```
+## Session Information
+
+```{r session-info}
+```

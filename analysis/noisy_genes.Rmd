@@ -424,9 +424,8 @@ mad_genes <- rownames(molecules_final)[rank(mad) >
 
 ```
 
-###Session Information  
 
-```{r}
-sessionInfo()
+## Session Information
+
+```{r session-info}
 ```
-

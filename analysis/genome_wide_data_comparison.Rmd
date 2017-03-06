@@ -242,3 +242,7 @@ boxplot(ERCC_67.T_df$git, ERCC_67.T_df$bri, las=2, names=c("git", "bri"), ylab="
 boxplot(ERCC_67.T_df$git, ERCC_74.T_df$bri, las=2, names=c("git-67", "git-74"), ylab="Read count")
 ```
 
+## Session Information
+
+```{r session-info}
+```

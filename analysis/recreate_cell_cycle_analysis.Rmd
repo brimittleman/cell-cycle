@@ -111,3 +111,7 @@ or use the -D flag to gmap to specify the correct genome directory.**
 
 try unzipping the files :  
 gzip: ERR489047_1.fastq.gz: unexpected end of file  
+## Session Information
+
+```{r session-info}
+```

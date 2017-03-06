@@ -55,3 +55,7 @@ grid.newpage()
 grid.draw(genes_venn_19098)
 ```
 
+## Session Information
+
+```{r session-info}
+```
