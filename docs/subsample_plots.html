@@ -309,14 +309,31 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-09</p>
-<p><strong>Code version:</strong> 6ea08f2</p>
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> f3c5dc0</p>
 <p>A subsample of the full data, post mapping, was processed to create the count data used here.</p>
 <p>Extra information about the subsample was created using the subsample-pipeline.py pipeline.<br />
 ###Input</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
-library(&quot;tidyr&quot;)
-library(&quot;ggplot2&quot;)
+library(&quot;tidyr&quot;)</code></pre>
+<pre><code>
+Attaching package: &#39;tidyr&#39;</code></pre>
+<pre><code>The following object is masked from &#39;package:Matrix&#39;:
+
+    expand</code></pre>
+<pre><code>The following object is masked from &#39;package:S4Vectors&#39;:
+
+    expand</code></pre>
+<pre><code>The following object is masked from &#39;package:reshape2&#39;:
+
+    smiths</code></pre>
+<pre class="r"><code>library(&quot;ggplot2&quot;)
 library(&quot;cowplot&quot;)
 theme_set(theme_bw(base_size = 12))
 theme_update(panel.grid.minor.x = element_blank(),
@@ -391,7 +408,7 @@ plot_bulk &lt;- ggplot(d_filter,
        y = &quot;Pearson&#39;s r (+/- SEM)&quot;,
        title = paste(strwrap(plot_bulk_title, width = 80), collapse = &quot;\n&quot;))
 plot_bulk</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /> This is comparing a subset of the single cells to the bulk samples. We are looking at the the correlation as a function of how many of the sampled cells the gene was found in. This uses molecule counts from individual NA19239.</p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /> This is comparing a subset of the single cells to the bulk samples. We are looking at the the correlation as a function of how many of the sampled cells the gene was found in. This uses molecule counts from individual NA19239.</p>
 <pre class="r"><code>plot_detected &lt;- ggplot(d_filter,
                  aes(x = subsampled_cells, y = mean_detected,
                      color = as.factor(depth))) +
@@ -409,7 +426,7 @@ plot_bulk</code></pre>
        y = &quot;Number of genes detected&quot;,
        title = &quot;Number of genes detected as expressed in single cell samples \n at different sequence coverage&quot;)
 plot_detected</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /> This plot looks at the number of genes detected at diffent sequencing depths as a function of the number of subsampled cells used in this analysis.</p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /> This plot looks at the number of genes detected at diffent sequencing depths as a function of the number of subsampled cells used in this analysis.</p>
 <pre class="r"><code>plot_var &lt;- ggplot(d_filter,
                  aes(x = subsampled_cells, y = mean_var,
                      color = as.factor(depth))) +
@@ -424,12 +441,12 @@ plot_detected</code></pre>
        y = &quot;Pearson&#39;s r (+/- SEM)&quot;,
        title = &quot;Correlation of the variation in gene expression levels \n between subsets of single cells and the entire single cell dataset&quot;)
 plot_var</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /> Correlation between subsample and all of the cell in terms of the variance gene expression levels. THe different colors are the sequencing depth.</p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /> Correlation between subsample and all of the cell in terms of the variance gene expression levels. THe different colors are the sequencing depth.</p>
 <p>Plot these next to eachother in a grid.</p>
 <pre class="r"><code>plot_final &lt;- plot_grid(plot_bulk, plot_detected, plot_var,
                         ncol = 1, labels = letters[1:3], label_size = 12)
 plot_final</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># png(&quot;../paper/figure/fig-subsample.png&quot;, width = 8, height = 12, units = &quot;in&quot;, res = 300)
 tiff(&quot;../paper/figure/fig-subsample.tiff&quot;,
      width = 8, height = 12, units = &quot;in&quot;, res = 300, compression = &quot;zip&quot;)
@@ -454,11 +471,11 @@ plot_mol_depth_ensg &lt;- ggplot(molecules_per_depth,
   scale_y_continuous(breaks = seq(0, 1e5, by = 1e4)) +
   theme(axis.text.x = element_text(angle = 90))
 plot_mol_depth_ensg</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#molecule depth for ERCC
 plot_mol_depth_ercc &lt;- plot_mol_depth_ensg %+% aes(y = mean_counts_ercc)
 plot_mol_depth_ercc</code></pre>
-<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /> ###Session info</p>
+<p><img src="figure/subsample_plots.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /> ###Session info</p>
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)
 Platform: x86_64-redhat-linux-gnu (64-bit)
@@ -473,22 +490,142 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] stats     graphics  grDevices utils     datasets  methods   base     
+ [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
 
 other attached packages:
- [1] tidyr_0.6.1     gridExtra_2.2.1 lme4_1.1-12     Matrix_1.2-7.1 
- [5] edgeR_3.16.5    limma_3.30.9    cowplot_0.7.0   ggplot2_2.2.1  
- [9] dplyr_0.5.0     workflowr_0.3.0 rmarkdown_1.3  
+ [1] tidyr_0.6.1            mygene_1.10.0          GenomicFeatures_1.26.3
+ [4] GenomicRanges_1.26.3   GenomeInfoDb_1.10.3    broman_0.65-1         
+ [7] gplots_3.0.1           matrixStats_0.51.0     MASS_7.3-45           
+[10] gridExtra_2.2.1        lme4_1.1-12            workflowr_0.4.0       
+[13] org.Hs.eg.db_3.4.0     GOstats_2.40.0         graph_1.52.0          
+[16] Category_2.40.0        Matrix_1.2-7.1         GO.db_3.4.0           
+[19] AnnotationDbi_1.36.2   IRanges_2.8.1          S4Vectors_0.12.1      
+[22] Biobase_2.34.0         BiocGenerics_0.20.0    Humanzee_0.1.0        
+[25] sva_3.22.0             genefilter_1.56.0      mgcv_1.8-15           
+[28] nlme_3.1-128           BiocInstaller_1.24.0   scales_0.4.1          
+[31] VennDiagram_1.6.17     futile.logger_1.4.3    edgeR_3.16.5          
+[34] limma_3.30.11          dplyr_0.5.0            testit_0.6            
+[37] data.table_1.10.4      biomaRt_2.30.0         cowplot_0.7.0         
+[40] stringr_1.2.0          reshape2_1.4.2         rmarkdown_1.3         
+[43] Citrus_0.99            easyGgplot2_1.0.0.9000 ggplot2_2.2.1         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9      knitr_1.15.1     magrittr_1.5     MASS_7.3-45     
- [5] splines_3.3.2    munsell_0.4.3    lattice_0.20-34  colorspace_1.3-2
- [9] R6_2.2.0         minqa_1.2.4      stringr_1.1.0    plyr_1.8.4      
-[13] tools_3.3.2      grid_3.3.2       nlme_3.1-128     gtable_0.2.0    
-[17] DBI_0.5-1        git2r_0.18.0     htmltools_0.3.5  yaml_2.1.14     
-[21] lazyeval_0.2.0   assertthat_0.1   rprojroot_1.2    digest_0.6.12   
-[25] tibble_1.2       nloptr_1.0.4     evaluate_0.10    labeling_0.3    
-[29] stringi_1.1.2    scales_0.4.1     backports_1.0.5  locfit_1.5-9.1  </code></pre>
+ [1] minqa_1.2.4                colorspace_1.3-2          
+ [3] rprojroot_1.2              htmlTable_1.9             
+ [5] XVector_0.14.0             base64enc_0.1-3           
+ [7] rstudioapi_0.6             sqldf_0.4-10              
+ [9] splines_3.3.2              knitr_1.15.1              
+[11] Formula_1.2-1              jsonlite_1.3              
+[13] nloptr_1.0.4               Rsamtools_1.26.1          
+[15] annotate_1.52.1            cluster_2.0.5             
+[17] httr_1.2.1                 backports_1.0.5           
+[19] assertthat_0.1             lazyeval_0.2.0            
+[21] acepack_1.4.1              htmltools_0.3.5           
+[23] tools_3.3.2                gtable_0.2.0              
+[25] Rcpp_0.12.9                Biostrings_2.42.1         
+[27] gdata_2.17.0               rtracklayer_1.34.2        
+[29] proto_1.0.0                gtools_3.5.0              
+[31] devtools_1.12.0            statmod_1.4.29            
+[33] XML_3.98-1.5               zlibbioc_1.20.0           
+[35] SummarizedExperiment_1.4.0 RBGL_1.50.0               
+[37] lambda.r_1.1.9             RColorBrewer_1.1-2        
+[39] yaml_2.1.14                curl_2.3                  
+[41] memoise_1.0.0              rpart_4.1-10              
+[43] latticeExtra_0.6-28        stringi_1.1.2             
+[45] RSQLite_1.1-2              checkmate_1.8.2           
+[47] caTools_1.17.1             BiocParallel_1.8.1        
+[49] chron_2.3-50               bitops_1.0-6              
+[51] evaluate_0.10              lattice_0.20-34           
+[53] htmlwidgets_0.8            GenomicAlignments_1.10.0  
+[55] labeling_0.3               GSEABase_1.36.0           
+[57] AnnotationForge_1.16.1     plyr_1.8.4                
+[59] magrittr_1.5               R6_2.2.0                  
+[61] Hmisc_4.0-2                DBI_0.5-1                 
+[63] gsubfn_0.6-6               foreign_0.8-67            
+[65] withr_1.0.2                survival_2.40-1           
+[67] RCurl_1.95-4.8             nnet_7.3-12               
+[69] tibble_1.2                 futile.options_1.0.0      
+[71] KernSmooth_2.23-15         locfit_1.5-9.1            
+[73] git2r_0.18.0               digest_0.6.12             
+[75] xtable_1.8-2               munsell_0.4.3             </code></pre>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<!-- Insert the session information into the document -->
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+ [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] tidyr_0.6.1            mygene_1.10.0          GenomicFeatures_1.26.3
+ [4] GenomicRanges_1.26.3   GenomeInfoDb_1.10.3    broman_0.65-1         
+ [7] gplots_3.0.1           matrixStats_0.51.0     MASS_7.3-45           
+[10] gridExtra_2.2.1        lme4_1.1-12            workflowr_0.4.0       
+[13] org.Hs.eg.db_3.4.0     GOstats_2.40.0         graph_1.52.0          
+[16] Category_2.40.0        Matrix_1.2-7.1         GO.db_3.4.0           
+[19] AnnotationDbi_1.36.2   IRanges_2.8.1          S4Vectors_0.12.1      
+[22] Biobase_2.34.0         BiocGenerics_0.20.0    Humanzee_0.1.0        
+[25] sva_3.22.0             genefilter_1.56.0      mgcv_1.8-15           
+[28] nlme_3.1-128           BiocInstaller_1.24.0   scales_0.4.1          
+[31] VennDiagram_1.6.17     futile.logger_1.4.3    edgeR_3.16.5          
+[34] limma_3.30.11          dplyr_0.5.0            testit_0.6            
+[37] data.table_1.10.4      biomaRt_2.30.0         cowplot_0.7.0         
+[40] stringr_1.2.0          reshape2_1.4.2         rmarkdown_1.3         
+[43] Citrus_0.99            easyGgplot2_1.0.0.9000 ggplot2_2.2.1         
+
+loaded via a namespace (and not attached):
+ [1] minqa_1.2.4                colorspace_1.3-2          
+ [3] rprojroot_1.2              htmlTable_1.9             
+ [5] XVector_0.14.0             base64enc_0.1-3           
+ [7] rstudioapi_0.6             sqldf_0.4-10              
+ [9] splines_3.3.2              knitr_1.15.1              
+[11] Formula_1.2-1              jsonlite_1.3              
+[13] nloptr_1.0.4               Rsamtools_1.26.1          
+[15] annotate_1.52.1            cluster_2.0.5             
+[17] httr_1.2.1                 backports_1.0.5           
+[19] assertthat_0.1             lazyeval_0.2.0            
+[21] acepack_1.4.1              htmltools_0.3.5           
+[23] tools_3.3.2                gtable_0.2.0              
+[25] Rcpp_0.12.9                Biostrings_2.42.1         
+[27] gdata_2.17.0               rtracklayer_1.34.2        
+[29] proto_1.0.0                gtools_3.5.0              
+[31] devtools_1.12.0            statmod_1.4.29            
+[33] XML_3.98-1.5               zlibbioc_1.20.0           
+[35] SummarizedExperiment_1.4.0 RBGL_1.50.0               
+[37] lambda.r_1.1.9             RColorBrewer_1.1-2        
+[39] yaml_2.1.14                curl_2.3                  
+[41] memoise_1.0.0              rpart_4.1-10              
+[43] latticeExtra_0.6-28        stringi_1.1.2             
+[45] RSQLite_1.1-2              checkmate_1.8.2           
+[47] caTools_1.17.1             BiocParallel_1.8.1        
+[49] chron_2.3-50               bitops_1.0-6              
+[51] evaluate_0.10              lattice_0.20-34           
+[53] htmlwidgets_0.8            GenomicAlignments_1.10.0  
+[55] labeling_0.3               GSEABase_1.36.0           
+[57] AnnotationForge_1.16.1     plyr_1.8.4                
+[59] magrittr_1.5               R6_2.2.0                  
+[61] Hmisc_4.0-2                DBI_0.5-1                 
+[63] gsubfn_0.6-6               foreign_0.8-67            
+[65] withr_1.0.2                survival_2.40-1           
+[67] RCurl_1.95-4.8             nnet_7.3-12               
+[69] tibble_1.2                 futile.options_1.0.0      
+[71] KernSmooth_2.23-15         locfit_1.5-9.1            
+[73] git2r_0.18.0               digest_0.6.12             
+[75] xtable_1.8-2               munsell_0.4.3             </code></pre>
 </div>
 
 <hr>

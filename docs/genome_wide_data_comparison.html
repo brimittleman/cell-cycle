@@ -308,8 +308,14 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-08</p>
-<p><strong>Code version:</strong> 488eb05</p>
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> f3c5dc0</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
@@ -356,7 +362,7 @@ pca_commongenes_plot &lt;- plot_pca(pca_commongenes$PCs, explained = pca_commong
 
 
 pca_commongenes_plot</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="create-correlation-matrix" class="section level3">
 <h3>Create correlation matrix</h3>
@@ -385,7 +391,7 @@ ERCC_genes &lt;- names(reads_bri_mean)[index_ERCC]
 which_ERCC &lt;- as.numeric(names(reads_bri_mean) %in% ERCC_genes) + 1
 col_vec &lt;- c(&quot;coral&quot;, &quot;blue&quot;)[as.numeric(which_ERCC)]
 plot(reads_bri_mean~reads_dif_mean, main=&quot;Mean difference in reads compared to Bri mean reads&quot;, xlab=&quot;Bri mean reads&quot;, ylab = &quot; Bri mean reads - git mean reads&quot; )</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#plot abs value difference 
 reads_abs_dif_mean &lt;- apply(abs_diff_matrix,1, mean)
 
@@ -393,7 +399,7 @@ reads_abs_dif_mean &lt;- apply(abs_diff_matrix,1, mean)
 library(&quot;scales&quot;)
 plot(log10(reads_bri_mean) ~ log10(reads_abs_dif_mean), main= &quot;Absolute value of mean read counts&quot;, xlab=&quot;Bri mean reads&quot;, ylab = &quot;Absolute value of the difference between bri and git reads&quot;, pch = 16, cex = .6, 
      col = alpha(col_vec, .4))</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>#which gene is so different?
 reads_abs_dif_mean[which.max(reads_abs_dif_mean)]</code></pre>
 <pre><code>ERCC-00074 
@@ -413,11 +419,11 @@ common_genes_95 &lt;- intersect(row.names(reads_abs_dif_95),row.names(reads_bri_
 reads_bri_mean_95 &lt;- reads_bri_mean_df[row.names(reads_bri_mean_df) %in% common_genes_95, , drop=FALSE]
 
 plot(reads_abs_dif_95$reads_abs_dif_mean ~ reads_bri_mean_95$reads_bri_mean, main=&quot;Difference plot for lower 95%&quot;, ylab=&quot;abs value of mean difference&quot;, xlab=&quot;Bri mean reads&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>percent_change_m&lt;- ((reads_bri_common_matrix- reads_subset_common_matrix)/2)
 mean_percent_change&lt;- apply(percent_change_m,1, mean)
 plot(mean_percent_change~ reads_bri_mean, main=&quot;Average change as a function of bri mean reads&quot;, ylab = &quot;(bri-git)/2&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>reads_subset_common_matrix &lt;- data.matrix(reads_subset_common)
 reads_bri_common_matrix &lt;- data.matrix(reads_bri_common)
 
@@ -425,7 +431,7 @@ percent_diff&lt;- ((reads_subset_common_matrix - reads_bri_common_matrix)/(.5* (
 
 percent_diff_mean= apply(percent_diff,1, mean)
 plot(percent_diff_mean~reads_bri_mean)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>percent_diff_mean[which.max(percent_diff_mean)]</code></pre>
 <pre><code>ENSG00000183513 
       0.5207729 </code></pre>
@@ -437,7 +443,7 @@ ERCC_74 &lt;- rbind(reads_subset[&quot;ERCC-00074&quot;,], reads_bri2[&quot;ERCC
 row.names(ERCC_74) &lt;- c(&quot;git&quot;, &quot;bri&quot;)
 ERCC_74.T= ERCC_74 %&gt;% t
 plot(ERCC_74.T[,&quot;git&quot;] ~ERCC_74.T[,&quot;bri&quot;], main=&quot;Compare ERCC74 in 2 data sets&quot;, ylab=&quot;git&quot;, xlab=&quot;bri&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ERCC_74.T_df=data.frame(ERCC_74.T)
 
 
@@ -446,12 +452,12 @@ ERCC74_diff= ERCC_74.T_df$bri- ERCC_74.T_df$git
 ERCC_74_dif&lt;-cbind(ERCC_74.T_df,ERCC74_diff)
 
 plot(ERCC_74_dif$ERCC74_diff ~ERCC_74_dif$bri, main=&quot;read count difference in ERCC74&quot;, xlab=&quot;bri read count&quot;, ylab=&quot;difference in read count&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-17-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>labels_boxplot= c(&quot;git&quot;, &quot;bri&quot;)
 boxplot(ERCC74_diff, main=&quot;Difference in ERCC00074 read counts&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-11-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-17-3.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>boxplot(ERCC_74.T_df$git, ERCC_74.T_df$bri, las=2, names=c(&quot;git&quot;, &quot;bri&quot;), ylab=&quot;Read count&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-11-4.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-17-4.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ERCC_74_dif[which.max(ERCC_74_dif$ERCC74_diff),]</code></pre>
 <pre><code>                 git    bri ERCC74_diff
 NA19098.r1.E01 16512 141174      124662</code></pre>
@@ -469,14 +475,69 @@ NA19098.r1.E01 16512 141174      124662</code></pre>
 row.names(ERCC_67) &lt;- c(&quot;git&quot;, &quot;bri&quot;)
 ERCC_67.T= ERCC_67 %&gt;% t
 plot(ERCC_67.T[,&quot;git&quot;] ~ ERCC_67.T[,&quot;bri&quot;], main=&quot;Compare ERCC67 in 2 data sets&quot;, ylab=&quot;git&quot;, xlab=&quot;bri&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>ERCC_67.T_df= data.frame(ERCC_67.T)
 
 boxplot(ERCC_67.T_df$git, ERCC_67.T_df$bri, las=2, names=c(&quot;git&quot;, &quot;bri&quot;), ylab=&quot;Read count&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-19-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>boxplot(ERCC_67.T_df$git, ERCC_74.T_df$bri, las=2, names=c(&quot;git-67&quot;, &quot;git-74&quot;), ylab=&quot;Read count&quot;)</code></pre>
-<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/genome_wide_data_comparison.Rmd/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<!-- Insert the session information into the document -->
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+ [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] broman_0.65-1          gplots_3.0.1           matrixStats_0.51.0    
+ [4] MASS_7.3-45            gridExtra_2.2.1        lme4_1.1-12           
+ [7] workflowr_0.4.0        org.Hs.eg.db_3.4.0     GOstats_2.40.0        
+[10] graph_1.52.0           Category_2.40.0        Matrix_1.2-7.1        
+[13] GO.db_3.4.0            AnnotationDbi_1.36.2   IRanges_2.8.1         
+[16] S4Vectors_0.12.1       Biobase_2.34.0         BiocGenerics_0.20.0   
+[19] Humanzee_0.1.0         sva_3.22.0             genefilter_1.56.0     
+[22] mgcv_1.8-15            nlme_3.1-128           BiocInstaller_1.24.0  
+[25] scales_0.4.1           VennDiagram_1.6.17     futile.logger_1.4.3   
+[28] edgeR_3.16.5           limma_3.30.11          dplyr_0.5.0           
+[31] testit_0.6             data.table_1.10.4      biomaRt_2.30.0        
+[34] cowplot_0.7.0          stringr_1.2.0          reshape2_1.4.2        
+[37] rmarkdown_1.3          Citrus_0.99            easyGgplot2_1.0.0.9000
+[40] ggplot2_2.2.1         
+
+loaded via a namespace (and not attached):
+ [1] httr_1.2.1             splines_3.3.2          gtools_3.5.0          
+ [4] assertthat_0.1         RBGL_1.50.0            yaml_2.1.14           
+ [7] RSQLite_1.1-2          backports_1.0.5        lattice_0.20-34       
+[10] digest_0.6.12          RColorBrewer_1.1-2     minqa_1.2.4           
+[13] colorspace_1.3-2       htmltools_0.3.5        plyr_1.8.4            
+[16] GSEABase_1.36.0        XML_3.98-1.5           devtools_1.12.0       
+[19] xtable_1.8-2           gdata_2.17.0           git2r_0.18.0          
+[22] tibble_1.2             annotate_1.52.1        withr_1.0.2           
+[25] lazyeval_0.2.0         survival_2.40-1        magrittr_1.5          
+[28] memoise_1.0.0          evaluate_0.10          tools_3.3.2           
+[31] munsell_0.4.3          locfit_1.5-9.1         lambda.r_1.1.9        
+[34] caTools_1.17.1         nloptr_1.0.4           RCurl_1.95-4.8        
+[37] rstudioapi_0.6         AnnotationForge_1.16.1 bitops_1.0-6          
+[40] labeling_0.3           gtable_0.2.0           DBI_0.5-1             
+[43] curl_2.3               R6_2.2.0               knitr_1.15.1          
+[46] rprojroot_1.2          futile.options_1.0.0   KernSmooth_2.23-15    
+[49] stringi_1.1.2          Rcpp_0.12.9           </code></pre>
 </div>
 
 <hr>

@@ -309,11 +309,22 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-15</p>
-<p><strong>Code version:</strong> cd1bcd6</p>
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> f3c5dc0</p>
 <pre class="r"><code>library(&quot;dplyr&quot;)
-library(&quot;doMC&quot;)
-registerDoMC(7)
+library(&quot;doMC&quot;)</code></pre>
+<pre><code>Loading required package: foreach</code></pre>
+<pre><code>foreach: simple, scalable parallel programming from Revolution Analytics
+Use Revolution R for scalability, fault tolerance and more.
+http://www.revolutionanalytics.com</code></pre>
+<pre><code>Loading required package: iterators</code></pre>
+<pre class="r"><code>registerDoMC(7)
 library(&quot;ggplot2&quot;)
 theme_set(theme_bw(base_size = 12))
 source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
@@ -429,9 +440,18 @@ ggplot( do.call(rbind,batch_over_explained), aes(prop_batch,col=method)) + geom_
 <pre class="r"><code>ggplot( do.call(rbind,variance_components), aes(1-residual,col=method)) + geom_density() + xlab(&quot;proportion variance explained&quot;) + xlim(0,.5)+ scale_colour_manual(values=cbPalette) + theme(legend.position=c(.8,.8))</code></pre>
 <pre><code>Warning: Removed 204 rows containing non-finite values (stat_density).</code></pre>
 <p><img src="figure/technical_noise_control.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /> <strong>What does this plot tell me?</strong></p>
+<div id="notes-on-anova" class="section level4">
+<h4>Notes on anova</h4>
+<ul>
+<li><p>difference among group means</p></li>
+<li><p>partition observed variance into components of attributed to difference sources of variation</p></li>
+<li><p>Calculate mean of means and SST ((each point - grand mean)^2)</p></li>
+</ul>
 </div>
-<div id="session-information" class="section level3">
-<h3>Session Information</h3>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<!-- Insert the session information into the document -->
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)
 Platform: x86_64-redhat-linux-gnu (64-bit)
@@ -446,45 +466,67 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] parallel  grid      stats     graphics  grDevices utils     datasets 
-[8] methods   base     
+ [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
 
 other attached packages:
- [1] Humanzee_0.1.0      devtools_1.12.0     doMC_1.3.4         
- [4] iterators_1.0.8     foreach_1.4.3       scales_0.4.1       
- [7] VennDiagram_1.6.17  futile.logger_1.4.3 testit_0.6         
-[10] data.table_1.10.0   biomaRt_2.30.0      tidyr_0.6.1        
-[13] gridExtra_2.2.1     lme4_1.1-12         Matrix_1.2-7.1     
-[16] edgeR_3.16.5        limma_3.30.9        cowplot_0.7.0      
-[19] ggplot2_2.2.1       dplyr_0.5.0         workflowr_0.3.0    
-[22] rmarkdown_1.3      
+ [1] doMC_1.3.4             iterators_1.0.8        foreach_1.4.3         
+ [4] tidyr_0.6.1            mygene_1.10.0          GenomicFeatures_1.26.3
+ [7] GenomicRanges_1.26.3   GenomeInfoDb_1.10.3    broman_0.65-1         
+[10] gplots_3.0.1           matrixStats_0.51.0     MASS_7.3-45           
+[13] gridExtra_2.2.1        lme4_1.1-12            workflowr_0.4.0       
+[16] org.Hs.eg.db_3.4.0     GOstats_2.40.0         graph_1.52.0          
+[19] Category_2.40.0        Matrix_1.2-7.1         GO.db_3.4.0           
+[22] AnnotationDbi_1.36.2   IRanges_2.8.1          S4Vectors_0.12.1      
+[25] Biobase_2.34.0         BiocGenerics_0.20.0    Humanzee_0.1.0        
+[28] sva_3.22.0             genefilter_1.56.0      mgcv_1.8-15           
+[31] nlme_3.1-128           BiocInstaller_1.24.0   scales_0.4.1          
+[34] VennDiagram_1.6.17     futile.logger_1.4.3    edgeR_3.16.5          
+[37] limma_3.30.11          dplyr_0.5.0            testit_0.6            
+[40] data.table_1.10.4      biomaRt_2.30.0         cowplot_0.7.0         
+[43] stringr_1.2.0          reshape2_1.4.2         rmarkdown_1.3         
+[46] Citrus_0.99            easyGgplot2_1.0.0.9000 ggplot2_2.2.1         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9          locfit_1.5-9.1       lattice_0.20-34     
- [4] assertthat_0.1       rprojroot_1.2        digest_0.6.12       
- [7] R6_2.2.0             plyr_1.8.4           futile.options_1.0.0
-[10] backports_1.0.5      stats4_3.3.2         RSQLite_1.1-2       
-[13] evaluate_0.10        httr_1.2.1           lazyeval_0.2.0      
-[16] curl_2.3             minqa_1.2.4          rstudioapi_0.6      
-[19] nloptr_1.0.4         S4Vectors_0.12.1     labeling_0.3        
-[22] splines_3.3.2        statmod_1.4.27       stringr_1.1.0       
-[25] RCurl_1.95-4.8       munsell_0.4.3        compiler_3.3.2      
-[28] BiocGenerics_0.20.0  htmltools_0.3.5      tibble_1.2          
-[31] IRanges_2.8.1        codetools_0.2-15     XML_3.98-1.5        
-[34] withr_1.0.2          MASS_7.3-45          bitops_1.0-6        
-[37] nlme_3.1-128         gtable_0.2.0         DBI_0.5-1           
-[40] git2r_0.18.0         magrittr_1.5         stringi_1.1.2       
-[43] lambda.r_1.1.9       tools_3.3.2          Biobase_2.34.0      
-[46] yaml_2.1.14          AnnotationDbi_1.36.1 colorspace_1.3-2    
-[49] memoise_1.0.0        knitr_1.15.1        </code></pre>
-<div id="notes-on-anova" class="section level4">
-<h4>Notes on anova</h4>
-<ul>
-<li><p>difference among group means</p></li>
-<li><p>partition observed variance into components of attributed to difference sources of variation</p></li>
-<li><p>Calculate mean of means and SST ((each point - grand mean)^2)</p></li>
-</ul>
-</div>
+ [1] minqa_1.2.4                colorspace_1.3-2          
+ [3] rprojroot_1.2              htmlTable_1.9             
+ [5] XVector_0.14.0             base64enc_0.1-3           
+ [7] rstudioapi_0.6             sqldf_0.4-10              
+ [9] codetools_0.2-15           splines_3.3.2             
+[11] knitr_1.15.1               Formula_1.2-1             
+[13] jsonlite_1.3               nloptr_1.0.4              
+[15] Rsamtools_1.26.1           annotate_1.52.1           
+[17] cluster_2.0.5              compiler_3.3.2            
+[19] httr_1.2.1                 backports_1.0.5           
+[21] assertthat_0.1             lazyeval_0.2.0            
+[23] acepack_1.4.1              htmltools_0.3.5           
+[25] tools_3.3.2                gtable_0.2.0              
+[27] Rcpp_0.12.9                Biostrings_2.42.1         
+[29] gdata_2.17.0               rtracklayer_1.34.2        
+[31] proto_1.0.0                gtools_3.5.0              
+[33] devtools_1.12.0            statmod_1.4.29            
+[35] XML_3.98-1.5               zlibbioc_1.20.0           
+[37] SummarizedExperiment_1.4.0 RBGL_1.50.0               
+[39] lambda.r_1.1.9             RColorBrewer_1.1-2        
+[41] yaml_2.1.14                curl_2.3                  
+[43] memoise_1.0.0              rpart_4.1-10              
+[45] latticeExtra_0.6-28        stringi_1.1.2             
+[47] RSQLite_1.1-2              checkmate_1.8.2           
+[49] caTools_1.17.1             BiocParallel_1.8.1        
+[51] chron_2.3-50               bitops_1.0-6              
+[53] evaluate_0.10              lattice_0.20-34           
+[55] htmlwidgets_0.8            GenomicAlignments_1.10.0  
+[57] labeling_0.3               GSEABase_1.36.0           
+[59] AnnotationForge_1.16.1     plyr_1.8.4                
+[61] magrittr_1.5               R6_2.2.0                  
+[63] Hmisc_4.0-2                DBI_0.5-1                 
+[65] gsubfn_0.6-6               foreign_0.8-67            
+[67] withr_1.0.2                survival_2.40-1           
+[69] RCurl_1.95-4.8             nnet_7.3-12               
+[71] tibble_1.2                 futile.options_1.0.0      
+[73] KernSmooth_2.23-15         locfit_1.5-9.1            
+[75] git2r_0.18.0               digest_0.6.12             
+[77] xtable_1.8-2               munsell_0.4.3             </code></pre>
 </div>
 
 <hr>
