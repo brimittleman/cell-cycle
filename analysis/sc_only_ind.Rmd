@@ -350,10 +350,36 @@ red_cell %in% quality_single_cells
 ```
 
 Cell NA19101.r1.C11 is in the list of quality cells. Cell NA19098.r1.F01 was not included in the quality cells. 
+
+###Exclude singletons  
+
+```{r}
+#ENSG genes that arnt singleton in single cell only
+load("../data/gene_names_ensg.txt")
+#subset molecules for this  
+
+molecules_sc_notsing_ENSG= molecules[rownames(molecules) %in% gene_names_ensg, ]
+
+```
+
+run and plot PCA  
+
+```{r}
+pca_SConly_nonsing <- run_pca(molecules_sc_notsing_ENSG)
+pca_SConly_nonsing_plot <- plot_pca(pca_SConly_nonsing$PCs, explained = pca_SConly_nonsing$explained,
+         metadata = anno, color = "individual",
+         shape = "replicate", alpha = 0.5, size = 3) +
+        labs(title="PCA for single cell only genes seen in more than 1 cell") +
+  geom_text(aes(label= ifelse(PC1 < -15  |  PC2 >10,colnames(molecules_only_SC_ENSG), "") , vjust="inward", hjust="inward"))
+pca_SConly_nonsing_plot 
+```
+
+
 =======
 ## Session information
 
 <!-- Insert the session information into the document -->
 ```{r session-info}
+sessionInfo()
 ```
 >>>>>>> 86594a472ae2f2872b38459580b5cf8e13b8b533

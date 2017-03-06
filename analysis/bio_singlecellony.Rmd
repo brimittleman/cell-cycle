@@ -182,4 +182,5 @@ gene_info_non_sing_ENSG <- getBM(attributes = c("ensembl_gene_id",
 
 <!-- Insert the session information into the document -->
 ```{r session-info}
+sessionInfo()
 ```
