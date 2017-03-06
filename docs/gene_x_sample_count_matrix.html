@@ -305,9 +305,14 @@ div.tocify {
 </div>
 
 
-<p><strong>Last updated:</strong> 2017-02-06</p>
-<p><strong>Code version:</strong> 2873ed4</p>
-<p>This is recreating code from <a href="http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html</a>.</p>
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> d184779 This is recreating code from <a href="http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html" class="uri">http://jdblischak.github.io/singleCellSeq/analysis/prepare-counts.html</a>.</p>
 <pre class="r"><code>library(&quot;data.table&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;VennDiagram&quot;)</code></pre>
@@ -458,8 +463,9 @@ write.table(reads_bulk, &quot;../../singleCellSeq/data/reads-bulk.txt&quot;, quo
 <p>Output molecule counts.</p>
 <pre class="r"><code>write.table(molecules, &quot;../../singleCellSeq/data/molecules.txt&quot;, quote= FALSE, sep= &quot;\t&quot;, col.names = NA)</code></pre>
 </div>
-<div id="session-information" class="section level3">
-<h3>Session Information</h3>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<!-- Insert the session information into the document -->
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)
 Platform: x86_64-redhat-linux-gnu (64-bit)
@@ -474,31 +480,43 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
-[1] grid      stats     graphics  grDevices utils     datasets  methods  
-[8] base     
+ [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
 
 other attached packages:
- [1] testit_0.6           MASS_7.3-45          cowplot_0.7.0       
- [4] ggplot2_2.2.1        edgeR_3.16.5         limma_3.30.9        
- [7] BiocInstaller_1.24.0 VennDiagram_1.6.17   futile.logger_1.4.3 
-[10] dplyr_0.5.0          data.table_1.10.0    devtools_1.12.0     
-[13] workflowr_0.3.0      rmarkdown_1.3       
+ [1] broman_0.65-1          gplots_3.0.1           matrixStats_0.51.0    
+ [4] MASS_7.3-45            gridExtra_2.2.1        lme4_1.1-12           
+ [7] workflowr_0.4.0        org.Hs.eg.db_3.4.0     GOstats_2.40.0        
+[10] graph_1.52.0           Category_2.40.0        Matrix_1.2-7.1        
+[13] GO.db_3.4.0            AnnotationDbi_1.36.2   IRanges_2.8.1         
+[16] S4Vectors_0.12.1       Biobase_2.34.0         BiocGenerics_0.20.0   
+[19] Humanzee_0.1.0         sva_3.22.0             genefilter_1.56.0     
+[22] mgcv_1.8-15            nlme_3.1-128           BiocInstaller_1.24.0  
+[25] scales_0.4.1           VennDiagram_1.6.17     futile.logger_1.4.3   
+[28] edgeR_3.16.5           limma_3.30.11          dplyr_0.5.0           
+[31] testit_0.6             data.table_1.10.4      biomaRt_2.30.0        
+[34] cowplot_0.7.0          stringr_1.2.0          reshape2_1.4.2        
+[37] rmarkdown_1.3          Citrus_0.99            easyGgplot2_1.0.0.9000
+[40] ggplot2_2.2.1         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9          git2r_0.18.0         plyr_1.8.4          
- [4] futile.options_1.0.0 bitops_1.0-6         tools_3.3.2         
- [7] digest_0.6.12        RSQLite_1.1-2        evaluate_0.10       
-[10] memoise_1.0.0        tibble_1.2           gtable_0.2.0        
-[13] lattice_0.20-34      DBI_0.5-1            yaml_2.1.14         
-[16] curl_2.3             parallel_3.3.2       httr_1.2.1          
-[19] withr_1.0.2          stringr_1.1.0        knitr_1.15.1        
-[22] IRanges_2.8.1        S4Vectors_0.12.1     stats4_3.3.2        
-[25] locfit_1.5-9.1       rprojroot_1.2        Biobase_2.34.0      
-[28] R6_2.2.0             AnnotationDbi_1.36.1 XML_3.98-1.5        
-[31] lambda.r_1.1.9       magrittr_1.5         BiocGenerics_0.20.0 
-[34] backports_1.0.5      scales_0.4.1         htmltools_0.3.5     
-[37] assertthat_0.1       colorspace_1.3-2     stringi_1.1.2       
-[40] RCurl_1.95-4.8       lazyeval_0.2.0       munsell_0.4.3       </code></pre>
+ [1] httr_1.2.1             splines_3.3.2          gtools_3.5.0          
+ [4] assertthat_0.1         RBGL_1.50.0            yaml_2.1.14           
+ [7] RSQLite_1.1-2          backports_1.0.5        lattice_0.20-34       
+[10] digest_0.6.12          RColorBrewer_1.1-2     minqa_1.2.4           
+[13] colorspace_1.3-2       htmltools_0.3.5        plyr_1.8.4            
+[16] GSEABase_1.36.0        XML_3.98-1.5           devtools_1.12.0       
+[19] xtable_1.8-2           gdata_2.17.0           git2r_0.18.0          
+[22] tibble_1.2             annotate_1.52.1        withr_1.0.2           
+[25] lazyeval_0.2.0         survival_2.40-1        magrittr_1.5          
+[28] memoise_1.0.0          evaluate_0.10          tools_3.3.2           
+[31] munsell_0.4.3          locfit_1.5-9.1         lambda.r_1.1.9        
+[34] caTools_1.17.1         nloptr_1.0.4           RCurl_1.95-4.8        
+[37] rstudioapi_0.6         AnnotationForge_1.16.1 bitops_1.0-6          
+[40] labeling_0.3           gtable_0.2.0           DBI_0.5-1             
+[43] curl_2.3               R6_2.2.0               knitr_1.15.1          
+[46] rprojroot_1.2          futile.options_1.0.0   KernSmooth_2.23-15    
+[49] stringi_1.1.2          Rcpp_0.12.9           </code></pre>
 </div>
 
 <hr>
