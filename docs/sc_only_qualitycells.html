@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+<meta name="author" content="Briana Mittleman" />
+
+<meta name="date" content="2017-03-06" />
+
+<title>Explore sinlge cell only genes in high quality cells only</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Cell cycle</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="about.html">About</a>
+</li>
+<li>
+  <a href="license.html">License</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/jdblischak/workflowr">
+    <span class="fa fa-github"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">Explore sinlge cell only genes in high quality cells only</h1>
+<h4 class="author"><em>Briana Mittleman</em></h4>
+<h4 class="date"><em>2017-03-06</em></h4>
+
+</div>
+
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-06</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> 675a8b4</p>
+<!-- Add your analysis here -->
+<p>Input packages and functions</p>
+<pre class="r"><code>library(&quot;biomaRt&quot;)
+library(&quot;dplyr&quot;)
+library(&quot;edgeR&quot;)
+library(&quot;ggplot2&quot;)
+theme_set(theme_bw(base_size = 12))
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+<p>Input data:</p>
+<pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads &lt;- read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
+
+#load quality single cells 
+quality_single_cells &lt;- scan(&quot;../../singleCellSeq/data/quality-single-cells.txt&quot;,
+                             what = &quot;character&quot;)
+
+#load molecules/expression for sc only ENSG
+load(&quot;../data/molecules_only_SC_ENSG.Rda&quot;)
+
+
+#load non singleton genes 
+load(&quot;../data/gene_names_ensg.txt&quot;)</code></pre>
+<div id="explore-high-quality-cells-include-singletons" class="section level3">
+<h3>Explore high quality cells include singletons</h3>
+<p>First include the singletons</p>
+<pre class="r"><code>molecules_only_SC_ENSG_qual = molecules_only_SC_ENSG[,colnames(molecules_only_SC_ENSG) %in% quality_single_cells]
+
+dim(molecules_only_SC_ENSG)</code></pre>
+<pre><code>[1] 956 864</code></pre>
+<pre class="r"><code>dim(molecules_only_SC_ENSG_qual)</code></pre>
+<pre><code>[1] 956 564</code></pre>
+<p>subset genes that are no longer seen in the data</p>
+<pre class="r"><code>non_zero_ENSG_qual &lt;- apply(molecules_only_SC_ENSG_qual, 1, function(c)sum(c!=0))
+mol_non_zero_ENSG_qual= cbind(molecules_only_SC_ENSG_qual, non_zero_ENSG_qual)
+mol_non_zero_ENSG_qual=mol_non_zero_ENSG_qual[mol_non_zero_ENSG_qual$non_zero_ENSG_qual!=0,]
+non_zero_qual_genes= rownames(mol_non_zero_ENSG_qual)
+
+#subset molecules_only_SC_ENSG_qual for only non zero genes 
+molecules_only_SC_ENSG_qual= molecules_only_SC_ENSG_qual[rownames(molecules_only_SC_ENSG_qual) %in% non_zero_qual_genes,]</code></pre>
+<p>This subsetted to 821 genes.</p>
+<pre class="r"><code>#subset annotation data for correct cells and genes  
+
+anno_sc_qual= anno[anno$sample_id %in% quality_single_cells, ]</code></pre>
+<p>run pca</p>
+<pre class="r"><code>SC_qual_pca= run_pca(molecules_only_SC_ENSG_qual)
+SC_qual_pca_plot &lt;- plot_pca(SC_qual_pca$PCs, explained = SC_qual_pca$explained,
+         metadata = anno_sc_qual, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;, alpha = 0.5, size = 3) +
+        labs(title=&quot;PCA for single cell only genes in High quality cells&quot;) +
+  geom_text(aes(label= ifelse(PC1 &gt; 40  |  PC2 &gt;40 ,colnames(molecules_only_SC_ENSG_qual), &quot;&quot;) , vjust=&quot;inward&quot;, hjust=&quot;inward&quot;))
+
+SC_qual_pca_plot</code></pre>
+<p><img src="figure/sc_only_qualitycells.Rmd/pca-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="explore-high-quality-cells-exclude-singletons" class="section level3">
+<h3>Explore high quality cells exclude singletons</h3>
+<p>Subset to exclude singletons</p>
+<pre class="r"><code>molecules_sc_notsing_ENSG= molecules[rownames(molecules) %in% gene_names_ensg, ]
+dim(molecules_sc_notsing_ENSG)</code></pre>
+<pre><code>[1] 535 864</code></pre>
+<pre class="r"><code>molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG[,colnames(molecules_sc_notsing_ENSG) %in% quality_single_cells]
+dim(molecules_sc_notsing_ENSG_qual)</code></pre>
+<pre><code>[1] 535 564</code></pre>
+<p>exclude genes no longer in data set</p>
+<pre class="r"><code>non_zero_ENSG_nonsing_qual &lt;- apply(molecules_sc_notsing_ENSG_qual, 1, function(c)sum(c!=0))
+mol_non_zero_ENSG_nonsing_qual= cbind(molecules_sc_notsing_ENSG_qual, non_zero_ENSG_nonsing_qual)
+
+mol_non_zero_ENSG_nonsing_qual=mol_non_zero_ENSG_nonsing_qual[mol_non_zero_ENSG_nonsing_qual$non_zero_ENSG_nonsing_qual!=0,]
+non_zero_nonsing_qual_genes= rownames(mol_non_zero_ENSG_qual)
+
+#subset molecules_only_SC_ENSG_qual for only non zero genes 
+molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG_qual [rownames(molecules_sc_notsing_ENSG_qual ) %in% non_zero_nonsing_qual_genes,]
+dim(molecules_sc_notsing_ENSG_qual)</code></pre>
+<pre><code>[1] 513 564</code></pre>
+<p>run pca</p>
+<pre class="r"><code>SC_nonsing_qual_pca= run_pca(molecules_sc_notsing_ENSG_qual)
+SC_nonsing_qual_pca_plot &lt;- plot_pca(SC_nonsing_qual_pca$PCs, explained = SC_nonsing_qual_pca$explained,
+         metadata = anno_sc_qual, color = &quot;individual&quot;,
+         shape = &quot;replicate&quot;, alpha = 0.5, size = 3) +
+        labs(title=&quot;PCA for single cell only genes (non singleton) in high quality cells&quot;) + geom_text(aes(label= ifelse(PC1 &gt; 30 ,colnames(molecules_sc_notsing_ENSG_qual), &quot;&quot;) , vjust=&quot;inward&quot;, hjust=&quot;inward&quot;))
+  
+
+SC_nonsing_qual_pca_plot</code></pre>
+<p><img src="figure/sc_only_qualitycells.Rmd/nonsing%20pca-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
+<!-- Insert the session information into the document -->
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 3.3.2 (2016-10-31)
+Platform: x86_64-redhat-linux-gnu (64-bit)
+Running under: Scientific Linux 7.2 (Nitrogen)
+
+locale:
+ [1] LC_CTYPE=en_US.UTF-8       LC_NUMERIC=C              
+ [3] LC_TIME=en_US.UTF-8        LC_COLLATE=en_US.UTF-8    
+ [5] LC_MONETARY=en_US.UTF-8    LC_MESSAGES=en_US.UTF-8   
+ [7] LC_PAPER=en_US.UTF-8       LC_NAME=C                 
+ [9] LC_ADDRESS=C               LC_TELEPHONE=C            
+[11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
+
+attached base packages:
+ [1] stats4    parallel  grid      stats     graphics  grDevices utils    
+ [8] datasets  methods   base     
+
+other attached packages:
+ [1] GOstats_2.40.0       graph_1.52.0         Category_2.40.0     
+ [4] Matrix_1.2-7.1       AnnotationDbi_1.36.2 IRanges_2.8.1       
+ [7] S4Vectors_0.12.1     Biobase_2.34.0       BiocGenerics_0.20.0 
+[10] Humanzee_0.1.0       ggplot2_2.2.1        VennDiagram_1.6.17  
+[13] futile.logger_1.4.3  edgeR_3.16.5         limma_3.30.11       
+[16] dplyr_0.5.0          testit_0.6           data.table_1.10.4   
+[19] biomaRt_2.30.0       workflowr_0.4.0      rmarkdown_1.3       
+
+loaded via a namespace (and not attached):
+ [1] genefilter_1.56.0      locfit_1.5-9.1         splines_3.3.2         
+ [4] lattice_0.20-34        colorspace_1.3-2       htmltools_0.3.5       
+ [7] yaml_2.1.14            XML_3.98-1.5           RBGL_1.50.0           
+[10] survival_2.40-1        DBI_0.5-1              lambda.r_1.1.9        
+[13] plyr_1.8.4             stringr_1.2.0          munsell_0.4.3         
+[16] gtable_0.2.0           memoise_1.0.0          evaluate_0.10         
+[19] labeling_0.3           knitr_1.15.1           GSEABase_1.36.0       
+[22] Rcpp_0.12.9            xtable_1.8-2           backports_1.0.5       
+[25] scales_0.4.1           annotate_1.52.1        digest_0.6.12         
+[28] stringi_1.1.2          rprojroot_1.2          tools_3.3.2           
+[31] bitops_1.0-6           magrittr_1.5           RCurl_1.95-4.8        
+[34] lazyeval_0.2.0         tibble_1.2             RSQLite_1.1-2         
+[37] futile.options_1.0.0   GO.db_3.4.0            rstudioapi_0.6        
+[40] assertthat_0.1         AnnotationForge_1.16.1 R6_2.2.0              
+[43] git2r_0.18.0          </code></pre>
+</div>
+
+<hr>
+<p>
+    This site was created with <a href="http://rmarkdown.rstudio.com">R Markdown</a>
+</p>
+<hr>
+
+<!-- To enable disqus, uncomment the section below and provide your disqus_shortname -->
+
+<!-- disqus
+  <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'rmarkdown'; // required: replace example with your forum shortname
+
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    <a href="http://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+-->
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
