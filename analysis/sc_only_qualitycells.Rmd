@@ -1,0 +1,158 @@
+---
+title: "Explore sinlge cell only genes in high quality cells only"
+author: "Briana Mittleman"
+date: 2017-03-06
+output: html_document
+---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+<!-- Add your analysis here -->
+
+Input packages and functions  
+```{r packages}
+library("biomaRt")
+library("dplyr")
+library("edgeR")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+Input data:
+```{r data}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+
+#load quality single cells 
+quality_single_cells <- scan("../../singleCellSeq/data/quality-single-cells.txt",
+                             what = "character")
+
+#load molecules/expression for sc only ENSG
+load("../data/molecules_only_SC_ENSG.Rda")
+
+
+#load non singleton genes 
+load("../data/gene_names_ensg.txt")
+```
+
+
+###Explore high quality cells include singletons  
+
+First include the singletons 
+
+```{r quality cell}
+molecules_only_SC_ENSG_qual = molecules_only_SC_ENSG[,colnames(molecules_only_SC_ENSG) %in% quality_single_cells]
+
+dim(molecules_only_SC_ENSG)
+dim(molecules_only_SC_ENSG_qual)
+```
+
+subset genes that are no longer seen in the data
+
+```{r exlude zeros}
+non_zero_ENSG_qual <- apply(molecules_only_SC_ENSG_qual, 1, function(c)sum(c!=0))
+mol_non_zero_ENSG_qual= cbind(molecules_only_SC_ENSG_qual, non_zero_ENSG_qual)
+mol_non_zero_ENSG_qual=mol_non_zero_ENSG_qual[mol_non_zero_ENSG_qual$non_zero_ENSG_qual!=0,]
+non_zero_qual_genes= rownames(mol_non_zero_ENSG_qual)
+
+#subset molecules_only_SC_ENSG_qual for only non zero genes 
+molecules_only_SC_ENSG_qual= molecules_only_SC_ENSG_qual[rownames(molecules_only_SC_ENSG_qual) %in% non_zero_qual_genes,]
+
+
+```
+
+This subsetted to 821 genes. 
+
+```{r}
+#subset annotation data for correct cells and genes  
+
+anno_sc_qual= anno[anno$sample_id %in% quality_single_cells, ]
+```
+
+
+run pca
+
+```{r pca}
+SC_qual_pca= run_pca(molecules_only_SC_ENSG_qual)
+SC_qual_pca_plot <- plot_pca(SC_qual_pca$PCs, explained = SC_qual_pca$explained,
+         metadata = anno_sc_qual, color = "individual",
+         shape = "replicate", alpha = 0.5, size = 3) +
+        labs(title="PCA for single cell only genes in High quality cells") +
+  geom_text(aes(label= ifelse(PC1 > 40  |  PC2 >40 ,colnames(molecules_only_SC_ENSG_qual), "") , vjust="inward", hjust="inward"))
+
+SC_qual_pca_plot
+```
+
+###Explore high quality cells exclude singletons  
+
+Subset to exclude singletons  
+
+```{r exclude singleton}
+molecules_sc_notsing_ENSG= molecules[rownames(molecules) %in% gene_names_ensg, ]
+dim(molecules_sc_notsing_ENSG)
+
+molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG[,colnames(molecules_sc_notsing_ENSG) %in% quality_single_cells]
+dim(molecules_sc_notsing_ENSG_qual)
+
+
+```
+
+exclude genes no longer in data set  
+```{r subset sc.nonsing}
+non_zero_ENSG_nonsing_qual <- apply(molecules_sc_notsing_ENSG_qual, 1, function(c)sum(c!=0))
+mol_non_zero_ENSG_nonsing_qual= cbind(molecules_sc_notsing_ENSG_qual, non_zero_ENSG_nonsing_qual)
+
+mol_non_zero_ENSG_nonsing_qual=mol_non_zero_ENSG_nonsing_qual[mol_non_zero_ENSG_nonsing_qual$non_zero_ENSG_nonsing_qual!=0,]
+non_zero_nonsing_qual_genes= rownames(mol_non_zero_ENSG_qual)
+
+#subset molecules_only_SC_ENSG_qual for only non zero genes 
+molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG_qual [rownames(molecules_sc_notsing_ENSG_qual ) %in% non_zero_nonsing_qual_genes,]
+dim(molecules_sc_notsing_ENSG_qual)
+
+```
+
+run pca  
+
+```{r nonsing pca}
+SC_nonsing_qual_pca= run_pca(molecules_sc_notsing_ENSG_qual)
+SC_nonsing_qual_pca_plot <- plot_pca(SC_nonsing_qual_pca$PCs, explained = SC_nonsing_qual_pca$explained,
+         metadata = anno_sc_qual, color = "individual",
+         shape = "replicate", alpha = 0.5, size = 3) +
+        labs(title="PCA for single cell only genes (non singleton) in high quality cells") + geom_text(aes(label= ifelse(PC1 > 30 ,colnames(molecules_sc_notsing_ENSG_qual), "") , vjust="inward", hjust="inward"))
+  
+
+SC_nonsing_qual_pca_plot
+```
+
+
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
+```

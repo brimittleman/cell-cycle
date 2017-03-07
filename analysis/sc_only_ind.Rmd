@@ -76,6 +76,12 @@ molecules_only_SC_ENSG <- molecules_df[rownames(molecules_df) %in% gene_onlysing
 dim(molecules_only_SC_ENSG)
 ```
 
+
+```{r, eval=FALSE}
+save(molecules_only_SC_ENSG, file="../data/molecules_only_SC_ENSG.Rda")
+```
+
+
 Count number of cells we see these genes in  
 
 ```{r}
