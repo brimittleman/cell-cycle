@@ -1,0 +1,82 @@
+---
+title: "Get data for 2 indiv. 2 replicates"
+author: "Briana Mittleman"
+date: YYYY-MM-DD
+output: html_document
+---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+
+```{r}
+library("data.table")
+library("dplyr")
+```
+
+
+Parse data for Mengyin to use in ashR  
+
+* 2 reps from same individual   
+
+* 1 rep from 2 individual  
+
+
+import data:  
+```{r}
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,stringsAsFactors = FALSE) 
+```
+
+
+individual 191098.1 rep 1 
+```{r}
+molecules_19098.1= molecules[,grep("NA19098.r1", colnames(molecules))]
+NA19098.r1.sum=apply(molecules_19098.1, 1, sum)
+```
+individual 1909881.1 rep 3 
+```{r}
+molecules_19098.3= molecules[,grep("NA19098.r3", colnames(molecules))]
+NA19098.r3.sum=apply(molecules_19098.3, 1, sum)
+gene_names= row.names(molecules)
+```
+
+make DF
+```{r}
+NA19098.sums= cbind(NA19098.r1.sum,NA19098.r3.sum)
+save(NA19098.sums, file="../data/NA19098.sums.Rda")
+```
+
+individual 19101 r 1
+```{r}
+molecules_19101.1= molecules[,grep("NA19101.r1", colnames(molecules))]
+NA19101.r1.sum=apply(molecules_19101.1, 1, sum)
+```
+
+make DF
+```{r}
+Two.ind.r1= cbind(NA19098.r1.sum,NA19101.r1.sum)
+save(Two.ind.r1, file="../data/Two.ind.r1.Rda")
+```
+
+
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
+```

@@ -151,6 +151,14 @@ SC_nonsing_qual_pca_plot
 ```
 
 
+NEXT STEPS:
+https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R
+
+change function to include loading output to see if excluding singletons in the analysis is important 
+  in rotation (gene x pc)- look at scores on first 2 pc between singleton and non singleton  
+
+
+
 ## Session information
 
 <!-- Insert the session information into the document -->
