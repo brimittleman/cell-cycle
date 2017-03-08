@@ -11,9 +11,8 @@
 
 <meta name="author" content="Briana Mittleman" />
 
-<meta name="date" content="2017-03-06" />
 
-<title>Explore sinlge cell only genes in high quality cells only</title>
+<title>Get data for 2 indiv. 2 replicates</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -302,9 +301,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Explore sinlge cell only genes in high quality cells only</h1>
+<h1 class="title toc-ignore">Get data for 2 indiv. 2 replicates</h1>
 <h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>2017-03-06</em></h4>
+<h4 class="date"><em>YYYY-MM-DD</em></h4>
 
 </div>
 
@@ -317,101 +316,31 @@ shared across the workflowr files. -->
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
 <p><strong>Code version:</strong> 0a4e443</p>
-<!-- Add your analysis here -->
-<p>Input packages and functions</p>
-<pre class="r"><code>library(&quot;biomaRt&quot;)
-library(&quot;dplyr&quot;)
-library(&quot;edgeR&quot;)
-library(&quot;ggplot2&quot;)
-theme_set(theme_bw(base_size = 12))
-source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
-<p>Input data:</p>
-<pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
-                   stringsAsFactors = FALSE)
-#input reads (pre-filter)
-reads &lt;- read.table(&quot;../../singleCellSeq/data/reads.txt&quot;, header = TRUE,
-                    stringsAsFactors = FALSE)
-#input molecule (pre-filter)
-molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE,
-                    stringsAsFactors = FALSE)
-#input bulk reads (pre-filter )
-reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
-
-#load quality single cells 
-quality_single_cells &lt;- scan(&quot;../../singleCellSeq/data/quality-single-cells.txt&quot;,
-                             what = &quot;character&quot;)
-
-#load molecules/expression for sc only ENSG
-load(&quot;../data/molecules_only_SC_ENSG.Rda&quot;)
-
-
-#load non singleton genes 
-load(&quot;../data/gene_names_ensg.txt&quot;)</code></pre>
-<div id="explore-high-quality-cells-include-singletons" class="section level3">
-<h3>Explore high quality cells include singletons</h3>
-<p>First include the singletons</p>
-<pre class="r"><code>molecules_only_SC_ENSG_qual = molecules_only_SC_ENSG[,colnames(molecules_only_SC_ENSG) %in% quality_single_cells]
-
-dim(molecules_only_SC_ENSG)</code></pre>
-<pre><code>[1] 956 864</code></pre>
-<pre class="r"><code>dim(molecules_only_SC_ENSG_qual)</code></pre>
-<pre><code>[1] 956 564</code></pre>
-<p>subset genes that are no longer seen in the data</p>
-<pre class="r"><code>non_zero_ENSG_qual &lt;- apply(molecules_only_SC_ENSG_qual, 1, function(c)sum(c!=0))
-mol_non_zero_ENSG_qual= cbind(molecules_only_SC_ENSG_qual, non_zero_ENSG_qual)
-mol_non_zero_ENSG_qual=mol_non_zero_ENSG_qual[mol_non_zero_ENSG_qual$non_zero_ENSG_qual!=0,]
-non_zero_qual_genes= rownames(mol_non_zero_ENSG_qual)
-
-#subset molecules_only_SC_ENSG_qual for only non zero genes 
-molecules_only_SC_ENSG_qual= molecules_only_SC_ENSG_qual[rownames(molecules_only_SC_ENSG_qual) %in% non_zero_qual_genes,]</code></pre>
-<p>This subsetted to 821 genes.</p>
-<pre class="r"><code>#subset annotation data for correct cells and genes  
-
-anno_sc_qual= anno[anno$sample_id %in% quality_single_cells, ]</code></pre>
-<p>run pca</p>
-<pre class="r"><code>SC_qual_pca= run_pca(molecules_only_SC_ENSG_qual)
-SC_qual_pca_plot &lt;- plot_pca(SC_qual_pca$PCs, explained = SC_qual_pca$explained,
-         metadata = anno_sc_qual, color = &quot;individual&quot;,
-         shape = &quot;replicate&quot;, alpha = 0.5, size = 3) +
-        labs(title=&quot;PCA for single cell only genes in High quality cells&quot;) +
-  geom_text(aes(label= ifelse(PC1 &gt; 40  |  PC2 &gt;40 ,colnames(molecules_only_SC_ENSG_qual), &quot;&quot;) , vjust=&quot;inward&quot;, hjust=&quot;inward&quot;))
-
-SC_qual_pca_plot</code></pre>
-<p><img src="figure/sc_only_qualitycells.Rmd/pca-1.png" width="672" style="display: block; margin: auto;" /></p>
-</div>
-<div id="explore-high-quality-cells-exclude-singletons" class="section level3">
-<h3>Explore high quality cells exclude singletons</h3>
-<p>Subset to exclude singletons</p>
-<pre class="r"><code>molecules_sc_notsing_ENSG= molecules[rownames(molecules) %in% gene_names_ensg, ]
-dim(molecules_sc_notsing_ENSG)</code></pre>
-<pre><code>[1] 535 864</code></pre>
-<pre class="r"><code>molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG[,colnames(molecules_sc_notsing_ENSG) %in% quality_single_cells]
-dim(molecules_sc_notsing_ENSG_qual)</code></pre>
-<pre><code>[1] 535 564</code></pre>
-<p>exclude genes no longer in data set</p>
-<pre class="r"><code>non_zero_ENSG_nonsing_qual &lt;- apply(molecules_sc_notsing_ENSG_qual, 1, function(c)sum(c!=0))
-mol_non_zero_ENSG_nonsing_qual= cbind(molecules_sc_notsing_ENSG_qual, non_zero_ENSG_nonsing_qual)
-
-mol_non_zero_ENSG_nonsing_qual=mol_non_zero_ENSG_nonsing_qual[mol_non_zero_ENSG_nonsing_qual$non_zero_ENSG_nonsing_qual!=0,]
-non_zero_nonsing_qual_genes= rownames(mol_non_zero_ENSG_qual)
-
-#subset molecules_only_SC_ENSG_qual for only non zero genes 
-molecules_sc_notsing_ENSG_qual = molecules_sc_notsing_ENSG_qual [rownames(molecules_sc_notsing_ENSG_qual ) %in% non_zero_nonsing_qual_genes,]
-dim(molecules_sc_notsing_ENSG_qual)</code></pre>
-<pre><code>[1] 513 564</code></pre>
-<p>run pca</p>
-<pre class="r"><code>SC_nonsing_qual_pca= run_pca(molecules_sc_notsing_ENSG_qual)
-SC_nonsing_qual_pca_plot &lt;- plot_pca(SC_nonsing_qual_pca$PCs, explained = SC_nonsing_qual_pca$explained,
-         metadata = anno_sc_qual, color = &quot;individual&quot;,
-         shape = &quot;replicate&quot;, alpha = 0.5, size = 3) +
-        labs(title=&quot;PCA for single cell only genes (non singleton) in high quality cells&quot;) + geom_text(aes(label= ifelse(PC1 &gt; 30 ,colnames(molecules_sc_notsing_ENSG_qual), &quot;&quot;) , vjust=&quot;inward&quot;, hjust=&quot;inward&quot;))
-  
-
-SC_nonsing_qual_pca_plot</code></pre>
-<p><img src="figure/sc_only_qualitycells.Rmd/nonsing%20pca-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>NEXT STEPS: <a href="https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R" class="uri">https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R</a></p>
-<p>change function to include loading output to see if excluding singletons in the analysis is important in rotation (gene x pc)- look at scores on first 2 pc between singleton and non singleton</p>
-</div>
+<pre class="r"><code>library(&quot;data.table&quot;)
+library(&quot;dplyr&quot;)</code></pre>
+<p>Parse data for Mengyin to use in ashR</p>
+<ul>
+<li><p>2 reps from same individual</p></li>
+<li><p>1 rep from 2 individual</p></li>
+</ul>
+<p>import data:</p>
+<pre class="r"><code>molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE,stringsAsFactors = FALSE) </code></pre>
+<p>individual 191098.1 rep 1</p>
+<pre class="r"><code>molecules_19098.1= molecules[,grep(&quot;NA19098.r1&quot;, colnames(molecules))]
+NA19098.r1.sum=apply(molecules_19098.1, 1, sum)</code></pre>
+<p>individual 1909881.1 rep 3</p>
+<pre class="r"><code>molecules_19098.3= molecules[,grep(&quot;NA19098.r3&quot;, colnames(molecules))]
+NA19098.r3.sum=apply(molecules_19098.3, 1, sum)
+gene_names= row.names(molecules)</code></pre>
+<p>make DF</p>
+<pre class="r"><code>NA19098.sums= cbind(NA19098.r1.sum,NA19098.r3.sum)
+save(NA19098.sums, file=&quot;../data/NA19098.sums.Rda&quot;)</code></pre>
+<p>individual 19101 r 1</p>
+<pre class="r"><code>molecules_19101.1= molecules[,grep(&quot;NA19101.r1&quot;, colnames(molecules))]
+NA19101.r1.sum=apply(molecules_19101.1, 1, sum)</code></pre>
+<p>make DF</p>
+<pre class="r"><code>Two.ind.r1= cbind(NA19098.r1.sum,NA19101.r1.sum)
+save(Two.ind.r1, file=&quot;../data/Two.ind.r1.Rda&quot;)</code></pre>
 <div id="session-information" class="section level2">
 <h2>Session information</h2>
 <!-- Insert the session information into the document -->
@@ -449,14 +378,14 @@ loaded via a namespace (and not attached):
 [10] survival_2.40-1        DBI_0.5-1              lambda.r_1.1.9        
 [13] plyr_1.8.4             stringr_1.2.0          munsell_0.4.3         
 [16] gtable_0.2.0           memoise_1.0.0          evaluate_0.10         
-[19] labeling_0.3           knitr_1.15.1           GSEABase_1.36.0       
-[22] Rcpp_0.12.9            xtable_1.8-2           scales_0.4.1          
-[25] backports_1.0.5        annotate_1.52.1        digest_0.6.12         
-[28] stringi_1.1.2          rprojroot_1.2          tools_3.3.2           
-[31] bitops_1.0-6           magrittr_1.5           lazyeval_0.2.0        
-[34] RCurl_1.95-4.8         tibble_1.2             RSQLite_1.1-2         
-[37] futile.options_1.0.0   rstudioapi_0.6         assertthat_0.1        
-[40] AnnotationForge_1.16.1 R6_2.2.0               git2r_0.18.0          </code></pre>
+[19] knitr_1.15.1           GSEABase_1.36.0        Rcpp_0.12.9           
+[22] xtable_1.8-2           scales_0.4.1           backports_1.0.5       
+[25] annotate_1.52.1        digest_0.6.12          stringi_1.1.2         
+[28] rprojroot_1.2          tools_3.3.2            bitops_1.0-6          
+[31] magrittr_1.5           lazyeval_0.2.0         RCurl_1.95-4.8        
+[34] tibble_1.2             RSQLite_1.1-2          futile.options_1.0.0  
+[37] rstudioapi_0.6         assertthat_0.1         AnnotationForge_1.16.1
+[40] R6_2.2.0               git2r_0.18.0          </code></pre>
 </div>
 
 <hr>
