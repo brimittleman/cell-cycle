@@ -316,7 +316,7 @@ shared across the workflowr files. -->
 <p><strong>Last updated:</strong> 2017-03-08</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> e7209d8</p>
+<p><strong>Code version:</strong> e0c54aa</p>
 <!-- Add your analysis here -->
 <pre class="r"><code>#input molecule (pre-filter)
 molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
@@ -330,6 +330,23 @@ dim(molecules)</code></pre>
 <p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>boxplot(num_genes)</code></pre>
 <p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-1-2.png" width="672" style="display: block; margin: auto;" /></p>
+<div id="exclude-bad-quality-cells" class="section level3">
+<h3>Exclude bad quality cells</h3>
+<pre class="r"><code>#load quality single cells 
+quality_single_cells &lt;- scan(&quot;../../singleCellSeq/data/quality-single-cells.txt&quot;, what = &quot;character&quot;)
+
+molecules_quality=molecules[, colnames(molecules) %in% quality_single_cells]
+dim(molecules_quality)</code></pre>
+<pre><code>[1] 19027   564</code></pre>
+<p>Count number of genes seen in each individual cell</p>
+<pre class="r"><code>num_genes_qual= colSums(molecules_quality!= 0)</code></pre>
+<pre class="r"><code>save(num_genes_qual, file=&quot;../data/num_genes_qual.Rda&quot;)</code></pre>
+<p>vizualize:</p>
+<pre class="r"><code>hist(num_genes_qual, xlab=&quot;Number of genes&quot;, main=&quot;Number of genes seen per high quality cell&quot;)</code></pre>
+<p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-3-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>boxplot(num_genes_qual)</code></pre>
+<p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-3-2.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
 
 <hr>
 <p>
