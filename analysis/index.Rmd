@@ -37,7 +37,7 @@ These are the projects I am working on during the my rotation in the Stephens la
 * [Explore single cell genes only accounting for cell quality](sc_only_qualitycells.html)
 
 
-* [Explore number of genes seen in each cell](gene___percell.html)
+* [Explore number of genes seen in each cell](gene_num_percell.html)
 
 Continue the Gilad single cell anaylsis:  
 
