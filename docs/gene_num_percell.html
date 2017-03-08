@@ -9,9 +9,11 @@
 <meta name="generator" content="pandoc" />
 
 
+<meta name="author" content="Briana Mittleman" />
 
+<meta name="date" content="2017-03-07" />
 
-<title>Home</title>
+<title>Explore number of genes seen in each cell</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -19,6 +21,9 @@
 <script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
 <script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
 <script src="site_libs/navigation-1.1/tabsets.js"></script>
 <link href="site_libs/highlightjs-1.1/textmate.css" rel="stylesheet" />
 <script src="site_libs/highlightjs-1.1/highlight.js"></script>
@@ -162,6 +167,101 @@ $(document).ready(function () {
 
 
 
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_').toLowerCase();
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+  padding-left: 25px;
+  text-indent: 0;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
 
 
 <div class="navbar navbar-default  navbar-fixed-top" role="navigation">
@@ -202,48 +302,34 @@ $(document).ready(function () {
 
 
 
-<h1 class="title toc-ignore">Home</h1>
+<h1 class="title toc-ignore">Explore number of genes seen in each cell</h1>
+<h4 class="author"><em>Briana Mittleman</em></h4>
+<h4 class="date"><em>2017-03-07</em></h4>
 
 </div>
 
 
-<p>This was made using the workflowr package in R.</p>
-<ul>
-<li><p>Easier to build and extend the website using the new tools in the <a href="http://rmarkdown.rstudio.com/rmarkdown_websites.htm">rmarkdown</a> package and <a href="https://www.rstudio.com/products/rstudio/download/preview/">latest RStudio release</a></p></li>
-<li><p>Easier to deploy the website with Git and GitHub by only using one branch</p></li>
-</ul>
-<p>These are the projects I am working on during the my rotation in the Stephens lab. Each analysis file is treated like a lab notebook file for future anaylsis of single cell data.</p>
-<ul>
-<li><p><a href="recreate_cell_cycle_analysis.html">Cell cycle single cell data</a></p></li>
-<li><p><a href="recreate_giladsinglecell.html">Gilad single cell fastq processing recreation</a></p></li>
-<li><p><a href="compare_count_data.html">Compare Gilad single cell counts to my analysis</a></p></li>
-<li><p><a href="genome_wide_data_comparison.html">Genome wide read count comparison between analysis</a></p></li>
-<li><p><a href="explore_bulkvsingle_gene.html">Explore genes only found in bulk or single cells</a></p></li>
-<li><p><a href="simulate_bulk_genes.html">Simulate bulk samples from Single cell gene list</a></p></li>
-<li><p><a href="bio_singlecellony.html">Explore biological significance of single cell only genes</a></p></li>
-<li><p><a href="sc_only_ind.html">Explore single cell only genes by individual</a></p></li>
-<li><p><a href="sc_only_qualitycells.html">Explore single cell genes only accounting for cell quality</a></p></li>
-<li><p><a href="gene_num_percell.html">Explore number of genes seen in each cell</a></p></li>
-</ul>
-<p>Continue the Gilad single cell anaylsis:</p>
-<ul>
-<li><p><a href="gene_x_sample_count_matrix.html">Create gene-x-sample count matrices and annotation file</a></p></li>
-<li><p><a href="QC_single_cell_library.html">QC single cell libraries</a></p></li>
-<li><p><a href="filter_genes_low_quality_genes.html">Filter genes and find low quality single cells</a></p></li>
-<li><p><a href="quality_control_plotes.html">Quality control of UMIs and ERCC spike-ins</a></p></li>
-<li><p><a href="batch_effect_conversion_efficency.html">Compare reads to molecules counts</a></p></li>
-<li><p><a href="subsample_plots.html">Subsample Plots</a></p></li>
-<li><p><a href="standardize_CPM.html">Standardize with counts per million</a></p></li>
-<li><p><a href="technical_noise_control.html">Account for technical noise measured with ERCC controls using a Poisson GLM transformation</a></p></li>
-<li><p><a href="mixed_effect_batch_correction.html">Mixed effect model for batch correction</a></p></li>
-<li><p><a href="data_transformation.html">Visualization of data transformations</a></p></li>
-<li><p><a href="cell_to_cell_variation.html">Explore cell to cell variation (paper figures)</a></p></li>
-</ul>
-<p>Work with cell cycle normalization</p>
-<ul>
-<li><p><a href="try_citrus.html">Try citrus package for removing technical and cell cycle effects</a></p></li>
-<li><p><a href="apply_citrus_singlecell.html">Apply citrus package to Gilad lab data</a></p></li>
-</ul>
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+<!-- Update knitr chunk options -->
+<!-- Insert the date the file was last updated -->
+<p><strong>Last updated:</strong> 2017-03-08</p>
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+<p><strong>Code version:</strong> e7209d8</p>
+<!-- Add your analysis here -->
+<pre class="r"><code>#input molecule (pre-filter)
+molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, header = TRUE, stringsAsFactors = FALSE)
+dim(molecules)</code></pre>
+<pre><code>[1] 19027   864</code></pre>
+<p>Count number of genes seen in each individual cell</p>
+<pre class="r"><code>num_genes= colSums(molecules!= 0)</code></pre>
+<pre class="r"><code>save(num_genes, file=&quot;../data/num_genes.Rda&quot;)</code></pre>
+<p>Vizualize this:</p>
+<pre class="r"><code>hist(num_genes,  xlab=&quot;Number of genes&quot;, main=&quot;Number of genes seen per cell&quot;)</code></pre>
+<p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>boxplot(num_genes)</code></pre>
+<p><img src="figure/gene_num_percell.Rmd/unnamed-chunk-1-2.png" width="672" style="display: block; margin: auto;" /></p>
 
 <hr>
 <p>
@@ -271,6 +357,8 @@ $(document).ready(function () {
 -->
 
 
+</div>
+</div>
 
 </div>
 
