@@ -142,6 +142,17 @@ grid.newpage()
 grid.draw(ERCC_sc_ven)
 ```
 
+Which ERCC are seen in all indiv sc  
+
+```{r}
+ERCC_all_ind= Reduce(intersect, list(ERCC_19098, ERCC_19101, ERCC_19239))
+
+ERCC_all_ind
+
+
+```
+
+
 
 ### Session information
 
