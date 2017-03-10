@@ -316,7 +316,7 @@ shared across the workflowr files. -->
 <p><strong>Last updated:</strong> 2017-03-10</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> 9fe898b</p>
+<p><strong>Code version:</strong> 9e23b40</p>
 <p>Input packages and functions</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;dplyr&quot;)
@@ -340,7 +340,8 @@ reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;,
 genes_observed_reads &lt;- rownames(reads)[rowSums(reads) &gt; 0]
 genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]
 single_cell_observed &lt;- union(genes_observed_molecules, genes_observed_reads)</code></pre>
-<p>ERCCs only in single cell molecules</p>
+<div id="erccs-only-in-single-cell-molecules" class="section level3">
+<h3>ERCCs only in single cell molecules</h3>
 <pre class="r"><code>gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk) 
 
 genes_onlysinglecell_ERCC &lt;- gene_onlysinglecell[grep(&quot;ERCC&quot;, gene_onlysinglecell)]
@@ -362,8 +363,61 @@ ERCC_sc_mean</code></pre>
 0.010416667 0.018518519 0.002314815 0.003472222 0.001157407 0.004629630 
  ERCC-00158  ERCC-00164  ERCC-00168 
 0.013888889 0.040509259 0.012731481 </code></pre>
-<div id="session-information" class="section level2">
-<h2>Session information</h2>
+<p>Number of Cells each ERCC is in</p>
+<pre class="r"><code>non_zero_cells_ERCC &lt;- apply(molecules_sconly_ERCC, 1, function(c)sum(c!=0))
+non_zero_cells_ERCC </code></pre>
+<pre><code>ERCC-00016 ERCC-00048 ERCC-00057 ERCC-00075 ERCC-00083 ERCC-00086 
+         1        112          3          1         33          6 
+ERCC-00097 ERCC-00104 ERCC-00123 ERCC-00137 ERCC-00138 ERCC-00156 
+         9         16          2          3          1          4 
+ERCC-00158 ERCC-00164 ERCC-00168 
+        12         35         11 </code></pre>
+</div>
+<div id="individual-level-analysis" class="section level3">
+<h3>Individual Level Analysis</h3>
+<div id="section" class="section level4">
+<h4>19098</h4>
+<pre class="r"><code>molecules_sconly_ERCC_19098= molecules_sconly_ERCC[,grep(&quot;19098&quot;, colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19098 &lt;- apply(molecules_sconly_ERCC_19098, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19098= cbind(molecules_sconly_ERCC_19098,non_zero_cells_ERCC_19098)
+
+non_zero_sc_ERCC_19098= molecules_sconly_ERCC_19098[molecules_sconly_ERCC_19098$non_zero_cells_ERCC_19098&gt;0,]
+ERCC_19098=rownames(non_zero_sc_ERCC_19098)</code></pre>
+</div>
+<div id="section-1" class="section level4">
+<h4>19101</h4>
+<pre class="r"><code>molecules_sconly_ERCC_19101= molecules_sconly_ERCC[,grep(&quot;19101&quot;, colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19101 &lt;- apply(molecules_sconly_ERCC_19101, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19101= cbind(molecules_sconly_ERCC_19101,non_zero_cells_ERCC_19101)
+
+non_zero_sc_ERCC_19101= molecules_sconly_ERCC_19101[molecules_sconly_ERCC_19101$non_zero_cells_ERCC_19101&gt;0,]
+ERCC_19101= rownames(non_zero_sc_ERCC_19101)</code></pre>
+</div>
+<div id="section-2" class="section level4">
+<h4>19239</h4>
+<pre class="r"><code>molecules_sconly_ERCC_19239= molecules_sconly_ERCC[,grep(&quot;19239&quot;, colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19239 &lt;- apply(molecules_sconly_ERCC_19239, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19239= cbind(molecules_sconly_ERCC_19239,non_zero_cells_ERCC_19239)
+
+non_zero_sc_ERCC_19239= molecules_sconly_ERCC_19239[molecules_sconly_ERCC_19239$non_zero_cells_ERCC_19239&gt;0,]
+ERCC_19239=rownames(non_zero_sc_ERCC_19239)</code></pre>
+</div>
+<div id="ven-diagram" class="section level4">
+<h4>Ven diagram</h4>
+<pre class="r"><code>ERCC_sc_ven &lt;- venn.diagram(x = list(&quot;19098&quot; = ERCC_19098,
+                                    &quot;19101&quot; = ERCC_19101,
+                                    &quot;19239&quot; = ERCC_19239),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(ERCC_sc_ven)</code></pre>
+<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="session-information" class="section level3">
+<h3>Session information</h3>
 <!-- Insert the session information into the document -->
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)
