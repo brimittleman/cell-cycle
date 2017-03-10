@@ -313,10 +313,10 @@ div.tocify {
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-03-06</p>
+<p><strong>Last updated:</strong> 2017-03-10</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> d184779</p>
+<p><strong>Code version:</strong> 9fe898b</p>
 <p>This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many’s intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
@@ -327,6 +327,7 @@ library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
 library(&quot;VennDiagram&quot;)
 library(&quot;ggplot2&quot;)
+library(&quot;vioplot&quot;)
 theme_set(theme_bw(base_size = 12))
 source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
 <pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
@@ -428,6 +429,10 @@ summary(molecules_with_nonzero$non_zero_cells)</code></pre>
     0.0    28.0   325.0   379.3   733.0   864.0 </code></pre>
 <pre class="r"><code>boxplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c(&quot;only single cell&quot;, &quot;all genes&quot;), ylab=&quot;Proportion cells- non-zero molecule count&quot;)</code></pre>
 <p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>vioplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c(&quot;only single cell&quot;, &quot;all genes&quot;), col=&quot;darkviolet&quot;)
+title(ylab=&quot;Proportion cell containing gene&quot;)
+title(&quot;Single cell genes in lower proportion of cells&quot;)</code></pre>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>table(molecules_with_nonzero$non_zero_cells)</code></pre>
 <pre><code>
   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  18  21 
@@ -558,7 +563,7 @@ for (i in seq(1:864)){
   prop_cells=c(prop_cells, num)
 }
 plot(prop_cells/971, ylab=&quot;proportion of single cell only genes&quot;, xlab=&quot;number of cells&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-3.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># For all genes that are detected in single cell or bulk (19,027 genes), we condition on the 
 # number of cells (ranging 1 - 864 cells) and given n number of cells, we look at 
 # the proportion of genes that are detected in single cell only but not in bulk</code></pre>
@@ -597,43 +602,35 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
- [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [1] stats4    parallel  grid      stats     graphics  grDevices utils    
  [8] datasets  methods   base     
 
 other attached packages:
- [1] broman_0.65-1          gplots_3.0.1           matrixStats_0.51.0    
- [4] MASS_7.3-45            gridExtra_2.2.1        lme4_1.1-12           
- [7] workflowr_0.4.0        org.Hs.eg.db_3.4.0     GOstats_2.40.0        
-[10] graph_1.52.0           Category_2.40.0        Matrix_1.2-7.1        
-[13] GO.db_3.4.0            AnnotationDbi_1.36.2   IRanges_2.8.1         
-[16] S4Vectors_0.12.1       Biobase_2.34.0         BiocGenerics_0.20.0   
-[19] Humanzee_0.1.0         sva_3.22.0             genefilter_1.56.0     
-[22] mgcv_1.8-15            nlme_3.1-128           BiocInstaller_1.24.0  
-[25] scales_0.4.1           VennDiagram_1.6.17     futile.logger_1.4.3   
-[28] edgeR_3.16.5           limma_3.30.11          dplyr_0.5.0           
-[31] testit_0.6             data.table_1.10.4      biomaRt_2.30.0        
-[34] cowplot_0.7.0          stringr_1.2.0          reshape2_1.4.2        
-[37] rmarkdown_1.3          Citrus_0.99            easyGgplot2_1.0.0.9000
-[40] ggplot2_2.2.1         
+ [1] org.Hs.eg.db_3.4.0   scales_0.4.1         vioplot_0.2         
+ [4] sm_2.2-5.4           GO.db_3.4.0          GOstats_2.40.0      
+ [7] graph_1.52.0         Category_2.40.0      Matrix_1.2-7.1      
+[10] AnnotationDbi_1.36.2 IRanges_2.8.1        S4Vectors_0.12.1    
+[13] Biobase_2.34.0       BiocGenerics_0.20.0  Humanzee_0.1.0      
+[16] ggplot2_2.2.1        VennDiagram_1.6.17   futile.logger_1.4.3 
+[19] edgeR_3.16.5         limma_3.30.11        dplyr_0.5.0         
+[22] testit_0.6           data.table_1.10.4    biomaRt_2.30.0      
+[25] workflowr_0.4.0      rmarkdown_1.3       
 
 loaded via a namespace (and not attached):
- [1] httr_1.2.1             splines_3.3.2          gtools_3.5.0          
- [4] assertthat_0.1         RBGL_1.50.0            yaml_2.1.14           
- [7] RSQLite_1.1-2          backports_1.0.5        lattice_0.20-34       
-[10] digest_0.6.12          RColorBrewer_1.1-2     minqa_1.2.4           
-[13] colorspace_1.3-2       htmltools_0.3.5        plyr_1.8.4            
-[16] GSEABase_1.36.0        XML_3.98-1.5           devtools_1.12.0       
-[19] xtable_1.8-2           gdata_2.17.0           git2r_0.18.0          
-[22] tibble_1.2             annotate_1.52.1        withr_1.0.2           
-[25] lazyeval_0.2.0         survival_2.40-1        magrittr_1.5          
-[28] memoise_1.0.0          evaluate_0.10          tools_3.3.2           
-[31] munsell_0.4.3          locfit_1.5-9.1         lambda.r_1.1.9        
-[34] caTools_1.17.1         nloptr_1.0.4           RCurl_1.95-4.8        
-[37] rstudioapi_0.6         AnnotationForge_1.16.1 bitops_1.0-6          
-[40] labeling_0.3           gtable_0.2.0           DBI_0.5-1             
-[43] curl_2.3               R6_2.2.0               knitr_1.15.1          
-[46] rprojroot_1.2          futile.options_1.0.0   KernSmooth_2.23-15    
-[49] stringi_1.1.2          Rcpp_0.12.9           </code></pre>
+ [1] genefilter_1.56.0      locfit_1.5-9.1         splines_3.3.2         
+ [4] lattice_0.20-34        colorspace_1.3-2       htmltools_0.3.5       
+ [7] yaml_2.1.14            XML_3.98-1.5           RBGL_1.50.0           
+[10] survival_2.40-1        DBI_0.5-1              lambda.r_1.1.9        
+[13] plyr_1.8.4             stringr_1.2.0          munsell_0.4.3         
+[16] gtable_0.2.0           memoise_1.0.0          evaluate_0.10         
+[19] knitr_1.15.1           GSEABase_1.36.0        Rcpp_0.12.9           
+[22] xtable_1.8-2           backports_1.0.5        annotate_1.52.1       
+[25] digest_0.6.12          stringi_1.1.2          rprojroot_1.2         
+[28] tools_3.3.2            bitops_1.0-6           magrittr_1.5          
+[31] lazyeval_0.2.0         RCurl_1.95-4.8         tibble_1.2            
+[34] RSQLite_1.1-2          futile.options_1.0.0   rstudioapi_0.6        
+[37] assertthat_0.1         AnnotationForge_1.16.1 R6_2.2.0              
+[40] git2r_0.18.0          </code></pre>
 </div>
 
 <hr>
