@@ -60,7 +60,7 @@ genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
 single_cell_observed <- union(genes_observed_molecules, genes_observed_reads)
 ```
 
-ERCCs only in single cell molecules  
+###ERCCs only in single cell molecules  
 
 ```{r}
 
@@ -81,11 +81,69 @@ ERCC_sc_only
 ERCC_sc_mean=  apply(molecules_sconly_ERCC, 1, mean)
 ERCC_sc_mean
 
+
+```
+
+Number of Cells each ERCC is in  
+```{r}
+non_zero_cells_ERCC <- apply(molecules_sconly_ERCC, 1, function(c)sum(c!=0))
+non_zero_cells_ERCC 
 ```
 
 
 
-## Session information
+
+###Individual Level Analysis 
+
+####19098
+```{r}
+molecules_sconly_ERCC_19098= molecules_sconly_ERCC[,grep("19098", colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19098 <- apply(molecules_sconly_ERCC_19098, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19098= cbind(molecules_sconly_ERCC_19098,non_zero_cells_ERCC_19098)
+
+non_zero_sc_ERCC_19098= molecules_sconly_ERCC_19098[molecules_sconly_ERCC_19098$non_zero_cells_ERCC_19098>0,]
+ERCC_19098=rownames(non_zero_sc_ERCC_19098)
+```
+
+####19101
+
+```{r}
+molecules_sconly_ERCC_19101= molecules_sconly_ERCC[,grep("19101", colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19101 <- apply(molecules_sconly_ERCC_19101, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19101= cbind(molecules_sconly_ERCC_19101,non_zero_cells_ERCC_19101)
+
+non_zero_sc_ERCC_19101= molecules_sconly_ERCC_19101[molecules_sconly_ERCC_19101$non_zero_cells_ERCC_19101>0,]
+ERCC_19101= rownames(non_zero_sc_ERCC_19101)
+```
+
+####19239  
+```{r}
+molecules_sconly_ERCC_19239= molecules_sconly_ERCC[,grep("19239", colnames(molecules_sconly_ERCC))]
+
+non_zero_cells_ERCC_19239 <- apply(molecules_sconly_ERCC_19239, 1, function(c)sum(c!=0))
+molecules_sconly_ERCC_19239= cbind(molecules_sconly_ERCC_19239,non_zero_cells_ERCC_19239)
+
+non_zero_sc_ERCC_19239= molecules_sconly_ERCC_19239[molecules_sconly_ERCC_19239$non_zero_cells_ERCC_19239>0,]
+ERCC_19239=rownames(non_zero_sc_ERCC_19239)
+```
+
+
+####Ven diagram  
+
+
+```{r}
+ERCC_sc_ven <- venn.diagram(x = list("19098" = ERCC_19098,
+                                    "19101" = ERCC_19101,
+                                    "19239" = ERCC_19239),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(ERCC_sc_ven)
+```
+
+
+### Session information
 
 <!-- Insert the session information into the document -->
 ```{r session-info}
