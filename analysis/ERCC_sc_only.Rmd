@@ -1,0 +1,92 @@
+---
+title: "Explore the ERCC genes that are only found in SC sequences"
+author: "Briana Mittleman"
+date: 2017-03-10
+output: html_document
+---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+
+
+Input packages and functions  
+```{r packages}
+library("biomaRt")
+library("dplyr")
+library("edgeR")
+library("ggplot2")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+
+Input data:
+```{r data}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+```
+
+
+Create vectors with the list of genes in each set.   
+```{r}
+genes_observed_reads_bulk <- rownames(reads_bulk)[rowSums(reads_bulk) > 0]
+genes_observed_reads <- rownames(reads)[rowSums(reads) > 0]
+genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
+single_cell_observed <- union(genes_observed_molecules, genes_observed_reads)
+```
+
+ERCCs only in single cell molecules  
+
+```{r}
+
+gene_onlysinglecell <- setdiff(single_cell_observed,genes_observed_reads_bulk) 
+
+genes_onlysinglecell_ERCC <- gene_onlysinglecell[grep("ERCC", gene_onlysinglecell)]
+molecules_df= data.frame(molecules)
+molecules_sconly_ERCC <- molecules_df[rownames(molecules_df) %in% genes_onlysinglecell_ERCC,]
+dim(molecules_sconly_ERCC)
+```
+
+
+Explore the SC only ERCCs  
+
+```{r}
+ERCC_sc_only= rownames(molecules_sconly_ERCC)
+ERCC_sc_only
+ERCC_sc_mean=  apply(molecules_sconly_ERCC, 1, mean)
+ERCC_sc_mean
+
+```
+
+
+
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
+```

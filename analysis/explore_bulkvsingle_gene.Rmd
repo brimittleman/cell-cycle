@@ -37,6 +37,7 @@ library("dplyr")
 library("edgeR")
 library("VennDiagram")
 library("ggplot2")
+library("vioplot")
 theme_set(theme_bw(base_size = 12))
 source("../../singleCellSeq/analysis/functions.R")
 ```
@@ -173,6 +174,10 @@ plot(xy,  pch=16, cex=1,
 summary(molecules_with_nonzero$non_zero_cells)
 summary(molecules_with_nonzero_all$non_zero_cells_all)
 boxplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), ylab="Proportion cells- non-zero molecule count")
+
+vioplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), col="darkviolet")
+title(ylab="Proportion cell containing gene")
+title("Single cell genes in lower proportion of cells")
 
 table(molecules_with_nonzero$non_zero_cells)
 table(molecules_with_nonzero_all$non_zero_cells_all)
