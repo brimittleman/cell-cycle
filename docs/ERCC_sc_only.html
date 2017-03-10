@@ -316,7 +316,7 @@ shared across the workflowr files. -->
 <p><strong>Last updated:</strong> 2017-03-10</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> 9e23b40</p>
+<p><strong>Code version:</strong> d5011cb</p>
 <p>Input packages and functions</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;dplyr&quot;)
@@ -413,7 +413,13 @@ ERCC_19239=rownames(non_zero_sc_ERCC_19239)</code></pre>
                            filename = NULL, euler.d = FALSE, scaled = FALSE)
 grid.newpage()
 grid.draw(ERCC_sc_ven)</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Which ERCC are seen in all indiv sc</p>
+<pre class="r"><code>ERCC_all_ind= Reduce(intersect, list(ERCC_19098, ERCC_19101, ERCC_19239))
+
+ERCC_all_ind</code></pre>
+<pre><code>[1] &quot;ERCC-00048&quot; &quot;ERCC-00083&quot; &quot;ERCC-00097&quot; &quot;ERCC-00104&quot; &quot;ERCC-00164&quot;
+[6] &quot;ERCC-00168&quot;</code></pre>
 </div>
 </div>
 <div id="session-information" class="section level3">
