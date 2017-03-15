@@ -160,7 +160,6 @@ abline(971,0)
 load("../output/not_in_simbulk3r.rda")
 plot(not_in_simbulk3r ~ N_samples, main="Simulated bulk from 1 single cell individual 3 replicate", ylim =c(0,9000),
      xlab="N sampling", ylab = "# genes in single cell list not in simulated bulk") 
-abline(971, 0)
 points(31279090, 971, cex=1,  col="blue", pch=16)
 
 ```

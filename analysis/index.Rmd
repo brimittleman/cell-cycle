@@ -71,4 +71,5 @@ Work with cell cycle normalization
 
 * [Apply citrus package to Gilad lab data](apply_citrus_singlecell.html) 
 
+* [Try sva using tutorial](try_sva.html)
 

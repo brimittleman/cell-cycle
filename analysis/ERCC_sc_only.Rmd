@@ -34,6 +34,7 @@ library("edgeR")
 library("ggplot2")
 theme_set(theme_bw(base_size = 12))
 source("../../singleCellSeq/analysis/functions.R")
+library(VennDiagram)
 ```
 
 
@@ -150,6 +151,13 @@ ERCC_all_ind= Reduce(intersect, list(ERCC_19098, ERCC_19101, ERCC_19239))
 ERCC_all_ind
 
 
+```
+```{r}
+ERCC_expected= read.table("cms_095046.txt", header=TRUE, stringsAsFactors = FALSE, fill=TRUE)
+ERCC_nums=c("ERCC-00048", "ERCC-00083", "ERCC-00097", "ERCC-00104", "ERCC-00164", "ERCC-00168")
+ERCC_all_ind_exp= ERCC_expected[ERCC_expected$ID %in% ERCC_nums, ]
+ERCC_nt_ind= ERCC_expected[! ERCC_expected$ID %in% ERCC_nums, ]
+boxplot(ERCC_nt_ind$concentration, ERCC_all_ind_exp$concentration,names=c("SC only 3 ind", "other ERCCs"), ylab="Concentration", main= "All individual single cell only ERCC \ngenes are low concentration ERCCs")
 ```
 
 

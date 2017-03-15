@@ -31,9 +31,13 @@ knitr::read_chunk("chunks.R")
 
 ```{r load packages}
 library("sva")
+library("bladderbatch")
+data(bladderdata)
+library("pamr")
+library("limma")
 ```
-```{r}
-
+```{r set up data}
+pheno = pData(bladderEset)
 ```
 
 

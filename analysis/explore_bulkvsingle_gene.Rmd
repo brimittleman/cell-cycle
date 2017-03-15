@@ -98,18 +98,19 @@ molecules_mean <- apply(molecules, 1, mean)
 molecules_and_mean <- cbind(molecules, molecules_mean)
 dim(molecules_and_mean )
 #sort molecules and mean by expression
-molecules_and_mean_order <- arrange(molecules_and_mean, desc(molecules_mean))
+molecules_and_mean_order <- arrange(molecules_and_mean, desc(molecules_mean, drop=FALSE))
 
                                
                                
 which_onlySC <- as.numeric(rownames(molecules_and_mean) %in% gene_onlysinglecell) + 1
-col_vec_onlySC <- c("lightpink", "blue")[as.numeric(which_onlySC)]
-
+col_vec_onlySC <- c("gray70", "coral4")[as.numeric(which_onlySC)]
+shap_vec_onlySC<- c(16,1)[as.numeric(which_onlySC)]
 library("scales")
 
 
 
-mean_expression <- plot((molecules_and_mean_order$molecules_mean) , pch=46, cex=10, col=col_vec_onlySC, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "genes (blue are only single cell)")
+mean_expression <- plot(log(molecules_and_mean_order$molecules_mean) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = "Log scale mean expression of molecules per gene", ylab=" Log scale molecule count", xlab = "Genes ordered by expression")
+legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("coral4", "gray70") )
 
 
 
@@ -121,10 +122,11 @@ mean_expression <- plot((molecules_and_mean_order$molecules_mean) , pch=46, cex=
 molecule_IQR <- apply(molecules, 1, IQR)
 molecule_w.IQR <- cbind(molecules_and_mean, molecule_IQR)
 #sort by IQR
-molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR))
+molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR, drop=FALSE))
 
 
-IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=46, cex=10, col=col_vec_onlySC, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "genes (blue are only single cell)")
+IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "Genes ordered by IQR")
+legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("coral4", "gray70") )
 ```
 
 
@@ -139,7 +141,7 @@ molecules_with_nonzero <- cbind(molecules_only_SC, non_zero_cells)
 #order by number non zero
 molecules_non_zero_order <- arrange(molecules_with_nonzero, desc(non_zero_cells))
 
-plot((molecules_non_zero_order$non_zero_cells)/864, main="Most genes are seen in low proportion of cells", ylab="Proportion cells- non-zero molecule count", xlab="gene index")
+plot((molecules_non_zero_order$non_zero_cells)/864, main="Most genes are seen in low proportion of cells", ylab="Proportion cells- non-zero molecule count", xlab="Single cell only genes")
 
 ```
 
@@ -175,7 +177,7 @@ summary(molecules_with_nonzero$non_zero_cells)
 summary(molecules_with_nonzero_all$non_zero_cells_all)
 boxplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), ylab="Proportion cells- non-zero molecule count")
 
-vioplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), col="darkviolet")
+vioplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c("only single cell", "all genes"), col="coral3")
 title(ylab="Proportion cell containing gene")
 title("Single cell genes in lower proportion of cells")
 
@@ -202,7 +204,7 @@ for (i in seq(1:864)){
   num= prop_cell_function(i)
   prop_cells=c(prop_cells, num)
 }
-plot(prop_cells/971, ylab="proportion of single cell only genes", xlab="number of cells")
+plot(prop_cells/971, ylab="proportion of single cell only genes", xlab="number of cells", main="All genes conditions on number of cells detected with gene")
 
 
 # For all genes that are detected in single cell or bulk (19,027 genes), we condition on the 
