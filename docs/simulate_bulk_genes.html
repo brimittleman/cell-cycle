@@ -312,10 +312,10 @@ div.tocify {
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-03-06</p>
+<p><strong>Last updated:</strong> 2017-03-15</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> f3c5dc0</p>
+<p><strong>Code version:</strong> a9b79ed</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
 library(&quot;data.table&quot;)
 library(&quot;testit&quot;)
@@ -407,7 +407,6 @@ abline(971,0)</code></pre>
 <pre class="r"><code>load(&quot;../output/not_in_simbulk3r.rda&quot;)
 plot(not_in_simbulk3r ~ N_samples, main=&quot;Simulated bulk from 1 single cell individual 3 replicate&quot;, ylim =c(0,9000),
      xlab=&quot;N sampling&quot;, ylab = &quot;# genes in single cell list not in simulated bulk&quot;) 
-abline(971, 0)
 points(31279090, 971, cex=1,  col=&quot;blue&quot;, pch=16)</code></pre>
 <p><img src="figure/simulate_bulk_genes.Rmd/unnamed-chunk-13-2.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
@@ -496,65 +495,37 @@ locale:
 [11] LC_MEASUREMENT=en_US.UTF-8 LC_IDENTIFICATION=C       
 
 attached base packages:
- [1] parallel  stats4    grid      stats     graphics  grDevices utils    
+ [1] stats4    parallel  grid      stats     graphics  grDevices utils    
  [8] datasets  methods   base     
 
 other attached packages:
- [1] mygene_1.10.0          GenomicFeatures_1.26.3 GenomicRanges_1.26.3  
- [4] GenomeInfoDb_1.10.3    broman_0.65-1          gplots_3.0.1          
- [7] matrixStats_0.51.0     MASS_7.3-45            gridExtra_2.2.1       
-[10] lme4_1.1-12            workflowr_0.4.0        org.Hs.eg.db_3.4.0    
-[13] GOstats_2.40.0         graph_1.52.0           Category_2.40.0       
-[16] Matrix_1.2-7.1         GO.db_3.4.0            AnnotationDbi_1.36.2  
-[19] IRanges_2.8.1          S4Vectors_0.12.1       Biobase_2.34.0        
-[22] BiocGenerics_0.20.0    Humanzee_0.1.0         sva_3.22.0            
-[25] genefilter_1.56.0      mgcv_1.8-15            nlme_3.1-128          
-[28] BiocInstaller_1.24.0   scales_0.4.1           VennDiagram_1.6.17    
-[31] futile.logger_1.4.3    edgeR_3.16.5           limma_3.30.11         
-[34] dplyr_0.5.0            testit_0.6             data.table_1.10.4     
-[37] biomaRt_2.30.0         cowplot_0.7.0          stringr_1.2.0         
-[40] reshape2_1.4.2         rmarkdown_1.3          Citrus_0.99           
-[43] easyGgplot2_1.0.0.9000 ggplot2_2.2.1         
+ [1] pamr_1.55            survival_2.40-1      cluster_2.0.5       
+ [4] bladderbatch_1.12.0  BiocInstaller_1.24.0 sva_3.22.0          
+ [7] genefilter_1.56.0    mgcv_1.8-15          nlme_3.1-128        
+[10] beeswarm_0.2.3       org.Hs.eg.db_3.4.0   scales_0.4.1        
+[13] vioplot_0.2          sm_2.2-5.4           GO.db_3.4.0         
+[16] GOstats_2.40.0       graph_1.52.0         Category_2.40.0     
+[19] Matrix_1.2-7.1       AnnotationDbi_1.36.2 IRanges_2.8.1       
+[22] S4Vectors_0.12.1     Biobase_2.34.0       BiocGenerics_0.20.0 
+[25] Humanzee_0.1.0       ggplot2_2.2.1        VennDiagram_1.6.17  
+[28] futile.logger_1.4.3  edgeR_3.16.5         limma_3.30.13       
+[31] dplyr_0.5.0          testit_0.6           data.table_1.10.4   
+[34] biomaRt_2.30.0       workflowr_0.4.0      rmarkdown_1.3       
 
 loaded via a namespace (and not attached):
- [1] minqa_1.2.4                colorspace_1.3-2          
- [3] rprojroot_1.2              htmlTable_1.9             
- [5] XVector_0.14.0             base64enc_0.1-3           
- [7] rstudioapi_0.6             sqldf_0.4-10              
- [9] splines_3.3.2              knitr_1.15.1              
-[11] Formula_1.2-1              jsonlite_1.3              
-[13] nloptr_1.0.4               Rsamtools_1.26.1          
-[15] annotate_1.52.1            cluster_2.0.5             
-[17] httr_1.2.1                 backports_1.0.5           
-[19] assertthat_0.1             lazyeval_0.2.0            
-[21] acepack_1.4.1              htmltools_0.3.5           
-[23] tools_3.3.2                gtable_0.2.0              
-[25] Rcpp_0.12.9                Biostrings_2.42.1         
-[27] gdata_2.17.0               rtracklayer_1.34.2        
-[29] proto_1.0.0                gtools_3.5.0              
-[31] devtools_1.12.0            statmod_1.4.29            
-[33] XML_3.98-1.5               zlibbioc_1.20.0           
-[35] SummarizedExperiment_1.4.0 RBGL_1.50.0               
-[37] lambda.r_1.1.9             RColorBrewer_1.1-2        
-[39] yaml_2.1.14                curl_2.3                  
-[41] memoise_1.0.0              rpart_4.1-10              
-[43] latticeExtra_0.6-28        stringi_1.1.2             
-[45] RSQLite_1.1-2              checkmate_1.8.2           
-[47] caTools_1.17.1             BiocParallel_1.8.1        
-[49] chron_2.3-50               bitops_1.0-6              
-[51] evaluate_0.10              lattice_0.20-34           
-[53] htmlwidgets_0.8            GenomicAlignments_1.10.0  
-[55] labeling_0.3               GSEABase_1.36.0           
-[57] AnnotationForge_1.16.1     plyr_1.8.4                
-[59] magrittr_1.5               R6_2.2.0                  
-[61] Hmisc_4.0-2                DBI_0.5-1                 
-[63] gsubfn_0.6-6               foreign_0.8-67            
-[65] withr_1.0.2                survival_2.40-1           
-[67] RCurl_1.95-4.8             nnet_7.3-12               
-[69] tibble_1.2                 futile.options_1.0.0      
-[71] KernSmooth_2.23-15         locfit_1.5-9.1            
-[73] git2r_0.18.0               digest_0.6.12             
-[75] xtable_1.8-2               munsell_0.4.3             </code></pre>
+ [1] Rcpp_0.12.9            locfit_1.5-9.1         lattice_0.20-34       
+ [4] assertthat_0.1         rprojroot_1.2          digest_0.6.12         
+ [7] R6_2.2.0               plyr_1.8.4             futile.options_1.0.0  
+[10] backports_1.0.5        RSQLite_1.1-2          evaluate_0.10         
+[13] lazyeval_0.2.0         annotate_1.52.1        splines_3.3.2         
+[16] stringr_1.2.0          RCurl_1.95-4.8         munsell_0.4.3         
+[19] htmltools_0.3.5        tibble_1.2             XML_3.98-1.5          
+[22] AnnotationForge_1.16.1 bitops_1.0-6           RBGL_1.50.0           
+[25] xtable_1.8-2           GSEABase_1.36.0        gtable_0.2.0          
+[28] DBI_0.6                git2r_0.18.0           magrittr_1.5          
+[31] stringi_1.1.2          lambda.r_1.1.9         tools_3.3.2           
+[34] yaml_2.1.14            colorspace_1.3-2       memoise_1.0.0         
+[37] knitr_1.15.1          </code></pre>
 </div>
 
 <hr>
