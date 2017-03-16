@@ -313,10 +313,10 @@ div.tocify {
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-03-07</p>
+<p><strong>Last updated:</strong> 2017-03-16</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> 0a4e443</p>
+<p><strong>Code version:</strong> 6c7f902</p>
 <!-- Add your analysis here -->
 <p>Input packages and functions</p>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
@@ -411,6 +411,22 @@ SC_nonsing_qual_pca_plot</code></pre>
 <p><img src="figure/sc_only_qualitycells.Rmd/nonsing%20pca-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>NEXT STEPS: <a href="https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R" class="uri">https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R</a></p>
 <p>change function to include loading output to see if excluding singletons in the analysis is important in rotation (gene x pc)- look at scores on first 2 pc between singleton and non singleton</p>
+<pre class="r"><code>run_pca_loading &lt;- function(x, retx = TRUE, center = TRUE, scale = TRUE) {
+  library(&quot;testit&quot;)
+  
+  pca &lt;- prcomp(t(x), retx = retx, center = center, scale. = scale)
+  variances &lt;- pca$sdev^2
+  explained &lt;- variances / sum(variances)
+  assert(&quot;Variance explained is calculated correctly.&quot;,
+         explained[1:2] - summary(pca)$importance[2, 1:2] &lt; 0.0001)
+  return(list(PCs = pca$x, explained = explained, rotation=pca$rotation))
+}</code></pre>
+<p>Run pca on quality single cell only genes including singletons</p>
+<pre class="r"><code>SC_qual_pca_load= run_pca_loading(molecules_only_SC_ENSG_qual)
+rotation_sc_qual= SC_qual_pca_load$rotation[,1:2]</code></pre>
+<p>Run pca on quality single cells excluding singletons</p>
+<pre class="r"><code>SC_nonsing_qual_pca_load= run_pca_loading(molecules_sc_notsing_ENSG_qual)
+rotation_sc_qual_exclude_sing= SC_nonsing_qual_pca_load$rotation[,1:2]</code></pre>
 </div>
 <div id="session-information" class="section level2">
 <h2>Session information</h2>
@@ -433,30 +449,33 @@ attached base packages:
  [8] datasets  methods   base     
 
 other attached packages:
- [1] GO.db_3.4.0          GOstats_2.40.0       graph_1.52.0        
- [4] Category_2.40.0      Matrix_1.2-7.1       AnnotationDbi_1.36.2
- [7] IRanges_2.8.1        S4Vectors_0.12.1     Biobase_2.34.0      
-[10] BiocGenerics_0.20.0  Humanzee_0.1.0       ggplot2_2.2.1       
-[13] VennDiagram_1.6.17   futile.logger_1.4.3  edgeR_3.16.5        
-[16] limma_3.30.11        dplyr_0.5.0          testit_0.6          
-[19] data.table_1.10.4    biomaRt_2.30.0       workflowr_0.4.0     
-[22] rmarkdown_1.3       
+ [1] pamr_1.55            survival_2.40-1      cluster_2.0.5       
+ [4] bladderbatch_1.12.0  BiocInstaller_1.24.0 sva_3.22.0          
+ [7] genefilter_1.56.0    mgcv_1.8-15          nlme_3.1-128        
+[10] beeswarm_0.2.3       org.Hs.eg.db_3.4.0   scales_0.4.1        
+[13] vioplot_0.2          sm_2.2-5.4           GO.db_3.4.0         
+[16] GOstats_2.40.0       graph_1.52.0         Category_2.40.0     
+[19] Matrix_1.2-7.1       AnnotationDbi_1.36.2 IRanges_2.8.1       
+[22] S4Vectors_0.12.1     Biobase_2.34.0       BiocGenerics_0.20.0 
+[25] Humanzee_0.1.0       ggplot2_2.2.1        VennDiagram_1.6.17  
+[28] futile.logger_1.4.3  edgeR_3.16.5         limma_3.30.13       
+[31] dplyr_0.5.0          testit_0.6           data.table_1.10.4   
+[34] biomaRt_2.30.0       workflowr_0.4.0      rmarkdown_1.3       
 
 loaded via a namespace (and not attached):
- [1] genefilter_1.56.0      locfit_1.5-9.1         splines_3.3.2         
- [4] lattice_0.20-34        colorspace_1.3-2       htmltools_0.3.5       
- [7] yaml_2.1.14            XML_3.98-1.5           RBGL_1.50.0           
-[10] survival_2.40-1        DBI_0.5-1              lambda.r_1.1.9        
-[13] plyr_1.8.4             stringr_1.2.0          munsell_0.4.3         
-[16] gtable_0.2.0           memoise_1.0.0          evaluate_0.10         
-[19] labeling_0.3           knitr_1.15.1           GSEABase_1.36.0       
-[22] Rcpp_0.12.9            xtable_1.8-2           scales_0.4.1          
-[25] backports_1.0.5        annotate_1.52.1        digest_0.6.12         
-[28] stringi_1.1.2          rprojroot_1.2          tools_3.3.2           
-[31] bitops_1.0-6           magrittr_1.5           lazyeval_0.2.0        
-[34] RCurl_1.95-4.8         tibble_1.2             RSQLite_1.1-2         
-[37] futile.options_1.0.0   rstudioapi_0.6         assertthat_0.1        
-[40] AnnotationForge_1.16.1 R6_2.2.0               git2r_0.18.0          </code></pre>
+ [1] Rcpp_0.12.9            locfit_1.5-9.1         lattice_0.20-34       
+ [4] assertthat_0.1         rprojroot_1.2          digest_0.6.12         
+ [7] R6_2.2.0               plyr_1.8.4             futile.options_1.0.0  
+[10] backports_1.0.5        RSQLite_1.1-2          evaluate_0.10         
+[13] lazyeval_0.2.0         annotate_1.52.1        labeling_0.3          
+[16] splines_3.3.2          stringr_1.2.0          RCurl_1.95-4.8        
+[19] munsell_0.4.3          htmltools_0.3.5        tibble_1.2            
+[22] XML_3.98-1.5           AnnotationForge_1.16.1 bitops_1.0-6          
+[25] RBGL_1.50.0            xtable_1.8-2           GSEABase_1.36.0       
+[28] gtable_0.2.0           DBI_0.6                git2r_0.18.0          
+[31] magrittr_1.5           stringi_1.1.2          lambda.r_1.1.9        
+[34] tools_3.3.2            yaml_2.1.14            colorspace_1.3-2      
+[37] memoise_1.0.0          knitr_1.15.1          </code></pre>
 </div>
 
 <hr>
