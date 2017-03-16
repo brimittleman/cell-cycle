@@ -36,12 +36,136 @@ data(bladderdata)
 library("pamr")
 library("limma")
 ```
+###Set up data  
+Data in a matrix with features (transcripts/genes) as row and samples as columns. (gene by sample)  
+
+2 variables of interest.  
+
+* adjustment variables  
+
+* variables of interest  
+
+2 models are made  
+
+* null model- matrix with terms for adjustment variables only  
+
+* full model- matrix with terms for both adjustment variables and variables of interest 
+
+use 'model.matrix'to create these
+
+
 ```{r set up data}
 pheno = pData(bladderEset)
+edata= exprs(bladderEset)
+#create full model  
+mod = model.matrix(~as.factor(cancer), data=pheno)
+#create null model(only adjustment variables)
+mod0 = model.matrix(~1,data=pheno)
+```
+
+###Apply SVA function  
+
+2 steps of SVA function  
+
+* identifies number of latent variables that need to be estimated 
+```{r estimate latent var num}
+n.sv = num.sv(edata,mod,method="leek")
+n.sv
+```
+
+* estimate surrogate variables  
+
+```{r est surrogate var}
+svobj= sva(edata, mod, mod0, n.sv=n.sv)
+```
+Returns list with sv, pprob.gam, pprob.b, n.sv. 
+
+* **sv** a matrix whose columns correspond to estimated surrogate variables  
+
+* **pprop.gam** posterior probability that each gene is associated with one or more latent variables  
+
+* **pprob.b** posterior probability that each gene is associated with variables of interest  
+
+* **n.sv** number of surrogate variables estimated by sva  
+
+###Adjust for surrogate variables  
+
+'f.pvalue' function is used to calculate parametric F-test p-values for each row of data matrix. The F-test compares mod and mod0
+
+```{r Ftest}
+pValues= f.pvalue(edata, mod, mod0)
+qValues= p.adjust(pValues, method="BH")
 ```
 
 
-## Session information
+```{r remove batch}
+modSv = cbind(mod,svobj$sv)
+mod0Sv = cbind(mod0,svobj$sv)
+pValuesSv = f.pvalue(edata,modSv,mod0Sv)
+qValuesSv = p.adjust(pValuesSv,method="BH")
+
+```
+
+These give adjusted p and q values accounting for surrogate variables.
+
+###Adjuest for surrogate with limma  
+This is an example of how sva can be used with limma to perform adj. differential expression analysis. First fit linear model with surrogate variables.  
+
+```{r limma fit model}
+fit= lmFit(edata, modSv)
+```
+
+limma functions for usual analysis. 
+
+```{r limma}
+contrast.matrix <- cbind("C1"=c(-1,1,0,rep(0,svobj$n.sv)),"C2"=c(0,-1,1,rep(0,svobj$n.s)))
+                                                                            fitContrasts = contrasts.fit(fit,contrast.matrix)
+eb = eBayes(fitContrasts)
+topTableF(eb, adjust="BH")
+```
+
+###Apply the ComBat function for known batches  
+
+ComBat adjusts for known batches using empirical Bayesian framework (must know batch variables in dataset)  
+
+```{r batch}
+batch=pheno$batch
+```
+Create modelmatrix for adj variables, including the variable of interest. Don't include batch here so simply fit intercept term   
+
+```{r mod with combat}
+modcombat = model.matrix(~1, data=pheno)
+```
+
+```{r apply combat}
+combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)
+```
+Returns expression matrix with same dimensions at original dataset. New matrix has adjusted for batch. Now perform significance analysis on adjusted data using model matrix and null model matrix.  
+
+```{r test batch model}
+pValuesComBat = f.pvalue(combat_edata,mod,mod0)
+qValuesComBat = p.adjust(pValuesComBat,method="BH")
+
+```
+
+ P values and Q values not account for know batch effectes included in batch variable.  
+ 
+###Remove batch with linear model  
+
+Include batch variables as adjustment variable in mod and mod0. Then use f.pvalue function for differential expression (simple version of Combat)  
+
+```{r linear batch}
+modBatch = model.matrix(~as.factor(cancer) + as.factor(batch),data=pheno)
+mod0Batch = model.matrix(~as.factor(batch),data=pheno)
+pValuesBatch = f.pvalue(edata,modBatch,mod0Batch)
+qValuesBatch = p.adjust(pValuesBatch,method="BH")
+```
+
+
+
+
+
+### Session information
 
 <!-- Insert the session information into the document -->
 ```{r session-info}
