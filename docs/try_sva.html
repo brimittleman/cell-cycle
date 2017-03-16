@@ -313,10 +313,10 @@ div.tocify {
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-03-15</p>
+<p><strong>Last updated:</strong> 2017-03-16</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> a9b79ed</p>
+<p><strong>Code version:</strong> 6771a0e</p>
 <pre class="r"><code>#source(&quot;https://bioconductor.org/biocLite.R&quot;)
 #biocLite(&quot;sva&quot;)</code></pre>
 <pre class="r"><code>library(&quot;sva&quot;)
@@ -324,9 +324,121 @@ library(&quot;bladderbatch&quot;)
 data(bladderdata)
 library(&quot;pamr&quot;)
 library(&quot;limma&quot;)</code></pre>
-<pre class="r"><code>pheno = pData(bladderEset)</code></pre>
-<div id="session-information" class="section level2">
-<h2>Session information</h2>
+<div id="set-up-data" class="section level3">
+<h3>Set up data</h3>
+<p>Data in a matrix with features (transcripts/genes) as row and samples as columns. (gene by sample)</p>
+<p>2 variables of interest.</p>
+<ul>
+<li><p>adjustment variables</p></li>
+<li><p>variables of interest</p></li>
+</ul>
+<p>2 models are made</p>
+<ul>
+<li><p>null model- matrix with terms for adjustment variables only</p></li>
+<li><p>full model- matrix with terms for both adjustment variables and variables of interest</p></li>
+</ul>
+<p>use ’model.matrix’to create these</p>
+<pre class="r"><code>pheno = pData(bladderEset)
+edata= exprs(bladderEset)
+#create full model  
+mod = model.matrix(~as.factor(cancer), data=pheno)
+#create null model(only adjustment variables)
+mod0 = model.matrix(~1,data=pheno)</code></pre>
+</div>
+<div id="apply-sva-function" class="section level3">
+<h3>Apply SVA function</h3>
+<p>2 steps of SVA function</p>
+<ul>
+<li>identifies number of latent variables that need to be estimated</li>
+</ul>
+<pre class="r"><code>n.sv = num.sv(edata,mod,method=&quot;leek&quot;)
+n.sv</code></pre>
+<pre><code>[1] 2</code></pre>
+<ul>
+<li>estimate surrogate variables</li>
+</ul>
+<pre class="r"><code>svobj= sva(edata, mod, mod0, n.sv=n.sv)</code></pre>
+<pre><code>Number of significant surrogate variables is:  2 
+Iteration (out of 5 ):1  2  3  4  5  </code></pre>
+<p>Returns list with sv, pprob.gam, pprob.b, n.sv.</p>
+<ul>
+<li><p><strong>sv</strong> a matrix whose columns correspond to estimated surrogate variables</p></li>
+<li><p><strong>pprop.gam</strong> posterior probability that each gene is associated with one or more latent variables</p></li>
+<li><p><strong>pprob.b</strong> posterior probability that each gene is associated with variables of interest</p></li>
+<li><p><strong>n.sv</strong> number of surrogate variables estimated by sva</p></li>
+</ul>
+</div>
+<div id="adjust-for-surrogate-variables" class="section level3">
+<h3>Adjust for surrogate variables</h3>
+<p>‘f.pvalue’ function is used to calculate parametric F-test p-values for each row of data matrix. The F-test compares mod and mod0</p>
+<pre class="r"><code>pValues= f.pvalue(edata, mod, mod0)
+qValues= p.adjust(pValues, method=&quot;BH&quot;)</code></pre>
+<pre class="r"><code>modSv = cbind(mod,svobj$sv)
+mod0Sv = cbind(mod0,svobj$sv)
+pValuesSv = f.pvalue(edata,modSv,mod0Sv)
+qValuesSv = p.adjust(pValuesSv,method=&quot;BH&quot;)</code></pre>
+<p>These give adjusted p and q values accounting for surrogate variables.</p>
+</div>
+<div id="adjuest-for-surrogate-with-limma" class="section level3">
+<h3>Adjuest for surrogate with limma</h3>
+<p>This is an example of how sva can be used with limma to perform adj. differential expression analysis. First fit linear model with surrogate variables.</p>
+<pre class="r"><code>fit= lmFit(edata, modSv)</code></pre>
+<p>limma functions for usual analysis.</p>
+<pre class="r"><code>contrast.matrix &lt;- cbind(&quot;C1&quot;=c(-1,1,0,rep(0,svobj$n.sv)),&quot;C2&quot;=c(0,-1,1,rep(0,svobj$n.s)))
+                                                                            fitContrasts = contrasts.fit(fit,contrast.matrix)
+eb = eBayes(fitContrasts)
+topTableF(eb, adjust=&quot;BH&quot;)</code></pre>
+<pre><code>                   C1          C2   AveExpr        F      P.Value
+207783_x_at -13.45607  0.26592268 12.938786 8622.529 1.207531e-69
+201492_s_at -13.27594  0.15357702 13.336090 8605.649 1.274450e-69
+208834_x_at -12.76411  0.06134018 13.160201 6939.501 4.749368e-67
+212869_x_at -13.77957  0.26008165 13.452076 6593.346 1.939773e-66
+212284_x_at -13.59977  0.29135767 13.070844 5495.716 2.893287e-64
+208825_x_at -12.70979  0.08250821 13.108072 5414.741 4.350100e-64
+211445_x_at -10.15890 -0.06633356  9.853817 5256.114 9.845076e-64
+213084_x_at -12.59345  0.03015520 13.046529 4790.107 1.260201e-62
+201429_s_at -13.33686  0.28358293 12.941208 4464.995 8.675221e-62
+214327_x_at -12.60146  0.20934783 11.832607 4312.087 2.257025e-61
+               adj.P.Val
+207783_x_at 1.419929e-65
+201492_s_at 1.419929e-65
+208834_x_at 3.527673e-63
+212869_x_at 1.080599e-62
+212284_x_at 1.289423e-60
+208825_x_at 1.615555e-60
+211445_x_at 3.133969e-60
+213084_x_at 3.510132e-59
+201429_s_at 2.147888e-58
+214327_x_at 5.029329e-58</code></pre>
+</div>
+<div id="apply-the-combat-function-for-known-batches" class="section level3">
+<h3>Apply the ComBat function for known batches</h3>
+<p>ComBat adjusts for known batches using empirical Bayesian framework (must know batch variables in dataset)</p>
+<pre class="r"><code>batch=pheno$batch</code></pre>
+<p>Create modelmatrix for adj variables, including the variable of interest. Don’t include batch here so simply fit intercept term</p>
+<pre class="r"><code>modcombat = model.matrix(~1, data=pheno)</code></pre>
+<pre class="r"><code>combat_edata = ComBat(dat=edata, batch=batch, mod=modcombat, par.prior=TRUE, prior.plots=FALSE)</code></pre>
+<pre><code>Found 5 batches
+Adjusting for 0 covariate(s) or covariate level(s)
+Standardizing Data across genes
+Fitting L/S model and finding priors
+Finding parametric adjustments
+Adjusting the Data</code></pre>
+<p>Returns expression matrix with same dimensions at original dataset. New matrix has adjusted for batch. Now perform significance analysis on adjusted data using model matrix and null model matrix.</p>
+<pre class="r"><code>pValuesComBat = f.pvalue(combat_edata,mod,mod0)
+qValuesComBat = p.adjust(pValuesComBat,method=&quot;BH&quot;)</code></pre>
+<p>P values and Q values not account for know batch effectes included in batch variable.</p>
+</div>
+<div id="remove-batch-with-linear-model" class="section level3">
+<h3>Remove batch with linear model</h3>
+<p>Include batch variables as adjustment variable in mod and mod0. Then use f.pvalue function for differential expression (simple version of Combat)</p>
+<pre class="r"><code>modBatch = model.matrix(~as.factor(cancer) + as.factor(batch),data=pheno)
+mod0Batch = model.matrix(~as.factor(batch),data=pheno)
+pValuesBatch = f.pvalue(edata,modBatch,mod0Batch)
+qValuesBatch = p.adjust(pValuesBatch,method=&quot;BH&quot;)</code></pre>
+</div>
+<div id="session-information" class="section level3">
+<h3>Session information</h3>
 <!-- Insert the session information into the document -->
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)
