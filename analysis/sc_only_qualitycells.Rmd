@@ -156,8 +156,32 @@ https://github.com/brimittleman/singleCellSeq/blob/master/analysis/functions.R
 
 change function to include loading output to see if excluding singletons in the analysis is important 
   in rotation (gene x pc)- look at scores on first 2 pc between singleton and non singleton  
+  
+  
+```{r pca with loading}
+run_pca_loading <- function(x, retx = TRUE, center = TRUE, scale = TRUE) {
+  library("testit")
+  
+  pca <- prcomp(t(x), retx = retx, center = center, scale. = scale)
+  variances <- pca$sdev^2
+  explained <- variances / sum(variances)
+  assert("Variance explained is calculated correctly.",
+         explained[1:2] - summary(pca)$importance[2, 1:2] < 0.0001)
+  return(list(PCs = pca$x, explained = explained, rotation=pca$rotation))
+}
+```
+Run pca on quality single cell only genes including singletons  
 
+```{r}
+SC_qual_pca_load= run_pca_loading(molecules_only_SC_ENSG_qual)
+rotation_sc_qual= SC_qual_pca_load$rotation[,1:2]
+```
 
+Run pca on quality single cells excluding singletons  
+```{r}
+SC_nonsing_qual_pca_load= run_pca_loading(molecules_sc_notsing_ENSG_qual)
+rotation_sc_qual_exclude_sing= SC_nonsing_qual_pca_load$rotation[,1:2]
+```
 
 ## Session information
 
