@@ -95,18 +95,21 @@ Get mean expression for molecule counts.
 
 ```{r}
 molecules_mean <- apply(molecules, 1, mean)
+
+
+
 molecules_and_mean <- cbind(molecules, molecules_mean)
 dim(molecules_and_mean)
 #sort molecules and mean by expression
 molecules_and_mean_order <- molecules_and_mean[order(-molecules_and_mean$molecules_mean), , drop(FALSE)]
   
-  
+save(molecules_and_mean_order,file="../data/molecules_and_mean_order.Rda")  
 
                                
                                
 which_onlySC <- as.numeric(rownames(molecules_and_mean_order) %in% gene_onlysinglecell) + 1
-col_vec_onlySC <- c("gray70", "coral4")[as.numeric(which_onlySC_IQR)]
-shap_vec_onlySC<- c(16,1)[as.numeric(which_onlySC_IQR)]
+col_vec_onlySC <- c("gray70", "coral4")[as.numeric(which_onlySC)]
+shap_vec_onlySC<- c(16,1)[as.numeric(which_onlySC)]
 library("scales")
 
 
@@ -116,6 +119,44 @@ legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("cora
 
 
 ```
+
+```{r}
+#new mean function
+
+mean_func=function(c){
+  cells= sum(c!=0)
+  expression=sum(c)
+  return(expression/cells)
+}
+
+molecules_mean_new <- apply(molecules, 1, mean_func)
+molecules_and_mean_new <- cbind(molecules, molecules_mean_new)
+dim(molecules_and_mean_new)
+#sort molecules and mean by expression
+molecules_and_mean_order_new <- molecules_and_mean_new[order(-molecules_and_mean_new$molecules_mean_new), , drop(FALSE)]
+
+which_onlySC_new <- as.numeric(rownames(molecules_and_mean_order_new) %in% gene_onlysinglecell) + 1
+col_vec_onlySC_new <- c("gray70", "coral4")[as.numeric(which_onlySC_new)]
+shap_vec_onlyS_new <- c(16,1)[as.numeric(which_onlySC_new)]
+library("scales")
+
+
+
+mean_expression_new <- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlyS_new, cex=2, col=col_vec_onlySC_new, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "Genes ordered by expression")
+legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("coral4", "gray70") )
+
+  
+
+  
+save(molecules_and_mean_order_new,file="../data/molecules_and_mean_order_new.Rda")  
+```
+
+
+
+
+
+
+
 
 ```{r}
 #deal with IQR 

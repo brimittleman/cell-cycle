@@ -1,0 +1,148 @@
+---
+title: "Expression of non singleton expression"
+author: "Briana Mittleman"
+date: 2017-03-31
+output: html_document
+---
+
+<!-- The file analysis/chunks.R contains chunks that define default settings
+shared across the workflowr files. -->
+```{r read-chunk, include=FALSE, cache=FALSE}
+knitr::read_chunk("chunks.R")
+```
+
+<!-- Update knitr chunk options -->
+```{r knitr-opts-chunk, include=FALSE}
+```
+
+<!-- Insert the date the file was last updated -->
+```{r last-updated, echo=FALSE, results='asis'}
+```
+
+<!-- Insert the code version (Git commit SHA1) if Git repository exists and R
+ package git2r is installed -->
+```{r code-version, echo=FALSE, results='asis'}
+```
+
+<!-- Add your analysis here -->
+
+
+###Pull in genes lists  
+
+```{r}
+library("biomaRt")
+library("data.table")
+library("testit")
+library("dplyr")
+library("edgeR")
+library("VennDiagram")
+library("ggplot2")
+library("vioplot")
+theme_set(theme_bw(base_size = 12))
+source("../../singleCellSeq/analysis/functions.R")
+```
+
+###Input data  
+```{r}
+anno <- read.table("../../singleCellSeq/data/annotation.txt", header = TRUE,
+                   stringsAsFactors = FALSE)
+#input reads (pre-filter)
+reads <- read.table("../../singleCellSeq/data/reads.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input molecule (pre-filter)
+molecules <- read.table("../../singleCellSeq/data/molecules.txt", header = TRUE,
+                    stringsAsFactors = FALSE)
+#input bulk reads (pre-filter )
+reads_bulk <- read.table("../../singleCellSeq/data/reads-bulk.txt", header = TRUE, stringsAsFactors = FALSE)
+```
+###Only in Single cell  
+
+This is the ENSG genes only in single cell.
+
+```{r}
+load("../data/molecules_only_SC_ENSG.Rda")
+```
+
+```{r}
+non_zero_cells_ENSG <- apply(molecules_only_SC_ENSG, 1, function(c)sum(c!=0))
+
+molecules_with_nonzero_ENSG <- cbind(molecules_only_SC_ENSG, non_zero_cells_ENSG)
+```
+
+
+###Non singletons 
+
+```{r}
+
+
+genes_not_singleton_ENSG= row.names(molecules_with_nonzero_ENSG[molecules_with_nonzero_ENSG$non_zero_cells_ENSG > 1, ])
+length(genes_not_singleton_ENSG)
+#535 ensg genes 
+
+
+```
+
+```{r}
+load("../data/molecules_and_mean_order_new.Rda")
+
+###help making these 1 plot 
+
+which_onlySC_nonsing <- as.numeric(rownames(molecules_and_mean_order_new) %in% genes_not_singleton_ENSG) + 1
+
+                            
+col_vec_onlySC_nonsing <- c("gray70", "darkviolet")[as.numeric(which_onlySC_nonsing)]
+shap_vec_onlySC_nonsing<- c(16,1)[as.numeric(which_onlySC_nonsing)]
+library("scales")
+
+
+
+
+
+mean_expression_nonsing <- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlySC_nonsing, cex=2, col=col_vec_onlySC_nonsing, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "Genes ordered by expression")
+legend("topright", c("Single cell only non singleton", "All genes"), pch=c(16,16), col=c("darkviolet", "gray70") )
+
+
+
+
+
+
+```
+
+###Only singleton  
+
+
+```{r}
+
+
+genes_singleton_ENSG= row.names(molecules_with_nonzero_ENSG[molecules_with_nonzero_ENSG$non_zero_cells_ENSG == 1, ])
+length(genes_singleton_ENSG)
+
+
+
+```
+
+
+```{r}
+which_onlySC_sing <- as.numeric(rownames(molecules_and_mean_order_new) %in% genes_singleton_ENSG) + 1
+
+                            
+col_vec_onlySC_sing <- c("gray70", "cyan2")[as.numeric(which_onlySC_sing)]
+shap_vec_onlySC_sing<- c(16,1)[as.numeric(which_onlySC_sing)]
+library("scales")
+
+
+
+
+
+mean_expression_sing <- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlySC_sing, cex=2, col=col_vec_onlySC_sing, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "Genes ordered by expression")
+legend("topright", c("Single cell singletons", "All genes"), pch=c(16,16), col=c("cyan2", "gray70") )
+
+```
+
+
+
+## Session information
+
+<!-- Insert the session information into the document -->
+```{r session-info}
+```

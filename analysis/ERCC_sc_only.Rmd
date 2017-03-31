@@ -198,6 +198,7 @@ ERCC_48_vec= as.vector(as.matrix(ERCC_48[1,]))
 ERCC_48_vec_no0=ERCC_48_vec[ERCC_48_vec !=0]
 length(ERCC_48_vec_no0)
 hist_48=hist(ERCC_48_vec_no0, main="Single cell only expression of ERCC 48", xlab="Count", xlim=c(1,5))
+sort(ERCC_48_vec_no0)
 
 ```
 
