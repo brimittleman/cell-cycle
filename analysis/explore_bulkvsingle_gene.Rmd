@@ -96,22 +96,23 @@ Get mean expression for molecule counts.
 ```{r}
 molecules_mean <- apply(molecules, 1, mean)
 molecules_and_mean <- cbind(molecules, molecules_mean)
-dim(molecules_and_mean )
+dim(molecules_and_mean)
 #sort molecules and mean by expression
-molecules_and_mean_order <- arrange(molecules_and_mean, desc(molecules_mean, drop=FALSE))
+molecules_and_mean_order <- molecules_and_mean[order(-molecules_and_mean$molecules_mean), , drop(FALSE)]
+  
+  
 
                                
                                
-which_onlySC <- as.numeric(rownames(molecules_and_mean) %in% gene_onlysinglecell) + 1
-col_vec_onlySC <- c("gray70", "coral4")[as.numeric(which_onlySC)]
-shap_vec_onlySC<- c(16,1)[as.numeric(which_onlySC)]
+which_onlySC <- as.numeric(rownames(molecules_and_mean_order) %in% gene_onlysinglecell) + 1
+col_vec_onlySC <- c("gray70", "coral4")[as.numeric(which_onlySC_IQR)]
+shap_vec_onlySC<- c(16,1)[as.numeric(which_onlySC_IQR)]
 library("scales")
 
 
 
-mean_expression <- plot(log(molecules_and_mean_order$molecules_mean) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = "Log scale mean expression of molecules per gene", ylab=" Log scale molecule count", xlab = "Genes ordered by expression")
+mean_expression <- plot((molecules_and_mean_order$molecules_mean) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = "Mean expression of molecules per gene", ylab=" Molecule count", xlab = "Genes ordered by expression")
 legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("coral4", "gray70") )
-
 
 
 ```
@@ -122,10 +123,13 @@ legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("cora
 molecule_IQR <- apply(molecules, 1, IQR)
 molecule_w.IQR <- cbind(molecules_and_mean, molecule_IQR)
 #sort by IQR
-molecules_and_IQR_order <- arrange(molecule_w.IQR, desc(molecule_IQR, drop=FALSE))
+molecules_and_IQR_order <- molecule_w.IQR[order(-molecule_w.IQR$molecule_IQR), , drop=FALSE]
 
+which_onlySC_IQR <- as.numeric(rownames(molecules_and_IQR_order) %in% gene_onlysinglecell) + 1
+col_vec_onlySC_IQR <- c("gray70", "coral4")[as.numeric(which_onlySC_IQR)]
+shap_vec_onlySC_IQR<- c(16,1)[as.numeric(which_onlySC_IQR)]
 
-IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "Genes ordered by IQR")
+IQR_plot <- plot((molecules_and_IQR_order$molecule_IQR) , pch=shap_vec_onlySC_IQR, cex=2, col=col_vec_onlySC_IQR, main = "IQR of expression of molecules per gene", ylab=" IQR in Molecule count", xlab = "Genes ordered by IQR")
 legend("topright", c("Single cell only", "All genes"), pch=c(16,16), col=c("coral4", "gray70") )
 ```
 

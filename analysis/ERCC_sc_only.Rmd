@@ -61,6 +61,24 @@ genes_observed_molecules <- rownames(molecules)[rowSums(molecules) > 0]
 single_cell_observed <- union(genes_observed_molecules, genes_observed_reads)
 ```
 
+Create ven diagram for single cell ERCC vs bulk ERCC 
+```{r}
+
+ERCC_observed_bulk =genes_observed_reads_bulk[grep("ERCC", genes_observed_reads_bulk)]
+ERCC_observed_singlecell= genes_observed_molecules[grep("ERCC", genes_observed_molecules)]
+
+
+ERCC_ven <- venn.diagram(x = list("Single Cells" = ERCC_observed_singlecell,
+                                    "Bulk " = ERCC_observed_bulk),
+                           filename = NULL, euler.d = FALSE, scaled = FALSE)
+grid.newpage()
+grid.draw(ERCC_ven)
+
+```
+
+
+
+
 ###ERCCs only in single cell molecules  
 
 ```{r}
@@ -160,7 +178,70 @@ ERCC_nt_ind= ERCC_expected[! ERCC_expected$ID %in% ERCC_nums, ]
 boxplot(ERCC_nt_ind$concentration, ERCC_all_ind_exp$concentration,names=c("SC only 3 ind", "other ERCCs"), ylab="Concentration", main= "All individual single cell only ERCC \ngenes are low concentration ERCCs")
 ```
 
+####Histogram for expression of 6 genes
 
+```{r}
+ ERCC_all_ind
+#molecules_sconly_ERCC has expression for single cell only ERCCs
+ERCC_48= molecules_sconly_ERCC[grep("ERCC-00048", rownames(molecules_sconly_ERCC )), ]
+ERCC_83= molecules_sconly_ERCC[grep("ERCC-00083", rownames(molecules_sconly_ERCC )), ]
+ERCC_97= molecules_sconly_ERCC[grep("ERCC-00097", rownames(molecules_sconly_ERCC )), ]
+ERCC_104= molecules_sconly_ERCC[grep("ERCC-00104", rownames(molecules_sconly_ERCC )), ]
+ERCC_164= molecules_sconly_ERCC[grep("ERCC-00164", rownames(molecules_sconly_ERCC )), ]
+ERCC_168= molecules_sconly_ERCC[grep("ERCC-00168", rownames(molecules_sconly_ERCC )), ]
+```
+
+Create hitograms for expression of each ERCC  
+
+```{r}
+ERCC_48_vec= as.vector(as.matrix(ERCC_48[1,]))
+ERCC_48_vec_no0=ERCC_48_vec[ERCC_48_vec !=0]
+length(ERCC_48_vec_no0)
+hist_48=hist(ERCC_48_vec_no0, main="Single cell only expression of ERCC 48", xlab="Count", xlim=c(1,5))
+
+```
+
+```{r}
+ERCC_83_vec= as.vector(as.matrix(ERCC_83[1,]))
+ERCC_83_vec_no0=ERCC_83_vec[ERCC_83_vec !=0]
+length(ERCC_83_vec_no0)
+hist_83= hist(ERCC_83_vec_no0, main="Single cell only expression of ERCC 83", xlab="Count", xlim=c(1,5))
+```
+
+```{r}
+ERCC_97_vec= as.vector(as.matrix(ERCC_97[1,]))
+ERCC_97_vec_no0=ERCC_97_vec[ERCC_97_vec !=0]
+length(ERCC_97_vec_no0)
+ERCC_97_vec_no0
+hist_97= hist(ERCC_97_vec_no0, main="Single cell only expression of ERCC 97", xlab="Count", xlim=c(1,5))
+```
+```{r}
+ERCC_104_vec= as.vector(as.matrix(ERCC_104[1,]))
+ERCC_104_vec_no0=ERCC_104_vec[ERCC_104_vec !=0]
+length(ERCC_104_vec_no0)
+hist_104= hist(ERCC_104_vec_no0, main="Single cell only expression of ERCC 104", xlab="Count", xlim=c(1,5))
+```
+
+```{r}
+ERCC_164_vec= as.vector(as.matrix(ERCC_164[1,]))
+ERCC_164_vec_no0=ERCC_164_vec[ERCC_164_vec !=0]
+length(ERCC_164_vec_no0)
+ERCC_164_vec_no0
+hist_164= hist(ERCC_164_vec_no0, main="Single cell only expression of ERCC 164", xlab="Count", xlim=c(1,5))
+```
+
+
+```{r}
+
+#not getting rid of zeros!!! 
+ERCC_168_vec= as.vector(as.matrix(ERCC_168[1,]))
+ERCC_168_vec_no0=ERCC_97_vec[ERCC_168_vec!=0]
+length(ERCC_168_vec_no0)
+ERCC_168_vec_no0
+hist_168= hist(ERCC_168_vec_no0, main="Single cell only expression of ERCC 168", xlab="Count", xlim=c(1,5))
+```
+
+Highest expression is 3 reads! thesea are very low! 
 
 ### Session information
 

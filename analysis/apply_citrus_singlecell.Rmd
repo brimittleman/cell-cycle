@@ -113,7 +113,7 @@ df <- data.frame(PC1, PC2, "raw", celltypes)
 colnames(df) <- c("PC1", "PC2", "Method", "Type")
 
 
-ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1", ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = FALSE, mainTitleFont = c(15, "bold", "black"), xtitleFont = c(10,"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont = c(10, "bold", "black"), yTickLabelFont = c(10, "bold", "black"))
+ff1 <- ggplot2.scatterplot(data = df, xName = "PC1", yName = "PC2", groupName = "Type", size = 5, backgroundColor = "white", groupColors = c("#66B2FF", "#FFB266", "#FFAAD4"), xtitle = "PC1", ytitle = "PC2", mainTitle = "Raw", removePanelGrid = TRUE, removePanelBorder = TRUE, setShapeByGroupName = TRUE, showLegend = TRUE, mainTitleFont = c(15, "bold", "black"), xtitleFont = c(10,"bold", "black"), ytitleFont = c(10, "bold", "black"), xTickLabelFont = c(10, "bold", "black"), yTickLabelFont = c(10, "bold", "black"), legendTitle= "Cell type", legendTitleFont= c(10, "bold", "black"), legendTextFont = c(10, "bold", "black"))
 
 pcs <- prcomp(scPLS_tech$Adjusted, center = TRUE)
 PC1 <- pcs$x[, 1]
