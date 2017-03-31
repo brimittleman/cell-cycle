@@ -11,9 +11,9 @@
 
 <meta name="author" content="Briana Mittleman" />
 
-<meta name="date" content="2017-03-10" />
+<meta name="date" content="2017-03-31" />
 
-<title>Explore the ERCC genes that are only found in SC sequences</title>
+<title>Expression of non singleton expression</title>
 
 <script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -302,9 +302,9 @@ div.tocify {
 
 
 
-<h1 class="title toc-ignore">Explore the ERCC genes that are only found in SC sequences</h1>
+<h1 class="title toc-ignore">Expression of non singleton expression</h1>
 <h4 class="author"><em>Briana Mittleman</em></h4>
-<h4 class="date"><em>2017-03-10</em></h4>
+<h4 class="date"><em>2017-03-31</em></h4>
 
 </div>
 
@@ -317,15 +317,22 @@ shared across the workflowr files. -->
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
 <p><strong>Code version:</strong> 9edcd66</p>
-<p>Input packages and functions</p>
+<!-- Add your analysis here -->
+<div id="pull-in-genes-lists" class="section level3">
+<h3>Pull in genes lists</h3>
 <pre class="r"><code>library(&quot;biomaRt&quot;)
+library(&quot;data.table&quot;)
+library(&quot;testit&quot;)
 library(&quot;dplyr&quot;)
 library(&quot;edgeR&quot;)
+library(&quot;VennDiagram&quot;)
 library(&quot;ggplot2&quot;)
+library(&quot;vioplot&quot;)
 theme_set(theme_bw(base_size = 12))
-source(&quot;../../singleCellSeq/analysis/functions.R&quot;)
-library(VennDiagram)</code></pre>
-<p>Input data:</p>
+source(&quot;../../singleCellSeq/analysis/functions.R&quot;)</code></pre>
+</div>
+<div id="input-data" class="section level3">
+<h3>Input data</h3>
 <pre class="r"><code>anno &lt;- read.table(&quot;../../singleCellSeq/data/annotation.txt&quot;, header = TRUE,
                    stringsAsFactors = FALSE)
 #input reads (pre-filter)
@@ -336,175 +343,62 @@ molecules &lt;- read.table(&quot;../../singleCellSeq/data/molecules.txt&quot;, h
                     stringsAsFactors = FALSE)
 #input bulk reads (pre-filter )
 reads_bulk &lt;- read.table(&quot;../../singleCellSeq/data/reads-bulk.txt&quot;, header = TRUE, stringsAsFactors = FALSE)</code></pre>
-<p>Create vectors with the list of genes in each set.</p>
-<pre class="r"><code>genes_observed_reads_bulk &lt;- rownames(reads_bulk)[rowSums(reads_bulk) &gt; 0]
-genes_observed_reads &lt;- rownames(reads)[rowSums(reads) &gt; 0]
-genes_observed_molecules &lt;- rownames(molecules)[rowSums(molecules) &gt; 0]
-single_cell_observed &lt;- union(genes_observed_molecules, genes_observed_reads)</code></pre>
-<p>Create ven diagram for single cell ERCC vs bulk ERCC</p>
-<pre class="r"><code>ERCC_observed_bulk =genes_observed_reads_bulk[grep(&quot;ERCC&quot;, genes_observed_reads_bulk)]
-ERCC_observed_singlecell= genes_observed_molecules[grep(&quot;ERCC&quot;, genes_observed_molecules)]
-
-
-ERCC_ven &lt;- venn.diagram(x = list(&quot;Single Cells&quot; = ERCC_observed_singlecell,
-                                    &quot;Bulk &quot; = ERCC_observed_bulk),
-                           filename = NULL, euler.d = FALSE, scaled = FALSE)
-grid.newpage()
-grid.draw(ERCC_ven)</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-55-1.png" width="672" style="display: block; margin: auto;" /></p>
-<div id="erccs-only-in-single-cell-molecules" class="section level3">
-<h3>ERCCs only in single cell molecules</h3>
-<pre class="r"><code>gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk) 
-
-genes_onlysinglecell_ERCC &lt;- gene_onlysinglecell[grep(&quot;ERCC&quot;, gene_onlysinglecell)]
-molecules_df= data.frame(molecules)
-molecules_sconly_ERCC &lt;- molecules_df[rownames(molecules_df) %in% genes_onlysinglecell_ERCC,]
-dim(molecules_sconly_ERCC)</code></pre>
-<pre><code>[1]  15 864</code></pre>
-<p>Explore the SC only ERCCs</p>
-<pre class="r"><code>ERCC_sc_only= rownames(molecules_sconly_ERCC)
-ERCC_sc_only</code></pre>
-<pre><code> [1] &quot;ERCC-00016&quot; &quot;ERCC-00048&quot; &quot;ERCC-00057&quot; &quot;ERCC-00075&quot; &quot;ERCC-00083&quot;
- [6] &quot;ERCC-00086&quot; &quot;ERCC-00097&quot; &quot;ERCC-00104&quot; &quot;ERCC-00123&quot; &quot;ERCC-00137&quot;
-[11] &quot;ERCC-00138&quot; &quot;ERCC-00156&quot; &quot;ERCC-00158&quot; &quot;ERCC-00164&quot; &quot;ERCC-00168&quot;</code></pre>
-<pre class="r"><code>ERCC_sc_mean=  apply(molecules_sconly_ERCC, 1, mean)
-ERCC_sc_mean</code></pre>
-<pre><code> ERCC-00016  ERCC-00048  ERCC-00057  ERCC-00075  ERCC-00083  ERCC-00086 
-0.001157407 0.149305556 0.004629630 0.001157407 0.040509259 0.006944444 
- ERCC-00097  ERCC-00104  ERCC-00123  ERCC-00137  ERCC-00138  ERCC-00156 
-0.010416667 0.018518519 0.002314815 0.003472222 0.001157407 0.004629630 
- ERCC-00158  ERCC-00164  ERCC-00168 
-0.013888889 0.040509259 0.012731481 </code></pre>
-<p>Number of Cells each ERCC is in</p>
-<pre class="r"><code>non_zero_cells_ERCC &lt;- apply(molecules_sconly_ERCC, 1, function(c)sum(c!=0))
-non_zero_cells_ERCC </code></pre>
-<pre><code>ERCC-00016 ERCC-00048 ERCC-00057 ERCC-00075 ERCC-00083 ERCC-00086 
-         1        112          3          1         33          6 
-ERCC-00097 ERCC-00104 ERCC-00123 ERCC-00137 ERCC-00138 ERCC-00156 
-         9         16          2          3          1          4 
-ERCC-00158 ERCC-00164 ERCC-00168 
-        12         35         11 </code></pre>
 </div>
-<div id="individual-level-analysis" class="section level3">
-<h3>Individual Level Analysis</h3>
-<div id="section" class="section level4">
-<h4>19098</h4>
-<pre class="r"><code>molecules_sconly_ERCC_19098= molecules_sconly_ERCC[,grep(&quot;19098&quot;, colnames(molecules_sconly_ERCC))]
+<div id="only-in-single-cell" class="section level3">
+<h3>Only in Single cell</h3>
+<p>This is the ENSG genes only in single cell.</p>
+<pre class="r"><code>load(&quot;../data/molecules_only_SC_ENSG.Rda&quot;)</code></pre>
+<pre class="r"><code>non_zero_cells_ENSG &lt;- apply(molecules_only_SC_ENSG, 1, function(c)sum(c!=0))
 
-non_zero_cells_ERCC_19098 &lt;- apply(molecules_sconly_ERCC_19098, 1, function(c)sum(c!=0))
-molecules_sconly_ERCC_19098= cbind(molecules_sconly_ERCC_19098,non_zero_cells_ERCC_19098)
-
-non_zero_sc_ERCC_19098= molecules_sconly_ERCC_19098[molecules_sconly_ERCC_19098$non_zero_cells_ERCC_19098&gt;0,]
-ERCC_19098=rownames(non_zero_sc_ERCC_19098)</code></pre>
+molecules_with_nonzero_ENSG &lt;- cbind(molecules_only_SC_ENSG, non_zero_cells_ENSG)</code></pre>
 </div>
-<div id="section-1" class="section level4">
-<h4>19101</h4>
-<pre class="r"><code>molecules_sconly_ERCC_19101= molecules_sconly_ERCC[,grep(&quot;19101&quot;, colnames(molecules_sconly_ERCC))]
+<div id="non-singletons" class="section level3">
+<h3>Non singletons</h3>
+<pre class="r"><code>genes_not_singleton_ENSG= row.names(molecules_with_nonzero_ENSG[molecules_with_nonzero_ENSG$non_zero_cells_ENSG &gt; 1, ])
+length(genes_not_singleton_ENSG)</code></pre>
+<pre><code>[1] 535</code></pre>
+<pre class="r"><code>#535 ensg genes </code></pre>
+<pre class="r"><code>load(&quot;../data/molecules_and_mean_order_new.Rda&quot;)
 
-non_zero_cells_ERCC_19101 &lt;- apply(molecules_sconly_ERCC_19101, 1, function(c)sum(c!=0))
-molecules_sconly_ERCC_19101= cbind(molecules_sconly_ERCC_19101,non_zero_cells_ERCC_19101)
+###help making these 1 plot 
 
-non_zero_sc_ERCC_19101= molecules_sconly_ERCC_19101[molecules_sconly_ERCC_19101$non_zero_cells_ERCC_19101&gt;0,]
-ERCC_19101= rownames(non_zero_sc_ERCC_19101)</code></pre>
-</div>
-<div id="section-2" class="section level4">
-<h4>19239</h4>
-<pre class="r"><code>molecules_sconly_ERCC_19239= molecules_sconly_ERCC[,grep(&quot;19239&quot;, colnames(molecules_sconly_ERCC))]
+which_onlySC_nonsing &lt;- as.numeric(rownames(molecules_and_mean_order_new) %in% genes_not_singleton_ENSG) + 1
 
-non_zero_cells_ERCC_19239 &lt;- apply(molecules_sconly_ERCC_19239, 1, function(c)sum(c!=0))
-molecules_sconly_ERCC_19239= cbind(molecules_sconly_ERCC_19239,non_zero_cells_ERCC_19239)
+                            
+col_vec_onlySC_nonsing &lt;- c(&quot;gray70&quot;, &quot;darkviolet&quot;)[as.numeric(which_onlySC_nonsing)]
+shap_vec_onlySC_nonsing&lt;- c(16,1)[as.numeric(which_onlySC_nonsing)]
+library(&quot;scales&quot;)
 
-non_zero_sc_ERCC_19239= molecules_sconly_ERCC_19239[molecules_sconly_ERCC_19239$non_zero_cells_ERCC_19239&gt;0,]
-ERCC_19239=rownames(non_zero_sc_ERCC_19239)</code></pre>
-</div>
-<div id="ven-diagram" class="section level4">
-<h4>Ven diagram</h4>
-<pre class="r"><code>ERCC_sc_ven &lt;- venn.diagram(x = list(&quot;19098&quot; = ERCC_19098,
-                                    &quot;19101&quot; = ERCC_19101,
-                                    &quot;19239&quot; = ERCC_19239),
-                           filename = NULL, euler.d = FALSE, scaled = FALSE)
-grid.newpage()
-grid.draw(ERCC_sc_ven)</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-62-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Which ERCC are seen in all indiv sc</p>
-<pre class="r"><code>ERCC_all_ind= Reduce(intersect, list(ERCC_19098, ERCC_19101, ERCC_19239))
 
-ERCC_all_ind</code></pre>
-<pre><code>[1] &quot;ERCC-00048&quot; &quot;ERCC-00083&quot; &quot;ERCC-00097&quot; &quot;ERCC-00104&quot; &quot;ERCC-00164&quot;
-[6] &quot;ERCC-00168&quot;</code></pre>
-<pre class="r"><code>ERCC_expected= read.table(&quot;cms_095046.txt&quot;, header=TRUE, stringsAsFactors = FALSE, fill=TRUE)
-ERCC_nums=c(&quot;ERCC-00048&quot;, &quot;ERCC-00083&quot;, &quot;ERCC-00097&quot;, &quot;ERCC-00104&quot;, &quot;ERCC-00164&quot;, &quot;ERCC-00168&quot;)
-ERCC_all_ind_exp= ERCC_expected[ERCC_expected$ID %in% ERCC_nums, ]
-ERCC_nt_ind= ERCC_expected[! ERCC_expected$ID %in% ERCC_nums, ]
-boxplot(ERCC_nt_ind$concentration, ERCC_all_ind_exp$concentration,names=c(&quot;SC only 3 ind&quot;, &quot;other ERCCs&quot;), ylab=&quot;Concentration&quot;, main= &quot;All individual single cell only ERCC \ngenes are low concentration ERCCs&quot;)</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-64-1.png" width="672" style="display: block; margin: auto;" /></p>
+
+
+
+mean_expression_nonsing &lt;- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlySC_nonsing, cex=2, col=col_vec_onlySC_nonsing, main = &quot;Mean expression of molecules per gene&quot;, ylab=&quot; Molecule count&quot;, xlab = &quot;Genes ordered by expression&quot;)
+legend(&quot;topright&quot;, c(&quot;Single cell only non singleton&quot;, &quot;All genes&quot;), pch=c(16,16), col=c(&quot;darkviolet&quot;, &quot;gray70&quot;) )</code></pre>
+<p><img src="figure/non_singleton_expression.Rmd/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-<div id="histogram-for-expression-of-6-genes" class="section level4">
-<h4>Histogram for expression of 6 genes</h4>
-<pre class="r"><code> ERCC_all_ind</code></pre>
-<pre><code>[1] &quot;ERCC-00048&quot; &quot;ERCC-00083&quot; &quot;ERCC-00097&quot; &quot;ERCC-00104&quot; &quot;ERCC-00164&quot;
-[6] &quot;ERCC-00168&quot;</code></pre>
-<pre class="r"><code>#molecules_sconly_ERCC has expression for single cell only ERCCs
-ERCC_48= molecules_sconly_ERCC[grep(&quot;ERCC-00048&quot;, rownames(molecules_sconly_ERCC )), ]
-ERCC_83= molecules_sconly_ERCC[grep(&quot;ERCC-00083&quot;, rownames(molecules_sconly_ERCC )), ]
-ERCC_97= molecules_sconly_ERCC[grep(&quot;ERCC-00097&quot;, rownames(molecules_sconly_ERCC )), ]
-ERCC_104= molecules_sconly_ERCC[grep(&quot;ERCC-00104&quot;, rownames(molecules_sconly_ERCC )), ]
-ERCC_164= molecules_sconly_ERCC[grep(&quot;ERCC-00164&quot;, rownames(molecules_sconly_ERCC )), ]
-ERCC_168= molecules_sconly_ERCC[grep(&quot;ERCC-00168&quot;, rownames(molecules_sconly_ERCC )), ]</code></pre>
-<p>Create hitograms for expression of each ERCC</p>
-<pre class="r"><code>ERCC_48_vec= as.vector(as.matrix(ERCC_48[1,]))
-ERCC_48_vec_no0=ERCC_48_vec[ERCC_48_vec !=0]
-length(ERCC_48_vec_no0)</code></pre>
-<pre><code>[1] 112</code></pre>
-<pre class="r"><code>hist_48=hist(ERCC_48_vec_no0, main=&quot;Single cell only expression of ERCC 48&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-66-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>sort(ERCC_48_vec_no0)</code></pre>
-<pre><code>  [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- [36] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
- [71] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2
-[106] 2 2 2 2 3 3 3</code></pre>
-<pre class="r"><code>ERCC_83_vec= as.vector(as.matrix(ERCC_83[1,]))
-ERCC_83_vec_no0=ERCC_83_vec[ERCC_83_vec !=0]
-length(ERCC_83_vec_no0)</code></pre>
-<pre><code>[1] 33</code></pre>
-<pre class="r"><code>hist_83= hist(ERCC_83_vec_no0, main=&quot;Single cell only expression of ERCC 83&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-67-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ERCC_97_vec= as.vector(as.matrix(ERCC_97[1,]))
-ERCC_97_vec_no0=ERCC_97_vec[ERCC_97_vec !=0]
-length(ERCC_97_vec_no0)</code></pre>
-<pre><code>[1] 9</code></pre>
-<pre class="r"><code>ERCC_97_vec_no0</code></pre>
-<pre><code>[1] 1 1 1 1 1 1 1 1 1</code></pre>
-<pre class="r"><code>hist_97= hist(ERCC_97_vec_no0, main=&quot;Single cell only expression of ERCC 97&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-68-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ERCC_104_vec= as.vector(as.matrix(ERCC_104[1,]))
-ERCC_104_vec_no0=ERCC_104_vec[ERCC_104_vec !=0]
-length(ERCC_104_vec_no0)</code></pre>
-<pre><code>[1] 16</code></pre>
-<pre class="r"><code>hist_104= hist(ERCC_104_vec_no0, main=&quot;Single cell only expression of ERCC 104&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-69-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ERCC_164_vec= as.vector(as.matrix(ERCC_164[1,]))
-ERCC_164_vec_no0=ERCC_164_vec[ERCC_164_vec !=0]
-length(ERCC_164_vec_no0)</code></pre>
-<pre><code>[1] 35</code></pre>
-<pre class="r"><code>ERCC_164_vec_no0</code></pre>
-<pre><code> [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1</code></pre>
-<pre class="r"><code>hist_164= hist(ERCC_164_vec_no0, main=&quot;Single cell only expression of ERCC 164&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-70-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>#not getting rid of zeros!!! 
-ERCC_168_vec= as.vector(as.matrix(ERCC_168[1,]))
-ERCC_168_vec_no0=ERCC_97_vec[ERCC_168_vec!=0]
-length(ERCC_168_vec_no0)</code></pre>
-<pre><code>[1] 11</code></pre>
-<pre class="r"><code>ERCC_168_vec_no0</code></pre>
-<pre><code> [1] 1 0 0 0 0 0 0 0 0 0 0</code></pre>
-<pre class="r"><code>hist_168= hist(ERCC_168_vec_no0, main=&quot;Single cell only expression of ERCC 168&quot;, xlab=&quot;Count&quot;, xlim=c(1,5))</code></pre>
-<p><img src="figure/ERCC_sc_only.Rmd/unnamed-chunk-71-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Highest expression is 3 reads! thesea are very low!</p>
+<div id="only-singleton" class="section level3">
+<h3>Only singleton</h3>
+<pre class="r"><code>genes_singleton_ENSG= row.names(molecules_with_nonzero_ENSG[molecules_with_nonzero_ENSG$non_zero_cells_ENSG == 1, ])
+length(genes_singleton_ENSG)</code></pre>
+<pre><code>[1] 421</code></pre>
+<pre class="r"><code>which_onlySC_sing &lt;- as.numeric(rownames(molecules_and_mean_order_new) %in% genes_singleton_ENSG) + 1
+
+                            
+col_vec_onlySC_sing &lt;- c(&quot;gray70&quot;, &quot;cyan2&quot;)[as.numeric(which_onlySC_sing)]
+shap_vec_onlySC_sing&lt;- c(16,1)[as.numeric(which_onlySC_sing)]
+library(&quot;scales&quot;)
+
+
+
+
+
+mean_expression_sing &lt;- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlySC_sing, cex=2, col=col_vec_onlySC_sing, main = &quot;Mean expression of molecules per gene&quot;, ylab=&quot; Molecule count&quot;, xlab = &quot;Genes ordered by expression&quot;)
+legend(&quot;topright&quot;, c(&quot;Single cell singletons&quot;, &quot;All genes&quot;), pch=c(16,16), col=c(&quot;cyan2&quot;, &quot;gray70&quot;) )</code></pre>
+<p><img src="figure/non_singleton_expression.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
-</div>
-<div id="session-information" class="section level3">
-<h3>Session information</h3>
+<div id="session-information" class="section level2">
+<h2>Session information</h2>
 <!-- Insert the session information into the document -->
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>R version 3.3.2 (2016-10-31)

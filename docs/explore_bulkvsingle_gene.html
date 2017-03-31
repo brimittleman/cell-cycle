@@ -313,10 +313,10 @@ div.tocify {
 shared across the workflowr files. -->
 <!-- Update knitr chunk options -->
 <!-- Insert the date the file was last updated -->
-<p><strong>Last updated:</strong> 2017-03-15</p>
+<p><strong>Last updated:</strong> 2017-03-31</p>
 <!-- Insert the code version (Git commit SHA1) if Git repository exists and R
  package git2r is installed -->
-<p><strong>Code version:</strong> a9b79ed</p>
+<p><strong>Code version:</strong> 9edcd66</p>
 <p>This analysis looks into genes that were only detected in either the single cell or bulk sequencing. Contrary to many’s intuitiion there were more genes detected using single cell sequencing than when we pooled cells together. I wanted to explore the expression levels of these genes, variability in expression levels, and the proportion of single cells where these genes were detected. For the bulk specific genes I wanted to see how their expression compares to the expression levels of the genes found in both analysis. Information found here could provide information about bias or provide evidence for the importance of single cell sequencing to detect gene expression.</p>
 <div id="pull-in-genes-lists" class="section level3">
 <h3>Pull in genes lists</h3>
@@ -364,35 +364,69 @@ gene_onlysinglecell &lt;- setdiff(single_cell_observed,genes_observed_reads_bulk
 molecules_only_SC &lt;- molecules_df[rownames(molecules_df) %in% gene_onlysinglecell,]</code></pre>
 <p>Get mean expression for molecule counts.</p>
 <pre class="r"><code>molecules_mean &lt;- apply(molecules, 1, mean)
+
+
+
 molecules_and_mean &lt;- cbind(molecules, molecules_mean)
-dim(molecules_and_mean )</code></pre>
+dim(molecules_and_mean)</code></pre>
 <pre><code>[1] 19027   865</code></pre>
 <pre class="r"><code>#sort molecules and mean by expression
-molecules_and_mean_order &lt;- arrange(molecules_and_mean, desc(molecules_mean, drop=FALSE))
+molecules_and_mean_order &lt;- molecules_and_mean[order(-molecules_and_mean$molecules_mean), , drop(FALSE)]
+  
+save(molecules_and_mean_order,file=&quot;../data/molecules_and_mean_order.Rda&quot;)  
 
                                
                                
-which_onlySC &lt;- as.numeric(rownames(molecules_and_mean) %in% gene_onlysinglecell) + 1
+which_onlySC &lt;- as.numeric(rownames(molecules_and_mean_order) %in% gene_onlysinglecell) + 1
 col_vec_onlySC &lt;- c(&quot;gray70&quot;, &quot;coral4&quot;)[as.numeric(which_onlySC)]
 shap_vec_onlySC&lt;- c(16,1)[as.numeric(which_onlySC)]
 library(&quot;scales&quot;)
 
 
 
-mean_expression &lt;- plot(log(molecules_and_mean_order$molecules_mean) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = &quot;Log scale mean expression of molecules per gene&quot;, ylab=&quot; Log scale molecule count&quot;, xlab = &quot;Genes ordered by expression&quot;)
+mean_expression &lt;- plot((molecules_and_mean_order$molecules_mean) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = &quot;Mean expression of molecules per gene&quot;, ylab=&quot; Molecule count&quot;, xlab = &quot;Genes ordered by expression&quot;)
 legend(&quot;topright&quot;, c(&quot;Single cell only&quot;, &quot;All genes&quot;), pch=c(16,16), col=c(&quot;coral4&quot;, &quot;gray70&quot;) )</code></pre>
 <p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>#new mean function
+
+mean_func=function(c){
+  cells= sum(c!=0)
+  expression=sum(c)
+  return(expression/cells)
+}
+
+molecules_mean_new &lt;- apply(molecules, 1, mean_func)
+molecules_and_mean_new &lt;- cbind(molecules, molecules_mean_new)
+dim(molecules_and_mean_new)</code></pre>
+<pre><code>[1] 19027   865</code></pre>
+<pre class="r"><code>#sort molecules and mean by expression
+molecules_and_mean_order_new &lt;- molecules_and_mean_new[order(-molecules_and_mean_new$molecules_mean_new), , drop(FALSE)]
+
+which_onlySC_new &lt;- as.numeric(rownames(molecules_and_mean_order_new) %in% gene_onlysinglecell) + 1
+col_vec_onlySC_new &lt;- c(&quot;gray70&quot;, &quot;coral4&quot;)[as.numeric(which_onlySC_new)]
+shap_vec_onlyS_new &lt;- c(16,1)[as.numeric(which_onlySC_new)]
+library(&quot;scales&quot;)
+
+
+
+mean_expression_new &lt;- plot((molecules_and_mean_order_new$molecules_mean_new) , pch=shap_vec_onlyS_new, cex=2, col=col_vec_onlySC_new, main = &quot;Mean expression of molecules per gene&quot;, ylab=&quot; Molecule count&quot;, xlab = &quot;Genes ordered by expression&quot;)
+legend(&quot;topright&quot;, c(&quot;Single cell only&quot;, &quot;All genes&quot;), pch=c(16,16), col=c(&quot;coral4&quot;, &quot;gray70&quot;) )</code></pre>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>save(molecules_and_mean_order_new,file=&quot;../data/molecules_and_mean_order_new.Rda&quot;)  </code></pre>
 <pre class="r"><code>#deal with IQR 
 
 molecule_IQR &lt;- apply(molecules, 1, IQR)
 molecule_w.IQR &lt;- cbind(molecules_and_mean, molecule_IQR)
 #sort by IQR
-molecules_and_IQR_order &lt;- arrange(molecule_w.IQR, desc(molecule_IQR, drop=FALSE))
+molecules_and_IQR_order &lt;- molecule_w.IQR[order(-molecule_w.IQR$molecule_IQR), , drop=FALSE]
 
+which_onlySC_IQR &lt;- as.numeric(rownames(molecules_and_IQR_order) %in% gene_onlysinglecell) + 1
+col_vec_onlySC_IQR &lt;- c(&quot;gray70&quot;, &quot;coral4&quot;)[as.numeric(which_onlySC_IQR)]
+shap_vec_onlySC_IQR&lt;- c(16,1)[as.numeric(which_onlySC_IQR)]
 
-IQR_plot &lt;- plot((molecules_and_IQR_order$molecule_IQR) , pch=shap_vec_onlySC, cex=2, col=col_vec_onlySC, main = &quot;IQR of expression of molecules per gene&quot;, ylab=&quot; IQR in Molecule count&quot;, xlab = &quot;Genes ordered by IQR&quot;)
+IQR_plot &lt;- plot((molecules_and_IQR_order$molecule_IQR) , pch=shap_vec_onlySC_IQR, cex=2, col=col_vec_onlySC_IQR, main = &quot;IQR of expression of molecules per gene&quot;, ylab=&quot; IQR in Molecule count&quot;, xlab = &quot;Genes ordered by IQR&quot;)
 legend(&quot;topright&quot;, c(&quot;Single cell only&quot;, &quot;All genes&quot;), pch=c(16,16), col=c(&quot;coral4&quot;, &quot;gray70&quot;) )</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
 <div id="proportion-of-cells-showing-these-genes" class="section level4">
 <h4>Proportion of cells showing these genes</h4>
 <pre class="r"><code>#molecules_only_SC has the 971 genes we care about
@@ -405,7 +439,7 @@ molecules_with_nonzero &lt;- cbind(molecules_only_SC, non_zero_cells)
 molecules_non_zero_order &lt;- arrange(molecules_with_nonzero, desc(non_zero_cells))
 
 plot((molecules_non_zero_order$non_zero_cells)/864, main=&quot;Most genes are seen in low proportion of cells&quot;, ylab=&quot;Proportion cells- non-zero molecule count&quot;, xlab=&quot;Single cell only genes&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>This plot is made with the genes we only detected in the single cell analysis. Of these genes, most of them are seen in a low proportion of cells (&lt;2%). This could be a reason the bulk samples could not capture these cells. These cells are unique and could be interesting but only genes that were seen in the union of single cell and bulk were used in the paper. If genes are differncially expressed in a bulk sample we may not have the power to see this when only bulk RNA seq is done.</p>
 <p>Flip this analysis around and look at the proportion of cells expressing genes for all genes in the set and highlighting the single cell only genes.</p>
 <pre class="r"><code>non_zero_cells_all &lt;- apply(molecules, 1, function(c)sum(c!=0))
@@ -416,7 +450,7 @@ xy &lt;- data.frame(x= c(1:NROW(molecules_with_nonzero_all)),
      y = molecules_with_nonzero_all$non_zero_cells_all/864)
 plot(xy,  pch=16, cex=1, 
      col=alpha(col_vec_onlySC, .8), xlab = &quot;Gene index&quot;, ylab=&quot;Proportion cells- non-zero molecule count&quot; , main= &quot;Genes seen only in sc span distribution&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># plot((molecules_non_zero_order_all$non_zero_cells_all)/864,  pch=16, cex=1, col=alpha(col_vec_onlySC, .8), xlab = &quot;Gene index&quot;, ylab=&quot;Proportion cells- non-zero molecule count&quot; , main= &quot;Genes seen only in sc span distribution&quot;)
 # points(((molecules_non_zero_order_all$non_zero_cells_all)/864)[which(rownames(molecules_non_zero_all) %in% rownames(molecules_with_nonzero))], col = &quot;black&quot;, cex = 2)</code></pre>
 <pre class="r"><code>#maybe 2 boxplots with the percentage of the genes in both vs the genes only in single cell? 
@@ -430,11 +464,11 @@ summary(molecules_with_nonzero$non_zero_cells)</code></pre>
 <pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
     0.0    28.0   325.0   379.3   733.0   864.0 </code></pre>
 <pre class="r"><code>boxplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c(&quot;only single cell&quot;, &quot;all genes&quot;), ylab=&quot;Proportion cells- non-zero molecule count&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>vioplot((molecules_with_nonzero$non_zero_cells)/864, (molecules_with_nonzero_all$non_zero_cells_all)/864, names=c(&quot;only single cell&quot;, &quot;all genes&quot;), col=&quot;coral3&quot;)
 title(ylab=&quot;Proportion cell containing gene&quot;)
 title(&quot;Single cell genes in lower proportion of cells&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>table(molecules_with_nonzero$non_zero_cells)</code></pre>
 <pre><code>
   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  18  21 
@@ -565,7 +599,7 @@ for (i in seq(1:864)){
   prop_cells=c(prop_cells, num)
 }
 plot(prop_cells/971, ylab=&quot;proportion of single cell only genes&quot;, xlab=&quot;number of cells&quot;, main=&quot;All genes conditions on number of cells detected with gene&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-11-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-3.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># For all genes that are detected in single cell or bulk (19,027 genes), we condition on the 
 # number of cells (ranging 1 - 864 cells) and given n number of cells, we look at 
 # the proportion of genes that are detected in single cell only but not in bulk</code></pre>
@@ -585,7 +619,7 @@ col_vec_onlyBULK &lt;- c(&quot;lightpink&quot;, &quot;blue&quot;)[as.numeric(whi
 
 
 plot((bulk_and_order$bulk_mean) , pch=46, cex=10, col=col_vec_onlyBULK, main = &quot;Mean expression of reads in bulk samples&quot;, ylab=&quot; read count&quot;, xlab = &quot;genes (blue are only bulk genes)&quot;)</code></pre>
-<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="figure/explore_bulkvsingle_gene.Rmd/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="session-information" class="section level2">
 <h2>Session information</h2>
@@ -608,33 +642,35 @@ attached base packages:
  [8] datasets  methods   base     
 
 other attached packages:
- [1] pamr_1.55            survival_2.40-1      cluster_2.0.5       
- [4] bladderbatch_1.12.0  BiocInstaller_1.24.0 sva_3.22.0          
- [7] genefilter_1.56.0    mgcv_1.8-15          nlme_3.1-128        
-[10] beeswarm_0.2.3       org.Hs.eg.db_3.4.0   scales_0.4.1        
-[13] vioplot_0.2          sm_2.2-5.4           GO.db_3.4.0         
-[16] GOstats_2.40.0       graph_1.52.0         Category_2.40.0     
-[19] Matrix_1.2-7.1       AnnotationDbi_1.36.2 IRanges_2.8.1       
-[22] S4Vectors_0.12.1     Biobase_2.34.0       BiocGenerics_0.20.0 
-[25] Humanzee_0.1.0       ggplot2_2.2.1        VennDiagram_1.6.17  
-[28] futile.logger_1.4.3  edgeR_3.16.5         limma_3.30.13       
-[31] dplyr_0.5.0          testit_0.6           data.table_1.10.4   
-[34] biomaRt_2.30.0       workflowr_0.4.0      rmarkdown_1.3       
+ [1] cowplot_0.7.0          stringr_1.2.0          reshape2_1.4.2        
+ [4] Citrus_0.99            easyGgplot2_1.0.0.9000 pamr_1.55             
+ [7] survival_2.40-1        cluster_2.0.5          bladderbatch_1.12.0   
+[10] BiocInstaller_1.24.0   sva_3.22.0             genefilter_1.56.0     
+[13] mgcv_1.8-15            nlme_3.1-128           beeswarm_0.2.3        
+[16] org.Hs.eg.db_3.4.0     scales_0.4.1           vioplot_0.2           
+[19] sm_2.2-5.4             GO.db_3.4.0            GOstats_2.40.0        
+[22] graph_1.52.0           Category_2.40.0        Matrix_1.2-7.1        
+[25] AnnotationDbi_1.36.2   IRanges_2.8.1          S4Vectors_0.12.1      
+[28] Biobase_2.34.0         BiocGenerics_0.20.0    Humanzee_0.1.0        
+[31] ggplot2_2.2.1          VennDiagram_1.6.17     futile.logger_1.4.3   
+[34] edgeR_3.16.5           limma_3.30.13          dplyr_0.5.0           
+[37] testit_0.6             data.table_1.10.4      biomaRt_2.30.0        
+[40] workflowr_0.4.0        rmarkdown_1.3         
 
 loaded via a namespace (and not attached):
- [1] Rcpp_0.12.9            locfit_1.5-9.1         lattice_0.20-34       
- [4] assertthat_0.1         rprojroot_1.2          digest_0.6.12         
- [7] R6_2.2.0               plyr_1.8.4             futile.options_1.0.0  
-[10] backports_1.0.5        RSQLite_1.1-2          evaluate_0.10         
-[13] lazyeval_0.2.0         annotate_1.52.1        splines_3.3.2         
-[16] stringr_1.2.0          RCurl_1.95-4.8         munsell_0.4.3         
-[19] htmltools_0.3.5        tibble_1.2             XML_3.98-1.5          
-[22] AnnotationForge_1.16.1 bitops_1.0-6           RBGL_1.50.0           
-[25] xtable_1.8-2           GSEABase_1.36.0        gtable_0.2.0          
-[28] DBI_0.6                git2r_0.18.0           magrittr_1.5          
-[31] stringi_1.1.2          lambda.r_1.1.9         tools_3.3.2           
-[34] yaml_2.1.14            colorspace_1.3-2       memoise_1.0.0         
-[37] knitr_1.15.1          </code></pre>
+ [1] splines_3.3.2          assertthat_0.1         RBGL_1.50.0           
+ [4] yaml_2.1.14            RSQLite_1.1-2          backports_1.0.5       
+ [7] lattice_0.20-34        digest_0.6.12          colorspace_1.3-2      
+[10] htmltools_0.3.5        plyr_1.8.4             GSEABase_1.36.0       
+[13] XML_3.98-1.5           xtable_1.8-2           git2r_0.18.0          
+[16] tibble_1.2             annotate_1.52.1        lazyeval_0.2.0        
+[19] magrittr_1.5           memoise_1.0.0          evaluate_0.10         
+[22] tools_3.3.2            munsell_0.4.3          locfit_1.5-9.1        
+[25] lambda.r_1.1.9         RCurl_1.95-4.8         rstudioapi_0.6        
+[28] AnnotationForge_1.16.1 bitops_1.0-6           labeling_0.3          
+[31] gtable_0.2.0           DBI_0.6                R6_2.2.0              
+[34] knitr_1.15.1           rprojroot_1.2          futile.options_1.0.0  
+[37] stringi_1.1.2          Rcpp_0.12.9           </code></pre>
 </div>
 
 <hr>
