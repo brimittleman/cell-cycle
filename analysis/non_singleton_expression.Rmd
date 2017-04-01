@@ -138,7 +138,28 @@ mean_expression_sing <- plot((molecules_and_mean_order_new$molecules_mean_new) ,
 legend("topright", c("Single cell singletons", "All genes"), pch=c(16,16), col=c("cyan2", "gray70") )
 
 ```
+###Histograms of expression values 
 
+subset molecules and mean order for the non-singleton single cell only genes. make expression mean column a vector and create histogram 
+
+
+```{r}
+mean_exp_nonsing= molecules_and_mean_order_new[rownames(molecules_and_mean_order_new) %in% genes_not_singleton_ENSG, ]
+mean_exp_nonsing_vec= mean_exp_nonsing$molecules_mean_new
+mean_exp_nonsing_vec
+
+
+par(mfrow=c(1,2)) 
+
+
+hist(mean_exp_nonsing_vec, breaks=100, xlim=c(1,10), main="Mean expression for non singleton,\n single cell only genes", xlab="molecule count", col="violet")
+
+
+hist(mean_exp_nonsing_vec[mean_exp_nonsing_vec >1], breaks=50, xlim=c(1,10), main="Mean expression for non singleton, single cell only genes\n when mean expression is greater than 1 molecule", xlab="molecule count", col="darkviolet")
+
+max(mean_exp_nonsing_vec)
+mean(mean_exp_nonsing_vec)
+```
 
 
 ## Session information
